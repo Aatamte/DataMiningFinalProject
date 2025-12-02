@@ -1,0 +1,36 @@
+[project]
+name = "datamining2025"
+version = "0.1.0"
+description = "Efficient programmatic search using Small Language Models with Reinforcement Learning"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Core RL/Training
+    "verifiers>=0.1.7",
+    "torch>=2.0.0",
+    "transformers>=4.40.0",
+    "trl>=0.9.0",
+    "peft>=0.11.0",
+    "accelerate>=0.30.0",
+
+    # Vector DB & Embeddings
+    "chromadb>=0.5.0",
+    "sentence-transformers>=3.0.0",
+
+    # Data
+    "datasets>=2.19.0",
+
+    # Local LLM Inference
+    "ollama>=0.2.0",
+
+    # Utilities
+    "python-dotenv>=1.0.0",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu124" }
