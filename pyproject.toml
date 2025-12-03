@@ -25,6 +25,10 @@ dependencies = [
 
     # Utilities
     "python-dotenv>=1.0.0",
+    "matplotlib>=3.8.0",
+
+    # Experiment tracking
+    "wandb>=0.18.0",
 ]
 
 [[tool.uv.index]]
@@ -34,3 +38,11 @@ explicit = true
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu124" }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

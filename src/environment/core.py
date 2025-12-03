@@ -1,184 +1,22 @@
 """Core environment loading for wiki-search."""
 
-import asyncio
-from typing import cast
-
-import chromadb
-from chromadb.api.types import Embeddable, EmbeddingFunction
 from datasets import load_dataset
 
-import verifiers as vf
-from verifiers.rubrics.judge_rubric import JudgeRubric
 
-from src.embeddings import get_local_embedding_function
-from src.judge import get_local_judge_client, JUDGE_PROMPT
-from .tools import create_search_tools
+def load_questions(
+    dataset_name: str = "willcb/wiki-trivia-questions-v4",
+    split: str = "train",
+):
+    """Load just the questions dataset for training.
 
-
-_chroma_semaphore: asyncio.Semaphore | None = None
-
-
-def _get_chroma_semaphore() -> asyncio.Semaphore:
-    """Get or create the ChromaDB semaphore for limiting concurrent queries."""
-    global _chroma_semaphore
-    if _chroma_semaphore is None:
-        _chroma_semaphore = asyncio.Semaphore(100)
-    return _chroma_semaphore
-
-
-def _init_chroma(
-    collection,
-    page_id_to_title: dict[str, str],
-) -> None:
-    """Initialize ChromaDB index with page titles.
+    All tool execution goes through the Docker sandbox server.
+    This function only loads the questions - no corpus, no ChromaDB.
 
     Args:
-        collection: ChromaDB collection
-        page_id_to_title: Mapping of page IDs to titles
-    """
-    all_ids = list(page_id_to_title.keys())
-    existing: set[str] = set()
-
-    print("Checking existing ChromaDB entries...")
-    for i in range(0, len(all_ids), 500):
-        batch = all_ids[i : i + 500]
-        got = collection.get(ids=batch)
-        existing.update(got.get("ids", []))
-
-    missing = [pid for pid in all_ids if pid not in existing]
-
-    if missing:
-        print(f"Indexing {len(missing)} missing pages...")
-        documents = []
-        metadatas = []
-
-        for pid in missing:
-            title = str(page_id_to_title[pid]).strip()
-            if not title:
-                raise ValueError(f"Empty title for page_id {pid}")
-            documents.append(title)
-            metadatas.append({"title": title})
-
-        bs = 100
-        for i in range(0, len(missing), bs):
-            print(f"  Indexing batch {i // bs + 1}/{(len(missing) + bs - 1) // bs}")
-            collection.upsert(
-                ids=missing[i : i + bs],
-                documents=documents[i : i + bs],
-                metadatas=metadatas[i : i + bs],
-            )
-        print("Indexing complete.")
-    else:
-        print("All pages already indexed.")
-
-
-def load_environment(
-    max_turns: int = 10,
-    judge_model: str = "qwen2.5:7b",
-    judge_base_url: str = "http://localhost:11434/v1",
-    embed_model: str = "all-MiniLM-L6-v2",
-    embed_device: str = "cuda",
-    corpus_dataset: str = "willcb/rare-wiki-pages",
-    corpus_split: str = "train",
-    questions_dataset: str = "willcb/wiki-trivia-questions-v4",
-    questions_split: str = "train",
-    chroma_db_dir: str = "data/.chroma_db",
-) -> vf.Environment:
-    """Load the wiki-search environment with local components.
-
-    Args:
-        max_turns: Maximum number of tool-use turns per episode.
-        judge_model: Ollama model name for judging answers.
-        judge_base_url: Base URL for judge API (Ollama).
-        embed_model: Sentence-transformers model for embeddings.
-        embed_device: Device for embedding model ('cuda' or 'cpu').
-        corpus_dataset: HuggingFace dataset ID for wiki pages.
-        corpus_split: Split to use from corpus dataset.
-        questions_dataset: HuggingFace dataset ID for questions.
-        questions_split: Split to use from questions dataset.
-        chroma_db_dir: Directory for ChromaDB persistent storage.
+        dataset_name: HuggingFace dataset ID for questions
+        split: Dataset split to use
 
     Returns:
-        A verifiers Environment ready for training/evaluation.
+        HuggingFace dataset with questions
     """
-    # Set up local embedding function
-    local_ef = get_local_embedding_function(
-        model_name=embed_model,
-        device=embed_device,
-    )
-
-    # Initialize ChromaDB with local embeddings
-    client = chromadb.PersistentClient(path=chroma_db_dir)
-    collection = client.get_or_create_collection(
-        name="wiki_titles",
-        embedding_function=cast(EmbeddingFunction[Embeddable], local_ef),
-    )
-
-    # Load corpus into memory
-    print(f"Loading corpus from {corpus_dataset}...")
-    corpus = load_dataset(corpus_dataset, split=corpus_split)
-    page_id_to_title: dict[str, str] = {}
-    page_id_to_content: dict[str, str] = {}
-
-    for row in corpus:
-        row = cast(dict, row)
-        pid = row["id"]
-        title = row["title"]
-        content = row["content"]
-        page_id_to_title[pid] = title
-        page_id_to_content[pid] = content
-
-    print(f"Loaded {len(page_id_to_title)} pages into memory.")
-
-    # Initialize ChromaDB index
-    _init_chroma(collection, page_id_to_title)
-
-    # Create tools
-    tools = create_search_tools(
-        collection=collection,
-        page_id_to_title=page_id_to_title,
-        page_id_to_content=page_id_to_content,
-        semaphore=_get_chroma_semaphore(),
-    )
-
-    # Set up parser and dataset
-    parser = vf.Parser()
-    dataset = load_dataset(questions_dataset, split=questions_split)
-
-    # Set up rubrics
-    tool_rubric = vf.ToolRubric(tools=tools)
-
-    # Set up judge
-    judge_client = get_local_judge_client(base_url=judge_base_url)
-    judge_rubric = JudgeRubric(
-        judge_client=judge_client,
-        judge_model=judge_model,
-        parser=parser,
-        judge_prompt=JUDGE_PROMPT,
-    )
-
-    async def judge_reward_func(judge, prompt, completion, answer, state) -> float:
-        judge_response = await judge(prompt, completion, answer, state)
-        if "yes" in judge_response.lower():
-            return 1.0
-        else:
-            return 0.0
-
-    judge_rubric.add_reward_func(judge_reward_func, weight=1.0)
-
-    # Combine rubrics
-    rubric = vf.RubricGroup(rubrics=[tool_rubric, judge_rubric])
-
-    # Create environment
-    system_prompt = "Use the provided Wikipedia search tools to help answer questions."
-
-    vf_env = vf.ToolEnv(
-        dataset=dataset,
-        system_prompt=system_prompt,
-        parser=parser,
-        rubric=rubric,
-        tools=tools,
-        max_turns=max_turns,
-    )
-
-    return vf_env
+    return load_dataset(dataset_name, split=split)

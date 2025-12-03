@@ -60,14 +60,15 @@ class HealthResponse(BaseModel):
 
 # --- Tool implementations ---
 
-def search_pages(query: str) -> list[dict]:
+def search_pages(query: str, n: int = 5) -> list[dict]:
     """Search for relevant Wikipedia pages by title similarity.
 
     Args:
         query: Search query string
+        n: Number of results to return (default 5)
 
     Returns:
-        List of {page_id, title} dicts for top 10 matches
+        List of {page_id, title} dicts for top n matches
     """
     global chroma_collection, embed_model
 
@@ -76,7 +77,7 @@ def search_pages(query: str) -> list[dict]:
 
     results = chroma_collection.query(
         query_embeddings=query_embedding,
-        n_results=10
+        n_results=n
     )
 
     output = []
@@ -246,6 +247,9 @@ def execute_code(code: str, timeout: float) -> dict[str, Any]:
         "NameError": NameError,
         "AttributeError": AttributeError,
         "RuntimeError": RuntimeError,
+        "ImportError": ImportError,
+        # Allow all imports - Docker provides sandboxing
+        "__import__": __import__,
     }
 
     exec_globals = {

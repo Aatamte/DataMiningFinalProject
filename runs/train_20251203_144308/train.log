@@ -1,0 +1,45 @@
+2025-12-03 14:43:08,462 | INFO | ============================================================
+2025-12-03 14:43:08,463 | INFO | SLM-RL TRAINING
+2025-12-03 14:43:08,463 | INFO | ============================================================
+2025-12-03 14:43:08,463 | INFO | Run: train_20251203_144308
+2025-12-03 14:43:08,463 | INFO | Run dir: runs\train_20251203_144308
+2025-12-03 14:43:08,463 | INFO | Model: Qwen/Qwen2.5-3B-Instruct
+2025-12-03 14:43:08,463 | INFO | Samples: 2
+2025-12-03 14:43:08,463 | INFO | Epochs: 1
+2025-12-03 14:43:08,463 | INFO | Max turns: 3
+2025-12-03 14:43:08,463 | INFO | Rollouts: 2
+2025-12-03 14:43:08,463 | INFO | LR: 1e-05
+2025-12-03 14:43:08,463 | INFO | ============================================================
+2025-12-03 14:43:08,464 | INFO | 
+[1/4] Loading environment...
+2025-12-03 14:43:12,145 | INFO | 
+[2/4] Loading model: Qwen/Qwen2.5-3B-Instruct...
+2025-12-03 14:45:03,393 | INFO |   Device: cuda
+2025-12-03 14:45:03,394 | INFO |   Parameters: 3,085,938,688
+2025-12-03 14:45:03,395 | INFO | 
+[3/4] Setting up judge...
+2025-12-03 14:45:03,593 | INFO |   Judge model: qwen2.5:7b
+2025-12-03 14:45:03,595 | INFO |   Training samples: 2
+2025-12-03 14:45:03,595 | INFO | 
+[4/4] Training for 1 epoch(s)...
+2025-12-03 14:45:03,595 | INFO | 
+--- Epoch 1/1 ---
+2025-12-03 14:45:03,595 | INFO | 
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+2025-12-03 14:45:03,595 | INFO |   Expected: Canvas bag replaced with nylon...
+2025-12-03 14:45:23,926 | INFO |     Rollout 1: reward=0, answer='Based on the output, it appear...'
+2025-12-03 14:45:43,476 | INFO |     Rollout 2: reward=0, answer='Based on the search results, i...'
+2025-12-03 14:46:33,056 | INFO |     Loss: 1.0728
+2025-12-03 14:46:34,063 | INFO | 
+  Q2: What is the name of the demon possessing the death-row inmat...
+2025-12-03 14:46:34,063 | INFO |   Expected: Nefarious...
+2025-12-03 14:46:57,882 | INFO |     Rollout 1: reward=0, answer='Given the error message and th...'
+2025-12-03 14:47:15,200 | INFO |     Rollout 2: reward=0, answer='From the search results, it se...'
+2025-12-03 14:48:15,483 | INFO |     Loss: 0.6716
+2025-12-03 14:48:17,175 | INFO | 
+  Epoch 1 avg reward: 0.00
+2025-12-03 14:48:17,176 | INFO | 
+============================================================
+2025-12-03 14:48:17,176 | INFO | TRAINING COMPLETE!
+2025-12-03 14:48:17,176 | INFO | ============================================================
+2025-12-03 14:48:17,176 | INFO | Metrics file: runs\train_20251203_144308\metrics.json

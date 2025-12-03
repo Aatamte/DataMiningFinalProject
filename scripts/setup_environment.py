@@ -34,7 +34,6 @@ load_dotenv()
 CORPUS_DATASET = "willcb/rare-wiki-pages"
 CORPUS_SPLIT = "train"
 EMBED_MODEL = "all-MiniLM-L6-v2"
-DOCKER_IMAGE = "slm-execution-env"
 
 # Dev mode - limit corpus size for faster testing
 DEV_MODE = os.environ.get("DEV", "").lower() in ("1", "true", "yes")
@@ -148,20 +147,13 @@ def build_chroma_index(corpus: list[dict], data_dir: Path):
 
 def build_docker_image():
     """Build the Docker image for the execution environment."""
-    print(f"\nBuilding Docker image: {DOCKER_IMAGE}...")
+    print(f"\nBuilding Docker image via docker-compose...")
 
-    docker_dir = Path(__file__).parent.parent / "docker"
+    compose_file = Path(__file__).parent.parent / "docker" / "docker-compose.yml"
 
-    # Stream output directly to console for visibility
-    # Use --no-cache to ensure server.py changes are picked up
+    # Use docker-compose build to ensure consistency with how we run the container
     result = subprocess.run(
-        [
-            "docker", "build",
-            "--no-cache",
-            "-t", DOCKER_IMAGE,
-            "-f", str(docker_dir / "Dockerfile.sandbox"),
-            str(docker_dir),
-        ],
+        ["docker-compose", "-f", str(compose_file), "build", "--no-cache"],
     )
 
     if result.returncode != 0:
@@ -239,11 +231,7 @@ def main():
     print("SETUP COMPLETE!")
     print("=" * 60)
     print("\nTo start the execution environment:")
-    default_data_dir = Path("data").resolve()
-    if data_dir != default_data_dir and not args.docker_only:
-        print(f"  DATA_DIR={data_dir} docker-compose -f docker/docker-compose.yml up -d")
-    else:
-        print("  docker-compose -f docker/docker-compose.yml up -d")
+    print("  uv run python scripts/run_environment.py")
     print("\nTo check status:")
     print("  curl http://localhost:8080/health")
 

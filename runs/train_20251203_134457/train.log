@@ -1,0 +1,46 @@
+2025-12-03 13:44:57,530 | INFO | ============================================================
+2025-12-03 13:44:57,530 | INFO | SLM-RL TRAINING
+2025-12-03 13:44:57,530 | INFO | ============================================================
+2025-12-03 13:44:57,530 | INFO | Run: train_20251203_134457
+2025-12-03 13:44:57,530 | INFO | Run dir: runs\train_20251203_134457
+2025-12-03 13:44:57,530 | INFO | Model: Qwen/Qwen2.5-0.5B-Instruct
+2025-12-03 13:44:57,530 | INFO | Samples: 2
+2025-12-03 13:44:57,530 | INFO | Epochs: 1
+2025-12-03 13:44:57,530 | INFO | Max turns: 3
+2025-12-03 13:44:57,530 | INFO | Rollouts: 1
+2025-12-03 13:44:57,530 | INFO | LR: 1e-05
+2025-12-03 13:44:57,530 | INFO | ============================================================
+2025-12-03 13:44:57,531 | INFO | 
+[1/4] Loading environment...
+2025-12-03 13:45:01,927 | INFO |   Tools: ['search_pages', 'view_sections', 'read_section']
+2025-12-03 13:45:01,927 | INFO | 
+[2/4] Loading model: Qwen/Qwen2.5-0.5B-Instruct...
+2025-12-03 13:45:03,078 | INFO |   Device: cuda
+2025-12-03 13:45:03,079 | INFO |   Parameters: 494,032,768
+2025-12-03 13:45:03,079 | INFO | 
+[3/4] Setting up judge...
+2025-12-03 13:45:03,281 | INFO |   Judge model: qwen2.5:7b
+2025-12-03 13:45:03,283 | INFO |   Training samples: 2
+2025-12-03 13:45:03,283 | INFO | 
+[4/4] Training for 1 epoch(s)...
+2025-12-03 13:45:03,283 | INFO | 
+--- Epoch 1/1 ---
+2025-12-03 13:45:03,283 | INFO | 
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+2025-12-03 13:45:03,283 | INFO |   Expected: Canvas bag replaced with nylon...
+2025-12-03 13:45:19,229 | INFO |     Rollout 1: reward=0, answer='Tool result:
+
+* The Power Armo...'
+2025-12-03 13:45:19,695 | INFO |     Loss: 0.7709
+2025-12-03 13:45:19,718 | INFO | 
+  Q2: What is the name of the demon possessing the death-row inmat...
+2025-12-03 13:45:19,718 | INFO |   Expected: Nefarious...
+2025-12-03 13:45:23,440 | INFO |     Rollout 1: reward=1, answer='Nefarious...'
+2025-12-03 13:45:23,593 | INFO |     Loss: -0.6055
+2025-12-03 13:45:23,601 | INFO | 
+  Epoch 1 avg reward: 0.50
+2025-12-03 13:45:23,601 | INFO | 
+============================================================
+2025-12-03 13:45:23,601 | INFO | TRAINING COMPLETE!
+2025-12-03 13:45:23,601 | INFO | ============================================================
+2025-12-03 13:45:23,601 | INFO | Metrics file: runs\train_20251203_134457\metrics.json

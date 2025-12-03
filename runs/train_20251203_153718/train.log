@@ -1,0 +1,46 @@
+2025-12-03 15:37:18,561 | INFO | ============================================================
+2025-12-03 15:37:18,562 | INFO | SLM-RL TRAINING
+2025-12-03 15:37:18,562 | INFO | ============================================================
+2025-12-03 15:37:18,562 | INFO | Run: train_20251203_153718
+2025-12-03 15:37:18,562 | INFO | Run dir: runs\train_20251203_153718
+2025-12-03 15:37:18,562 | INFO | Model: Qwen/Qwen2.5-3B-Instruct
+2025-12-03 15:37:18,562 | INFO | Samples: 2
+2025-12-03 15:37:18,562 | INFO | Epochs: 1
+2025-12-03 15:37:18,562 | INFO | Max turns: 3
+2025-12-03 15:37:18,562 | INFO | Rollouts: 2
+2025-12-03 15:37:18,562 | INFO | LR: 1e-05
+2025-12-03 15:37:18,562 | INFO | ============================================================
+2025-12-03 15:37:18,563 | INFO | wandb disabled (set WANDB_PROJECT to enable)
+2025-12-03 15:37:18,563 | INFO | 
+[1/4] Loading questions...
+2025-12-03 15:37:20,271 | INFO | 
+[2/4] Loading model: Qwen/Qwen2.5-3B-Instruct...
+2025-12-03 15:37:23,941 | INFO |   Device: cuda
+2025-12-03 15:37:23,941 | INFO |   Parameters: 3,085,938,688
+2025-12-03 15:37:23,942 | INFO | 
+[3/4] Setting up judge...
+2025-12-03 15:37:24,167 | INFO |   Judge model: qwen2.5:7b
+2025-12-03 15:37:24,168 | INFO |   Training samples: 2
+2025-12-03 15:37:24,168 | INFO | 
+[4/4] Training for 1 epoch(s)...
+2025-12-03 15:37:24,168 | INFO | 
+--- Epoch 1/1 ---
+2025-12-03 15:37:24,168 | INFO | 
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+2025-12-03 15:37:24,169 | INFO |   Expected: Canvas bag replaced with nylon...
+2025-12-03 15:37:45,779 | INFO |     Rollout 1: reward=0, answer='It seems there was an error wi...'
+2025-12-03 15:38:11,872 | INFO |     Rollout 2: reward=0, answer='It seems there was an issue wi...'
+2025-12-03 15:38:30,678 | INFO |     Loss: 1.2979
+2025-12-03 15:38:31,238 | INFO | 
+  Q2: What is the name of the demon possessing the death-row inmat...
+2025-12-03 15:38:31,238 | INFO |   Expected: Nefarious...
+2025-12-03 15:38:51,959 | INFO |     Rollout 1: reward=0, answer='It appears that the exact titl...'
+2025-12-03 15:39:15,432 | INFO |     Rollout 2: reward=0, answer='iting it to Martin. Moss tells...'
+2025-12-03 15:40:54,615 | INFO |     Loss: 0.8407
+2025-12-03 15:40:56,318 | INFO | 
+  Epoch 1 avg reward: 0.00
+2025-12-03 15:40:56,319 | INFO | 
+============================================================
+2025-12-03 15:40:56,319 | INFO | TRAINING COMPLETE!
+2025-12-03 15:40:56,319 | INFO | ============================================================
+2025-12-03 15:40:56,319 | INFO | Metrics file: runs\train_20251203_153718\metrics.json

@@ -2,22 +2,35 @@
 
 import json
 import logging
-import os
+from pathlib import Path
 
 
-def setup_logging(output_dir: str, run_name: str) -> tuple[logging.Logger, str]:
+def setup_run_dir(run_name: str, base_dir: str = "runs") -> Path:
+    """Create run directory structure.
+
+    Args:
+        run_name: Name for this training run
+        base_dir: Base directory for all runs
+
+    Returns:
+        Path to the run directory
+    """
+    run_dir = Path(base_dir) / run_name
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "logs").mkdir(exist_ok=True)
+    return run_dir
+
+
+def setup_logging(run_dir: Path) -> tuple[logging.Logger, Path]:
     """Set up logging to console and file.
 
     Args:
-        output_dir: Directory for log files
-        run_name: Name for this training run
+        run_dir: Directory for this run
 
     Returns:
         Tuple of (logger, log_file_path)
     """
-    os.makedirs(output_dir, exist_ok=True)
-
-    log_file = os.path.join(output_dir, f"{run_name}.log")
+    log_file = run_dir / "train.log"
 
     # Create logger
     logger = logging.getLogger("train")
@@ -47,15 +60,13 @@ def setup_logging(output_dir: str, run_name: str) -> tuple[logging.Logger, str]:
 class MetricsTracker:
     """Track training metrics across steps and epochs."""
 
-    def __init__(self, output_dir: str, run_name: str):
+    def __init__(self, run_dir: Path):
         """Initialize metrics tracker.
 
         Args:
-            output_dir: Directory for saving metrics
-            run_name: Name for this training run
+            run_dir: Directory for this run
         """
-        self.output_dir = output_dir
-        self.run_name = run_name
+        self.run_dir = run_dir
         self.metrics = {
             "steps": [],
             "losses": [],
@@ -84,14 +95,13 @@ class MetricsTracker:
         """
         self.metrics["epoch_avg_rewards"].append(avg_reward)
 
-    def save(self) -> str:
+    def save(self) -> Path:
         """Save metrics to JSON file.
 
         Returns:
             Path to the saved metrics file
         """
-        os.makedirs(self.output_dir, exist_ok=True)
-        metrics_file = os.path.join(self.output_dir, f"{self.run_name}_metrics.json")
+        metrics_file = self.run_dir / "metrics.json"
         with open(metrics_file, 'w') as f:
             json.dump(self.metrics, f, indent=2)
         return metrics_file

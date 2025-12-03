@@ -1,0 +1,43 @@
+2025-12-03 14:25:35,572 | INFO | ============================================================
+2025-12-03 14:25:35,572 | INFO | SLM-RL TRAINING
+2025-12-03 14:25:35,572 | INFO | ============================================================
+2025-12-03 14:25:35,572 | INFO | Run: train_20251203_142535
+2025-12-03 14:25:35,572 | INFO | Run dir: runs\train_20251203_142535
+2025-12-03 14:25:35,573 | INFO | Model: Qwen/Qwen2.5-0.5B-Instruct
+2025-12-03 14:25:35,573 | INFO | Samples: 2
+2025-12-03 14:25:35,573 | INFO | Epochs: 1
+2025-12-03 14:25:35,573 | INFO | Max turns: 3
+2025-12-03 14:25:35,573 | INFO | Rollouts: 1
+2025-12-03 14:25:35,573 | INFO | LR: 1e-05
+2025-12-03 14:25:35,573 | INFO | ============================================================
+2025-12-03 14:25:35,573 | INFO | 
+[1/4] Loading environment...
+2025-12-03 14:25:39,533 | INFO | 
+[2/4] Loading model: Qwen/Qwen2.5-0.5B-Instruct...
+2025-12-03 14:25:40,632 | INFO |   Device: cuda
+2025-12-03 14:25:40,632 | INFO |   Parameters: 494,032,768
+2025-12-03 14:25:40,633 | INFO | 
+[3/4] Setting up judge...
+2025-12-03 14:25:40,840 | INFO |   Judge model: qwen2.5:7b
+2025-12-03 14:25:40,842 | INFO |   Training samples: 2
+2025-12-03 14:25:40,842 | INFO | 
+[4/4] Training for 1 epoch(s)...
+2025-12-03 14:25:40,842 | INFO | 
+--- Epoch 1/1 ---
+2025-12-03 14:25:40,842 | INFO | 
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+2025-12-03 14:25:40,842 | INFO |   Expected: Canvas bag replaced with nylon...
+2025-12-03 14:25:55,930 | INFO |     Rollout 1: reward=0, answer='It seems there was an error be...'
+2025-12-03 14:25:56,289 | INFO |     Loss: 0.9813
+2025-12-03 14:25:56,305 | INFO | 
+  Q2: What is the name of the demon possessing the death-row inmat...
+2025-12-03 14:25:56,305 | INFO |   Expected: Nefarious...
+2025-12-03 14:26:04,834 | INFO |     Rollout 1: reward=0, answer='It seems there was an error be...'
+2025-12-03 14:26:05,119 | INFO |     Loss: 0.8129
+2025-12-03 14:26:05,135 | INFO | 
+  Epoch 1 avg reward: 0.00
+2025-12-03 14:26:05,135 | INFO | 
+============================================================
+2025-12-03 14:26:05,136 | INFO | TRAINING COMPLETE!
+2025-12-03 14:26:05,136 | INFO | ============================================================
+2025-12-03 14:26:05,136 | INFO | Metrics file: runs\train_20251203_142535\metrics.json

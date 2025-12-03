@@ -1,16 +1,19 @@
 """Core Trainer class for SLM-RL training."""
 
-from dataclasses import dataclass, field
+import os
+from dataclasses import dataclass, asdict
 from datetime import datetime
 
 import torch
 from torch.optim import AdamW
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.environment import load_environment
+from src.environment import load_questions, SandboxClient
 from src.judge import get_local_judge_client
-from .metrics import MetricsTracker, setup_logging
-from .episode import run_episode, get_judge_reward, compute_reinforce_loss
+from src.llm_logger import LLMLogger, set_llm_logger
+from src.agent import Agent, AgentConfig
+from .metrics import MetricsTracker, setup_logging, setup_run_dir
+from .episode import get_judge_reward, compute_reinforce_loss
 
 
 @dataclass
@@ -30,7 +33,6 @@ class TrainerConfig:
     judge_model: str = "qwen2.5:7b"
 
     # Paths
-    chroma_db_dir: str = "data/.chroma_db"
     output_dir: str = "outputs/checkpoints"
 
 
@@ -58,32 +60,36 @@ class Trainer:
         self.model = None
         self.tokenizer = None
         self.optimizer = None
-        self.env = None
+        self.dataset = None
         self.judge_client = None
         self.logger = None
         self.metrics = None
+        self.llm_logger = None
         self.device = None
         self.run_name = None
+        self.run_dir = None
+        self.use_wandb = False
 
     def setup(self) -> None:
         """Initialize all components for training."""
         cfg = self.config
 
-        # Setup logging
+        # Setup run directory and logging
         self.run_name = f"train_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        self.logger, log_file = setup_logging(cfg.output_dir, self.run_name)
-        self.metrics = MetricsTracker(cfg.output_dir, self.run_name)
+        self.run_dir = setup_run_dir(self.run_name)
+        self.logger, log_file = setup_logging(self.run_dir)
+        self.metrics = MetricsTracker(self.run_dir)
+
+        # Setup LLM call logging
+        self.llm_logger = LLMLogger(self.run_dir / "logs", "llm")
+        set_llm_logger(self.llm_logger)
 
         self._log_header(log_file)
+        self._setup_wandb()
 
-        # Load environment
-        self.logger.info("\n[1/4] Loading environment...")
-        self.env = load_environment(
-            max_turns=cfg.max_turns,
-            judge_model=cfg.judge_model,
-            chroma_db_dir=cfg.chroma_db_dir,
-        )
-        self.logger.info(f"  Tools: {[t.__name__ for t in self.env.tools]}")
+        # Load questions dataset (tools executed via Docker sandbox)
+        self.logger.info("\n[1/4] Loading questions...")
+        self.dataset = load_questions()
 
         # Load model
         self.logger.info(f"\n[2/4] Loading model: {cfg.model_name}...")
@@ -109,14 +115,14 @@ class Trainer:
         self.judge_client = get_local_judge_client()
         self.logger.info(f"  Judge model: {cfg.judge_model}")
 
-    def _log_header(self, log_file: str) -> None:
+    def _log_header(self, log_file) -> None:
         """Log training header info."""
         cfg = self.config
         self.logger.info("=" * 60)
         self.logger.info("SLM-RL TRAINING")
         self.logger.info("=" * 60)
         self.logger.info(f"Run: {self.run_name}")
-        self.logger.info(f"Log file: {log_file}")
+        self.logger.info(f"Run dir: {self.run_dir}")
         self.logger.info(f"Model: {cfg.model_name}")
         self.logger.info(f"Samples: {cfg.num_samples}")
         self.logger.info(f"Epochs: {cfg.num_epochs}")
@@ -125,19 +131,58 @@ class Trainer:
         self.logger.info(f"LR: {cfg.lr}")
         self.logger.info("=" * 60)
 
-    async def train(self) -> None:
-        """Run the training loop."""
+    def _setup_wandb(self) -> None:
+        """Initialize wandb if WANDB_PROJECT env var is set."""
+        wandb_project = os.environ.get("WANDB_PROJECT")
+        if not wandb_project:
+            self.logger.info("wandb disabled (set WANDB_PROJECT to enable)")
+            return
+
+        import wandb
+
+        wandb_entity = os.environ.get("WANDB_ENTITY")
+        wandb.init(
+            project=wandb_project,
+            entity=wandb_entity,
+            name=self.run_name,
+            config=asdict(self.config),
+        )
+        self.use_wandb = True
+        self.logger.info(f"wandb enabled: {wandb_project}/{self.run_name}")
+
+    def _log_wandb(self, metrics: dict, step: int | None = None) -> None:
+        """Log metrics to wandb if enabled."""
+        if not self.use_wandb:
+            return
+        import wandb
+        wandb.log(metrics, step=step)
+
+    async def train(self, live_plot: bool = False) -> None:
+        """Run the training loop.
+
+        Args:
+            live_plot: If True, update plot after each step
+        """
         if self.model is None:
             self.setup()
 
         cfg = self.config
 
-        # Get tools
-        tools = self.env.tools
-        tool_dict = {t.__name__: t for t in tools}
+        # Setup live plotting
+        plot_func = None
+        if live_plot:
+            from scripts.plot_metrics import plot_metrics
+            plot_path = self.run_dir / "plots.png"
+
+            def update_plot():
+                self.metrics.save()
+                plot_metrics(self.metrics.metrics, output_path=plot_path, show=False)
+
+            plot_func = update_plot
+            self.logger.info(f"Live plotting enabled: {plot_path}")
 
         # Create subset
-        subset = self.env.dataset.select(range(min(cfg.num_samples, len(self.env.dataset))))
+        subset = self.dataset.select(range(min(cfg.num_samples, len(self.dataset))))
         self.logger.info(f"  Training samples: {len(subset)}")
 
         self.logger.info(f"\n[4/4] Training for {cfg.num_epochs} epoch(s)...")
@@ -154,26 +199,32 @@ class Trainer:
                 self.logger.info(f"  Expected: {answer[:40]}...")
 
                 # Collect rollouts for this question
-                rollouts = []
+                episodes = []
                 rewards = []
 
-                for r in range(cfg.num_rollouts):
-                    # Run episode
-                    trajectory, final_answer = await run_episode(
-                        self.model, self.tokenizer, question, answer,
-                        tools, tool_dict, cfg.max_turns, cfg.max_new_tokens, self.device
+                async with SandboxClient() as sandbox:
+                    # Create agent for this sandbox session
+                    agent_config = AgentConfig(
+                        max_turns=cfg.max_turns,
+                        max_new_tokens=cfg.max_new_tokens,
                     )
+                    agent = Agent(self.model, self.tokenizer, sandbox, agent_config)
 
-                    # Get reward from judge
-                    reward = await get_judge_reward(
-                        self.judge_client, cfg.judge_model,
-                        question, answer, final_answer
-                    )
+                    for r in range(cfg.num_rollouts):
+                        # Run episode using agent
+                        episode = await agent.run(question)
 
-                    rollouts.append(trajectory)
-                    rewards.append(reward)
+                        # Get reward from judge
+                        reward = await get_judge_reward(
+                            self.judge_client, cfg.judge_model,
+                            question, answer, episode.final_answer or ""
+                        )
 
-                    self.logger.info(f"    Rollout {r + 1}: reward={reward:.0f}, answer='{final_answer[:30]}...'")
+                        episodes.append(episode)
+                        rewards.append(reward)
+
+                        answer_preview = (episode.final_answer or "")[:30]
+                        self.logger.info(f"    Rollout {r + 1}: reward={reward:.0f}, answer='{answer_preview}...'")
 
                 epoch_rewards.extend(rewards)
 
@@ -182,7 +233,7 @@ class Trainer:
                 self.optimizer.zero_grad()
 
                 loss = compute_reinforce_loss(
-                    self.model, self.tokenizer, rollouts, rewards, self.device
+                    self.model, self.tokenizer, episodes, rewards, self.device
                 )
                 loss.backward()
                 self.optimizer.step()
@@ -192,17 +243,33 @@ class Trainer:
 
                 # Track metrics
                 self.metrics.log_step(loss_val, rewards)
+                self._log_wandb({
+                    "loss": loss_val,
+                    "reward_mean": sum(rewards) / len(rewards),
+                    "reward_max": max(rewards),
+                    "reward_min": min(rewards),
+                })
+
+                # Update live plot
+                if plot_func:
+                    plot_func()
 
                 # Clear memory
-                del rollouts, rewards, loss
+                del episodes, rewards, loss
                 torch.cuda.empty_cache()
 
             avg_reward = sum(epoch_rewards) / len(epoch_rewards) if epoch_rewards else 0
             self.metrics.log_epoch(avg_reward)
+            self._log_wandb({"epoch": epoch + 1, "epoch_reward_avg": avg_reward})
             self.logger.info(f"\n  Epoch {epoch + 1} avg reward: {avg_reward:.2f}")
 
         # Save metrics
         metrics_file = self.metrics.save()
+
+        # Finish wandb run
+        if self.use_wandb:
+            import wandb
+            wandb.finish()
 
         self.logger.info("\n" + "=" * 60)
         self.logger.info("TRAINING COMPLETE!")

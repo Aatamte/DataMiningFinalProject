@@ -121,4 +121,8 @@ SANDBOX_PORT=8080
 DATA_DIR=./data
 DOCKER_MEMORY_LIMIT=4G
 DOCKER_CPU_LIMIT=2.0
+
+# Weights & Biases (optional - set to enable logging)
+WANDB_PROJECT=DataMiningSLMSearch
+WANDB_ENTITY=personal-org-aaron-tamte
 ```

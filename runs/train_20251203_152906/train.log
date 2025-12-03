@@ -1,0 +1,30 @@
+2025-12-03 15:29:06,848 | INFO | ============================================================
+2025-12-03 15:29:06,848 | INFO | SLM-RL TRAINING
+2025-12-03 15:29:06,848 | INFO | ============================================================
+2025-12-03 15:29:06,848 | INFO | Run: train_20251203_152906
+2025-12-03 15:29:06,848 | INFO | Run dir: runs\train_20251203_152906
+2025-12-03 15:29:06,848 | INFO | Model: Qwen/Qwen2.5-3B-Instruct
+2025-12-03 15:29:06,849 | INFO | Samples: 2
+2025-12-03 15:29:06,849 | INFO | Epochs: 1
+2025-12-03 15:29:06,849 | INFO | Max turns: 3
+2025-12-03 15:29:06,849 | INFO | Rollouts: 2
+2025-12-03 15:29:06,849 | INFO | LR: 1e-05
+2025-12-03 15:29:06,849 | INFO | ============================================================
+2025-12-03 15:29:06,849 | INFO | 
+[1/4] Loading environment...
+2025-12-03 15:29:12,427 | INFO | 
+[2/4] Loading model: Qwen/Qwen2.5-3B-Instruct...
+2025-12-03 15:29:17,639 | INFO |   Device: cuda
+2025-12-03 15:29:17,640 | INFO |   Parameters: 3,085,938,688
+2025-12-03 15:29:17,641 | INFO | 
+[3/4] Setting up judge...
+2025-12-03 15:29:17,847 | INFO |   Judge model: qwen2.5:7b
+2025-12-03 15:29:17,848 | INFO |   Training samples: 2
+2025-12-03 15:29:17,849 | INFO | 
+[4/4] Training for 1 epoch(s)...
+2025-12-03 15:29:17,849 | INFO | 
+--- Epoch 1/1 ---
+2025-12-03 15:29:17,849 | INFO | 
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+2025-12-03 15:29:17,849 | INFO |   Expected: Canvas bag replaced with nylon...
+2025-12-03 15:29:47,164 | INFO |     Rollout 1: reward=0, answer='Based on the search results, t...'

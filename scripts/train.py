@@ -5,6 +5,9 @@ Start with tiny params to verify everything works:
 
 Then scale up:
     uv run python scripts/train.py --num_samples 100 --num_epochs 3
+
+With live plotting:
+    uv run python scripts/train.py --live-plot
 """
 
 import argparse
@@ -39,10 +42,12 @@ def parse_args() -> argparse.Namespace:
                         help="Ollama model for judging")
 
     # Paths
-    parser.add_argument("--chroma_db_dir", type=str, default="data/.chroma_db",
-                        help="ChromaDB directory")
     parser.add_argument("--output_dir", type=str, default="outputs/checkpoints",
                         help="Output directory for checkpoints")
+
+    # Live plotting
+    parser.add_argument("--live-plot", action="store_true",
+                        help="Update plot after each step")
 
     return parser.parse_args()
 
@@ -60,13 +65,12 @@ async def main_async() -> None:
         max_new_tokens=args.max_new_tokens,
         model_name=args.model_name,
         judge_model=args.judge_model,
-        chroma_db_dir=args.chroma_db_dir,
         output_dir=args.output_dir,
     )
 
     trainer = Trainer(config)
     trainer.setup()
-    await trainer.train()
+    await trainer.train(live_plot=args.live_plot)
 
 
 def main() -> None:
