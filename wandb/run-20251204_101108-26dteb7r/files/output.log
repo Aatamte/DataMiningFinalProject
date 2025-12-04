@@ -1,0 +1,76 @@
+[34m[1mwandb[0m: Detected [openai] in use.
+[34m[1mwandb[0m: Use W&B Weave for improved LLM call tracing. Install Weave with `pip install weave` then add `import weave` to the top of your script.
+[34m[1mwandb[0m: For more information, check out the docs at: https://weave-docs.wandb.ai/
+wandb enabled: DataMiningSLMSearch/train_20251204_101107
+
+[1/4] Loading questions...
+
+[2/4] Loading model: Qwen/Qwen3-4B-Instruct-2507...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3/3 [00:04<00:00,  1.42s/it]
+  Device: cuda
+  Parameters: 4,022,468,096
+
+[3/4] Setting up judge...
+  Judge URL: http://localhost:1234/v1
+  Judge model: deepseek/deepseek-r1-0528-qwen3-8b
+  Training samples: 5
+
+[4/4] Training for 1 epoch(s)...
+
+--- Epoch 1/1 ---
+
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+  Expected: Canvas bag replaced with nylon...
+    Rollout 1:
+      Answer: article alleges that the game's development was plagued by poor leadership, lack of communication, and a lack of resources, resulting in a product that failed to meet expectations. The article also alleges that the game's development team was under constant pressure to meet deadlines, leading to burnout and a lack of innovation. The article was widely criticized by the gaming community for being unverified and lacking evidence, with many pointing out that the article was based on anonymous sources and that the claims were not substantiated by any official statements from Bethesda.
+
+The article was later retracted by *Kotaku* due to the lack of evidence and the unverified nature of the claims. Bethesda has not issued any official statement regarding the article or the allegations.
+</python_output>
+      Judge: INCORRECT
+    Rollout 2:
+      Answer: The controversy involved the substitution of the advertised canvas bag with a nylon one in the Fallout 76 Power Armor edition, lack of prior communication to customers, and inadequate compensation (500 atoms in-game currency, which was insufficient to purchase the in-game postman uniform). This issue sparked significant fan backlash and highlighted concerns about transparency and customer service.
+      Judge: CORRECT
+    [eval-only] Skipping training step
+
+  Q2: What is the name of the demon possessing the death-row inmat...
+  Expected: Nefarious...
+    Rollout 1:
+      Answer: No relevant information found.
+      Judge: INCORRECT
+    Rollout 2:
+      Answer: No relevant information found.
+      Judge: INCORRECT
+    [eval-only] Skipping training step
+
+  Q3: What was the estimated budget for the 2020 Sonic the Hedgeho...
+  Expected: $90 million...
+    Rollout 1:
+      Answer: $1160199061
+      Judge: INCORRECT
+    Rollout 2:
+      Answer: $1160199061
+      Judge: INCORRECT
+    [eval-only] Skipping training step
+
+  Q4: Which university did the character Mariana Adams Foster grad...
+  Expected: MIT...
+    Rollout 1:
+      Answer: (none)
+      Judge: CORRECT
+    Rollout 2:
+      Answer: Information about Mariana Adams Foster's university is not available in the provided content.
+      Judge: INCORRECT
+    [eval-only] Skipping training step
+
+  Q5: Which 2023 film featuring a live-action remake of a classic ...
+  Expected: The Little Mermaid...
+    Rollout 1:
+      Answer: (none)
+      Judge: CORRECT
+    Rollout 2:
+      Answer: (none)
+      Judge: CORRECT
+    [eval-only] Skipping training step
+
+  Epoch 1 avg reward: 0.40

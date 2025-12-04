@@ -1,0 +1,65 @@
+[34m[1mwandb[0m: Detected [openai] in use.
+[34m[1mwandb[0m: Use W&B Weave for improved LLM call tracing. Install Weave with `pip install weave` then add `import weave` to the top of your script.
+[34m[1mwandb[0m: For more information, check out the docs at: https://weave-docs.wandb.ai/
+wandb enabled: DataMiningSLMSearch/train_20251204_100820
+
+[1/4] Loading questions...
+
+[2/4] Loading model: Qwen/Qwen3-4B-Instruct-2507...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3/3 [00:04<00:00,  1.43s/it]
+  Device: cuda
+  Parameters: 4,022,468,096
+
+[3/4] Setting up judge...
+  Judge URL: http://localhost:1234/v1
+  Judge model: deepseek/deepseek-r1-0528-qwen3-8b
+  Training samples: 2
+
+[4/4] Training for 1 epoch(s)...
+
+--- Epoch 1/1 ---
+
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+  Expected: Canvas bag replaced with nylon...
+    Rollout 1:
+      Answer: Media) that they had been forced to sign non-disclosure agreements (NDAs) that prevented them from discussing the company's internal affairs. The article also claimed that the employees were being pressured to resign or be fired for reporting misconduct. The article further stated that the company had a "culture of fear" and that employees were not allowed to speak about issues such as harassment, retaliation, or poor working conditions. The article was later removed from the website and the article's author, who is a former employee, was fired. The article's claims were later confirmed by a report from [The Guardian](The Guardian)(The Guardian), which reported that the company had a culture of fear and that employees were not allowed to speak about issues such as harassment, retaliation, or poor working conditions.
+
+The *Fallout 76* Power Armor edition was later released in a second edition in 2020, which included a canvas bag and a [limited edition](limited edition) [mug](mug) and [poster](poster). The second edition was available to players who had previously purchased the first edition, and the second edition was also available for purchase as a new release.
+
+The *Fallout 76* Power Armor edition was released in a third edition in 2022, which included a canvas bag and a [limited edition](limited edition) [mug](mug) and [poster](poster). The third edition was available to players who had previously purchased the first edition, and the third edition was also available for purchase as a new release.
+
+The *Fallout 76* Power Armor edition was released in a fourth edition in 2023, which included a canvas bag and a [limited edition](limited edition) [mug](mug) and [poster](poster). The fourth edition was available to players who had previously purchased the first edition, and the fourth edition was also available for purchase as a new release.
+
+The *Fallout 76* Power Armor edition was released in a fifth edition in 2024, which included a canvas bag and a [limited edition](limited edition) [mug](mug) and [poster](poster). The fifth edition was available to players who had previously purchased the first edition, and the fifth edition was also available for purchase as a new release.
+
+The *Fallout 76* Power Armor edition was released in a sixth edition in 2025, which included a canvas bag and a [limited edition](limited edition) [mug](mug) and [poster](poster). The sixth edition was available to players who had previously purchased the first edition, and the sixth edition was also available for purchase as a new release.
+
+The *Fallout 76* Power Armor edition was released in a seventh edition in 2026, which included a canvas bag and a [limited edition](limited edition) [mug](mug) and [poster](poster). The seventh edition was available to players who had previously purchased the first edition, and the seventh edition was also available for purchase as a new release.
+
+The *Fallout 76* Power Armor edition was released in an eighth edition in 2027, which included a canvas bag and a [limited edition](limited edition) [mug](mug) and [poster](poster). The eighth edition was available to players who had previously purchased the first edition, and the eighth edition was also available for purchase as a new release.
+
+The *Fallout 76* Power Armor edition was released in a ninth edition in 2028, which included a canvas bag and a [limited edition](limited edition) [mug](mug) and [poster](poster). The ninth edition was available to players who had previously purchased the first edition, and the ninth edition was also available for purchase as a new release.
+
+The *Fallout 76* Power Armor edition was released in a tenth edition in 2029, which included a canvas bag and a [limited edition](limited edition) [mug](mug) and [poster](poster). The tenth edition was available to players who had previously purchased the first edition, and the tenth edition was also available for purchase as a new release.
+
+The *Fallout 76* Power Armor edition was released in an eleventh edition in 2030, which included a canvas bag and a [limited edition](limited edition) [mug](mug) and [poster](poster). The eleventh edition was available to players who had previously purchased the first edition, and the eleventh edition was also available for purchase as a new release.
+
+The *Fallout 76* Power Armor edition was released in a twelfth edition in 2031, which included a canvas bag and a [limited edition](limited edition) [mug](mug) and [poster](poster). The twelfth edition was available to players who had previously
+      Judge: INCORRECT
+    Rollout 2:
+      Answer: The controversy involved the substitution of a canvas bag with a nylon one in the Fallout 76 Power Armor edition, which led to customer complaints and criticism of Bethesda's lack of transparency. The company later offered compensation in the form of in-game currency, which was deemed insufficient by fans, and eventually committed to producing canvas bags for all owners of the edition.
+      Judge: CORRECT
+    [eval-only] Skipping training step
+
+  Q2: What is the name of the demon possessing the death-row inmat...
+  Expected: Nefarious...
+    Rollout 1:
+      Answer: No relevant information found.
+      Judge: INCORRECT
+    Rollout 2:
+      Answer: No relevant information found.
+      Judge: INCORRECT
+    [eval-only] Skipping training step
+
+  Epoch 1 avg reward: 0.25

@@ -1,0 +1,95 @@
+_wandb:
+    value:
+        cli_version: 0.23.1
+        e:
+            6h5w7e2730afnf3z056wvwwu4wmrb4ac:
+                args:
+                    - --eval-only
+                    - --num_samples
+                    - "2"
+                    - --num_rollouts
+                    - "2"
+                codePath: scripts\train.py
+                codePathLocal: scripts\train.py
+                cpu_count: 8
+                cpu_count_logical: 16
+                cudaVersion: "13.0"
+                disk:
+                    /:
+                        total: "2000381014016"
+                        used: "9629786112"
+                email: aaron2804@gmail.com
+                executable: V:\DataMining2025\.venv\Scripts\python.exe
+                git:
+                    commit: 79d9c35a1858d9b4ec7912d2117c371051ff9461
+                    remote: https://github.com/Aatamte/DataMiningFinalProject.git
+                gpu: NVIDIA GeForce RTX 3090
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ampere
+                      cudaCores: 10496
+                      memoryTotal: "25769803776"
+                      name: NVIDIA GeForce RTX 3090
+                      uuid: GPU-37ca4d18-6529-ccec-29da-d4478aa48e49
+                host: ATDesktop
+                memory:
+                    total: "68661358592"
+                os: Windows-11-10.0.26100-SP0
+                program: V:\DataMining2025\scripts\train.py
+                python: CPython 3.13.6
+                root: V:\DataMining2025
+                startedAt: "2025-12-04T14:01:45.690908Z"
+                writerId: 6h5w7e2730afnf3z056wvwwu4wmrb4ac
+        m: []
+        python_version: 3.13.6
+        t:
+            "1":
+                - 1
+                - 5
+                - 11
+                - 49
+                - 51
+                - 53
+                - 71
+                - 95
+                - 105
+            "2":
+                - 1
+                - 5
+                - 11
+                - 49
+                - 51
+                - 53
+                - 71
+                - 95
+                - 105
+            "3":
+                - 13
+                - 16
+            "4": 3.13.6
+            "5": 0.23.1
+            "6": 4.57.3
+            "8":
+                - 3
+            "12": 0.23.1
+            "13": windows-amd64
+eval_only:
+    value: true
+judge_model:
+    value: qwen2.5:7b
+lr:
+    value: 1e-05
+max_new_tokens:
+    value: 200
+max_turns:
+    value: 3
+model_name:
+    value: Qwen/Qwen2.5-3B-Instruct
+num_epochs:
+    value: 1
+num_rollouts:
+    value: 2
+num_samples:
+    value: 2
+output_dir:
+    value: outputs/checkpoints

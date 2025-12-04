@@ -1,12 +1,9 @@
 """Start the execution environment server.
 
 Usage:
-    uv run python scripts/run_environment.py         # Start and wait for ready
-    uv run python scripts/run_environment.py --stop  # Stop the server
-    uv run python scripts/run_environment.py --logs  # Show server logs
+    uv run python scripts/run_environment.py  # Stop, start fresh, wait for ready
 """
 
-import argparse
 import subprocess
 import sys
 import time
@@ -30,6 +27,15 @@ def check_health() -> dict | None:
     return None
 
 
+def stop_server():
+    """Stop the execution environment."""
+    print("Stopping execution environment...")
+    subprocess.run(
+        ["docker-compose", "-f", str(DOCKER_COMPOSE), "down"],
+        capture_output=False,
+    )
+
+
 def start_server():
     """Start the execution environment."""
     print("Starting execution environment...")
@@ -40,24 +46,6 @@ def start_server():
     if result.returncode != 0:
         print("ERROR: Failed to start server")
         sys.exit(1)
-
-
-def stop_server():
-    """Stop the execution environment."""
-    print("Stopping execution environment...")
-    subprocess.run(
-        ["docker-compose", "-f", str(DOCKER_COMPOSE), "down"],
-        capture_output=False,
-    )
-    print("Stopped.")
-
-
-def show_logs():
-    """Show server logs."""
-    subprocess.run(
-        ["docker-compose", "-f", str(DOCKER_COMPOSE), "logs", "-f"],
-        capture_output=False,
-    )
 
 
 def wait_for_ready(timeout: float = 120.0, interval: float = 2.0) -> bool:
@@ -80,31 +68,12 @@ def wait_for_ready(timeout: float = 120.0, interval: float = 2.0) -> bool:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Manage the execution environment")
-    parser.add_argument("--stop", action="store_true", help="Stop the server")
-    parser.add_argument("--logs", action="store_true", help="Show server logs")
-    parser.add_argument("--timeout", type=float, default=120.0, help="Startup timeout (default: 120s)")
-    args = parser.parse_args()
-
-    if args.stop:
-        stop_server()
-        return
-
-    if args.logs:
-        show_logs()
-        return
-
-    # Check if already running
-    health = check_health()
-    if health and health.get("status") == "ok":
-        print(f"Server already running: {health}")
-        return
-
-    # Start server
+    # Always stop first, then start fresh
+    stop_server()
     start_server()
 
     # Wait for ready
-    if wait_for_ready(timeout=args.timeout):
+    if wait_for_ready():
         health = check_health()
         print(f"\nServer ready!")
         print(f"  Status: {health.get('status')}")
@@ -113,7 +82,6 @@ def main():
         print(f"\nEndpoint: http://localhost:8080")
     else:
         print("\nERROR: Server did not become ready in time")
-        print("Check logs with: uv run python scripts/run_environment.py --logs")
         sys.exit(1)
 
 

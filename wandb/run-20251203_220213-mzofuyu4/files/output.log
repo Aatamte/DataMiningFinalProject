@@ -1,0 +1,44 @@
+wandb: Detected [openai] in use.
+wandb: Use W&B Weave for improved LLM call tracing. Install Weave with `pip install weave` then add `import weave` to the top of your script.
+wandb: For more information, check out the docs at: https://weave-docs.wandb.ai/
+wandb enabled: DataMiningSLMSearch/train_20251203_220212
+
+[1/4] Loading questions...
+
+[2/4] Loading model: Qwen/Qwen2.5-0.5B-Instruct...
+`torch_dtype` is deprecated! Use `dtype` instead!
+  Device: cuda
+  Parameters: 494,032,768
+
+[3/4] Setting up judge...
+  Judge model: qwen2.5:7b
+  Training samples: 10
+
+[4/4] Training for 1 epoch(s)...
+
+--- Epoch 1/1 ---
+
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+  Expected: Canvas bag replaced with nylon...
+    Rollout 1: reward=0, answer='I encountered an error while t...'
+    Rollout 2: reward=0, answer='Based on the search results:
+
+...'
+    Loss: 1.0734
+
+  Q2: What is the name of the demon possessing the death-row inmat...
+  Expected: Nefarious...
+    Rollout 1: reward=0, answer='I'm sorry, but there seems to ...'
+    Rollout 2: reward=0, answer='Thank you for the feedback. I ...'
+    Loss: 0.8073
+
+  Q3: What was the estimated budget for the 2020 Sonic the Hedgeho...
+  Expected: $90 million...
+    Rollout 1: reward=0, answer='I apologize for that error. Le...'
+    Rollout 2: reward=0, answer='I'm sorry, I misunderstood you...'
+    Loss: 0.8174
+
+  Q4: Which university did the character Mariana Adams Foster grad...
+  Expected: MIT...
+    Rollout 1: reward=0, answer='It seems there is an issue wit...'
+    Rollout 2: reward=0, answer='I apologize for that error. Th...'

@@ -1,6 +1,7 @@
 """REINFORCE training utilities."""
 
 import time
+from dataclasses import dataclass
 
 import torch
 
@@ -9,13 +10,22 @@ from src.llm_logger import get_llm_logger
 from src.agent import EpisodeResult
 
 
+@dataclass
+class JudgeResult:
+    """Result from judge evaluation."""
+    reward: float
+    correct: bool
+    raw_response: str | None = None
+    error: str | None = None
+
+
 async def get_judge_reward(
     judge_client,
     judge_model: str,
     question: str,
     answer: str,
     response: str
-) -> float:
+) -> JudgeResult:
     """Get reward from judge model.
 
     Args:
@@ -26,7 +36,7 @@ async def get_judge_reward(
         response: Model's response to evaluate
 
     Returns:
-        Reward value (1.0 for correct, 0.0 for incorrect)
+        JudgeResult with reward, correctness, and raw response
     """
     prompt = build_judge_prompt(question, answer, response)
     messages = [{"role": "user", "content": prompt}]
@@ -36,14 +46,15 @@ async def get_judge_reward(
         completion = await judge_client.chat.completions.create(
             model=judge_model,
             messages=messages,
-            max_tokens=50,
+            max_tokens=2048,  # R1 models need room for <think> block + JSON
             temperature=0,
         )
         latency_ms = (time.perf_counter() - start_time) * 1000
 
         judge_response = completion.choices[0].message.content
         result = parse_judge_response(judge_response)
-        reward = 1.0 if result.get("correct") else 0.0
+        correct = result.get("correct", False)
+        reward = 1.0 if correct else 0.0
 
         # Log judge call
         llm_logger = get_llm_logger()
@@ -58,7 +69,7 @@ async def get_judge_reward(
                 model=judge_model,
                 messages=messages,
                 response_content=judge_response,
-                max_tokens=50,
+                max_tokens=2048,
                 temperature=0,
                 latency_ms=latency_ms,
                 parsed_result=result,
@@ -66,10 +77,9 @@ async def get_judge_reward(
                 metadata={"question": question, "answer": answer, "model_response": response},
             )
 
-        return reward
+        return JudgeResult(reward=reward, correct=correct, raw_response=judge_response)
     except Exception as e:
-        print(f"  Judge error: {e}")
-        return 0.0
+        return JudgeResult(reward=0.0, correct=False, error=str(e))
 
 
 def compute_reinforce_loss(
@@ -85,6 +95,9 @@ def compute_reinforce_loss(
     Uses fixed baseline of 0.5 (midpoint for binary rewards) to ensure
     gradients even when all rewards are the same.
 
+    Uses gradient accumulation to avoid OOM - each step's gradients are
+    accumulated separately rather than building one giant computation graph.
+
     Args:
         model: The language model
         tokenizer: Tokenizer for the model
@@ -94,9 +107,9 @@ def compute_reinforce_loss(
         baseline: Fixed baseline for advantage computation
 
     Returns:
-        Computed loss tensor
+        Computed loss tensor (scalar for logging, gradients already accumulated)
     """
-    total_loss = torch.tensor(0.0, device=device, requires_grad=True)
+    total_loss_value = 0.0
     n_steps = 0
 
     for episode, reward in zip(episodes, rewards):
@@ -123,7 +136,18 @@ def compute_reinforce_loss(
             # positive advantage = reward > baseline = reinforce this behavior
             # negative advantage = reward < baseline = discourage this behavior
             weighted_loss = loss * (-advantage)
-            total_loss = total_loss + weighted_loss
+
+            # Accumulate gradients immediately (avoids building giant graph)
+            # Scale by 1/n_steps will be applied after we know total steps
+            weighted_loss.backward(retain_graph=False)
+
+            total_loss_value += weighted_loss.item()
             n_steps += 1
 
-    return total_loss / max(n_steps, 1)
+            # Free memory
+            del inputs, outputs, loss, weighted_loss
+            torch.cuda.empty_cache()
+
+    # Return scalar tensor for logging (gradients already accumulated)
+    avg_loss = total_loss_value / max(n_steps, 1)
+    return torch.tensor(avg_loss, device=device)

@@ -16,3 +16,7 @@ outputs/
 
 # Environment
 .env
+
+# Training outputs
+runs/
+wandb/

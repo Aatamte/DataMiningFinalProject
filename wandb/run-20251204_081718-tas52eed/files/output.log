@@ -1,0 +1,251 @@
+[34m[1mwandb[0m: Detected [openai] in use.
+[34m[1mwandb[0m: Use W&B Weave for improved LLM call tracing. Install Weave with `pip install weave` then add `import weave` to the top of your script.
+[34m[1mwandb[0m: For more information, check out the docs at: https://weave-docs.wandb.ai/
+wandb enabled: DataMiningSLMSearch/train_20251204_081716
+
+[1/4] Loading questions...
+
+[2/4] Loading model: Qwen/Qwen2.5-3B-Instruct...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████| 2/2 [00:05<00:00,  2.72s/it]
+  Device: cuda
+  Parameters: 3,085,938,688
+
+[3/4] Setting up judge...
+  Judge model: qwen2.5:7b
+  Training samples: 50
+
+[4/4] Training for 3 epoch(s)...
+
+--- Epoch 1/3 ---
+
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+  Expected: Canvas bag replaced with nylon...
+    Rollout 1: reward=0, answer='Based on the search results, i...'
+    Rollout 2: reward=0, answer='It seems there was an issue wi...'
+    Rollout 3: reward=0, answer='None of the pages listed appea...'
+    Rollout 4: reward=0, answer='Based on the search results, n...'
+    Loss: 1.7096
+
+  Q2: What is the name of the demon possessing the death-row inmat...
+  Expected: Nefarious...
+    Rollout 1: reward=0, answer='itself from the demonic influe...'
+    Rollout 2: reward=0, answer='demon, Nefarious transforms in...'
+    Rollout 3: reward=0, answer='its power, Nefarious explains ...'
+    Rollout 4: reward=0, answer='itself from evil, Nefarious re...'
+    Loss: 1.0291
+
+  Q3: What was the estimated budget for the 2020 Sonic the Hedgeho...
+  Expected: $90 million...
+    Rollout 1: reward=0, answer='Given the current constraints,...'
+    Rollout 2: reward=0, answer='It seems there was an issue wi...'
+    Rollout 3: reward=0, answer='It appears that none of the pa...'
+    Rollout 4: reward=0, answer='From the search results, it se...'
+    Loss: 0.5943
+
+  Q4: Which university did the character Mariana Adams Foster grad...
+  Expected: MIT...
+    Rollout 1: reward=0, answer='None of the search results app...'
+    Rollout 2: reward=0, answer='It seems that none of the page...'
+    Rollout 3: reward=0, answer='The search result indicates th...'
+    Rollout 4: reward=0, answer='None of the search results for...'
+    Loss: 0.6722
+
+  Q5: Which 2023 film featuring a live-action remake of a classic ...
+  Expected: The Little Mermaid...
+    Rollout 1: reward=0, answer='Based on the new search result...'
+    Rollout 2: reward=0, answer='It appears that there is still...'
+    Rollout 3: reward=0, answer='It appears there were no pages...'
+    Rollout 4: reward=0, answer='It appears that the `read_sect...'
+    Loss: 0.4857
+
+  Q6: Which university did Miles Teller attend for his Bachelor of...
+  Expected: New York University...
+    Rollout 1: reward=0, answer='/2010/11/08/miles-teller-on-ra...'
+    Rollout 2: reward=0, answer='.thedailybeast.com/miles-telle...'
+    Rollout 3: reward=0, answer='](https://www.cinemablend.com/...'
+    Rollout 4: reward=0, answer='http://www.hollywoodreporter.c...'
+    Loss: 0.5999
+
+  Q7: Who is the main detective character that teams up with Jake ...
+  Expected: McCabe...
+    Rollout 1: reward=0, answer='The search for "Jake Paul" ret...'
+    Rollout 2: reward=0, answer='It appears there might be an i...'
+    Rollout 3: reward=0, answer='It seems there was an error du...'
+    Rollout 4: reward=0, answer='Matt Dillon...'
+    Loss: 0.5397
+
+  Q8: Which 2023 album did Caroline Polachek release that received...
+  Expected: I Want to Turn Into You...
+    Rollout 1: reward=0, answer='None of the pages seem to be r...'
+    Rollout 2: reward=0, answer='Bad Bunny...'
+    Rollout 3: reward=0, answer='None of the search results dir...'
+    Rollout 4: reward=0, answer='It appears there was an error ...'
+    Loss: 0.4231
+
+  Q9: What martial art does Pom Klementieff practice, in which she...
+  Expected: Taekwondo...
+    Rollout 1: reward=0, answer='The search result shows a page...'
+    Rollout 2: reward=0, answer='The search did not yield a dir...'
+    Rollout 3: reward=0, answer='From the search results, it ap...'
+    Rollout 4: reward=0, answer='Based on the search results, t...'
+    Loss: 0.3781
+
+  Q10: What is the gross tonnage of the largest cruise ship as of 2...
+  Expected: 236,857 GT...
+    Rollout 1: reward=0, answer='The search results indicate th...'
+    Rollout 2: reward=1, answer='236,857...'
+    Rollout 3: reward=0, answer='In 2019, Carnival Corporation ...'
+    Rollout 4: reward=0, answer='It seems that the specific pag...'
+    Loss: 0.1755
+
+  Q11: Which two companies are distributing Twisters in the United ...
+  Expected: Universal Pictures and Warner Bros. Pict...
+    Rollout 1: reward=0, answer='The search result mentions "Tr...'
+    Rollout 2: reward=0, answer='None of the search results pro...'
+    Rollout 3: reward=0, answer='None of the search results see...'
+    Rollout 4: reward=0, answer='It seems none of the pages ret...'
+    Loss: 0.3452
+
+  Q12: Which musical instrument did Evan Rachel Wood's character as...
+  Expected: Violin...
+    Rollout 1: reward=0, answer='From the search results, it se...'
+    Rollout 2: reward=0, answer='It seems none of the pages ret...'
+    Rollout 3: reward=0, answer='Based on the search results, i...'
+    Rollout 4: reward=0, answer='The search results indicate th...'
+    Loss: 0.3046
+
+  Q13: What is the unicursal hexagram an example of in Blaise Pasca...
+  Expected: Hexagrammum Mysticum...
+    Rollout 1: reward=0, answer='Based on the search results, t...'
+    Rollout 2: reward=0, answer='Based on the results, it seems...'
+    Rollout 3: reward=0, answer='Based on the search results, t...'
+    Rollout 4: reward=0, answer='Based on the search results, t...'
+    Loss: 0.2994
+
+  Q14: What is the Wikipedia redirect target for the term 'Child gr...
+  Expected: grooming (Child)...
+    Rollout 1: reward=0, answer='None of the pages returned by ...'
+    Rollout 2: reward=0, answer='grooming...'
+    Rollout 3: reward=0, answer='grooming...'
+    Rollout 4: reward=0, answer='grooming...'
+    Loss: 0.2851
+
+  Q15: What was the cause of Miyamoto Musashi's death believed to b...
+  Expected: Lung cancer...
+    Rollout 1: reward=0, answer='that he was born in [Higo Prov...'
+    Rollout 2: reward=0, answer='province](Harima)(Harima Provi...'
+    Rollout 3: reward=0, answer='Province), but no further deta...'
+    Rollout 4: reward=0, answer='[Harima](Harima)(Harima Provin...'
+Traceback (most recent call last):
+  File "V:\DataMining2025\scripts\train.py", line 86, in <module>
+    """Main entry point."""
+    ^^^^^^
+  File "V:\DataMining2025\scripts\train.py", line 82, in main
+    await trainer.train(live_plot=args.live_plot)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+    ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 2050, in _run_once
+    handle._run()
+    ~~~~~~~~~~~^^
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\scripts\train.py", line 77, in main_async
+    eval_only=args.eval_only,
+  File "V:\DataMining2025\src\trainer\core.py", line 236, in train
+    # Training step (skip if eval_only)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    loss_val = 0.0
+    ^^^^^^^^^^^^^^
+    if not cfg.eval_only:
+    ^
+  File "V:\DataMining2025\src\trainer\episode.py", line 122, in compute_reinforce_loss
+    outputs = model(**inputs, labels=inputs["input_ids"])
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\utils\generic.py", line 918, in wrapper
+    output = func(self, *args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\models\qwen2\modeling_qwen2.py", line 449, in forward
+    outputs: BaseModelOutputWithPast = self.model(
+                                       ~~~~~~~~~~^
+        input_ids=input_ids,
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\utils\generic.py", line 1072, in wrapper
+    outputs = func(self, *args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\models\qwen2\modeling_qwen2.py", line 384, in forward
+    hidden_states = decoder_layer(
+        hidden_states,
+    ...<6 lines>...
+        **kwargs,
+    )
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\modeling_layers.py", line 94, in __call__
+    return super().__call__(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\utils\deprecation.py", line 172, in wrapped_func
+    return func(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\models\qwen2\modeling_qwen2.py", line 234, in forward
+    hidden_states, _ = self.self_attn(
+                       ~~~~~~~~~~~~~~^
+        hidden_states=hidden_states,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\utils\deprecation.py", line 172, in wrapped_func
+    return func(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\models\qwen2\modeling_qwen2.py", line 169, in forward
+    attn_output, attn_weights = attention_interface(
+                                ~~~~~~~~~~~~~~~~~~~^
+        self,
+        ^^^^^
+    ...<7 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\integrations\sdpa_attention.py", line 96, in sdpa_attention_forward
+    attn_output = torch.nn.functional.scaled_dot_product_attention(
+        query,
+    ...<6 lines>...
+        **sdpa_kwargs,
+    )
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 157, in _on_sigint
+    raise KeyboardInterrupt()
+KeyboardInterrupt

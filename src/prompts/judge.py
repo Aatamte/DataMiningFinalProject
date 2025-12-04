@@ -14,31 +14,19 @@ JUDGE_SCHEMA = {
     "required": ["correct"]
 }
 
-JUDGE_PROMPT_TEMPLATE = """Given a ground truth answer and a response, determine if the response is both correct and coherent.
+JUDGE_PROMPT_TEMPLATE = """Does the response contain the ground truth answer?
 
-Question:
-```
-{question}
-```
+Question: {question}
+Ground truth: {answer}
+Response: {response}
 
-Ground truth answer:
-```
-{answer}
-```
+STRICT RULES:
+- "correct": true ONLY if the response contains "{answer}" or equivalent
+- "correct": false if response is code, "not found", "no information", or missing the answer
 
-Response:
-```
-{response}
-```
-
-Respond with JSON matching this schema:
-```json
 {schema}
-```
 
-If a response contains incoherent text, set "correct" to false even if the correct answer is also present.
-
-Respond with valid JSON only, no other text."""
+JSON only:"""
 
 
 def build_judge_prompt(question: str, answer: str, response: str, schema: dict | None = None) -> str:
@@ -77,31 +65,24 @@ def parse_judge_response(response: str, schema: dict | None = None) -> dict:
     Raises:
         ValueError: If response is not valid JSON or missing required fields
     """
+    import re
+
     if schema is None:
         schema = JUDGE_SCHEMA
 
-    # Try to extract JSON from response
-    response = response.strip()
+    original_response = response  # Keep for error reporting
 
-    # Handle markdown code blocks
-    if response.startswith("```"):
-        lines = response.split("\n")
-        json_lines = []
-        in_block = False
-        for line in lines:
-            if line.startswith("```") and not in_block:
-                in_block = True
-                continue
-            elif line.startswith("```") and in_block:
-                break
-            elif in_block:
-                json_lines.append(line)
-        response = "\n".join(json_lines)
+    # Just find the JSON object, ignore everything else (thinking tags, markdown, etc.)
+    match = re.search(r"\{[^{}]*\}", response)
+    if match:
+        response = match.group(0)
+    else:
+        response = response.strip()
 
     try:
         data = json.loads(response)
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON: {e}")
+        raise ValueError(f"Invalid JSON: {e}\nOriginal response:\n{original_response[:1000]}")
 
     # Validate required fields
     required = schema.get("required", [])

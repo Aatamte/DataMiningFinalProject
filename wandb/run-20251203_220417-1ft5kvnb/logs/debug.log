@@ -1,0 +1,21 @@
+2025-12-03 22:04:17,484 INFO    MainThread:12372 [wandb_setup.py:_flush():80] Current SDK version is 0.23.1
+2025-12-03 22:04:17,484 INFO    MainThread:12372 [wandb_setup.py:_flush():80] Configure stats pid to 12372
+2025-12-03 22:04:17,485 INFO    MainThread:12372 [wandb_setup.py:_flush():80] Loading settings from C:\Users\aaron\.config\wandb\settings
+2025-12-03 22:04:17,485 INFO    MainThread:12372 [wandb_setup.py:_flush():80] Loading settings from V:\DataMining2025\wandb\settings
+2025-12-03 22:04:17,485 INFO    MainThread:12372 [wandb_setup.py:_flush():80] Loading settings from environment variables
+2025-12-03 22:04:17,485 INFO    MainThread:12372 [wandb_init.py:setup_run_log_directory():714] Logging user logs to V:\DataMining2025\wandb\run-20251203_220417-1ft5kvnb\logs\debug.log
+2025-12-03 22:04:17,485 INFO    MainThread:12372 [wandb_init.py:setup_run_log_directory():715] Logging internal logs to V:\DataMining2025\wandb\run-20251203_220417-1ft5kvnb\logs\debug-internal.log
+2025-12-03 22:04:17,485 INFO    MainThread:12372 [wandb_init.py:init():841] calling init triggers
+2025-12-03 22:04:17,485 INFO    MainThread:12372 [wandb_init.py:init():846] wandb.init called with sweep_config: {}
+config: {'num_samples': 10, 'num_epochs': 1, 'max_turns': 3, 'num_rollouts': 2, 'lr': 1e-05, 'max_new_tokens': 200, 'model_name': 'Qwen/Qwen2.5-3B-Instruct', 'judge_model': 'qwen2.5:7b', 'output_dir': 'outputs/checkpoints', '_wandb': {}}
+2025-12-03 22:04:17,485 INFO    MainThread:12372 [wandb_init.py:init():889] starting backend
+2025-12-03 22:04:19,766 INFO    MainThread:12372 [wandb_init.py:init():892] sending inform_init request
+2025-12-03 22:04:19,793 INFO    MainThread:12372 [wandb_init.py:init():900] backend started and connected
+2025-12-03 22:04:19,794 INFO    MainThread:12372 [wandb_init.py:init():970] updated telemetry
+2025-12-03 22:04:19,815 INFO    MainThread:12372 [wandb_init.py:init():994] communicating run to backend with 90.0 second timeout
+2025-12-03 22:04:20,272 INFO    MainThread:12372 [wandb_init.py:init():1041] starting run threads in backend
+2025-12-03 22:04:20,386 INFO    MainThread:12372 [wandb_run.py:_console_start():2521] atexit reg
+2025-12-03 22:04:20,386 INFO    MainThread:12372 [wandb_run.py:_redirect():2369] redirect: wrap_raw
+2025-12-03 22:04:20,386 INFO    MainThread:12372 [wandb_run.py:_redirect():2438] Wrapping output streams.
+2025-12-03 22:04:20,386 INFO    MainThread:12372 [wandb_run.py:_redirect():2461] Redirects installed.
+2025-12-03 22:04:20,390 INFO    MainThread:12372 [wandb_init.py:init():1081] run started, returning control to user process

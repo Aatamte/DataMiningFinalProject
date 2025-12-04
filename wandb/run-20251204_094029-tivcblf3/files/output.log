@@ -1,0 +1,57 @@
+[34m[1mwandb[0m: Detected [openai] in use.
+[34m[1mwandb[0m: Use W&B Weave for improved LLM call tracing. Install Weave with `pip install weave` then add `import weave` to the top of your script.
+[34m[1mwandb[0m: For more information, check out the docs at: https://weave-docs.wandb.ai/
+wandb enabled: DataMiningSLMSearch/train_20251204_094028
+
+[1/4] Loading questions...
+
+[2/4] Loading model: Qwen/Qwen3-4B...
+tokenizer_config.json: 9.73kB [00:00, 22.4MB/s]
+V:\DataMining2025\.venv\Lib\site-packages\huggingface_hub\file_download.py:143: UserWarning: `huggingface_hub` cache-system uses symlinks by default to efficiently store duplicated files but your machine does not support them in C:\Users\aaron\.cache\huggingface\hub\models--Qwen--Qwen3-4B. Caching files will still work but in a degraded version that might require more space on your disk. This warning can be disabled by setting the `HF_HUB_DISABLE_SYMLINKS_WARNING` environment variable. For more details, see https://huggingface.co/docs/huggingface_hub/how-to-cache#limitations.
+To support symlinks on Windows, you either need to activate Developer Mode or to run Python as an administrator. In order to activate developer mode, see this article: https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development
+  warnings.warn(message)
+vocab.json: 2.78MB [00:00, 24.6MB/s]
+merges.txt: 1.67MB [00:00, 84.8MB/s]
+Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+tokenizer.json: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 11.4M/11.4M [00:01<00:00, 9.43MB/s]
+config.json: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 726/726 [00:00<00:00, 4.45MB/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+model.safetensors.index.json: 32.8kB [00:00, 66.1MB/s]
+Fetching 3 files:   0%|                                                                                                                                | 0/3 [00:00<?, ?it/s]Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+model-00003-of-00003.safetensors: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████| 99.6M/99.6M [00:12<00:00, 8.06MB/s]
+model-00002-of-00003.safetensors: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████| 3.99G/3.99G [02:05<00:00, 31.7MB/s]
+model-00001-of-00003.safetensors: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████| 3.96G/3.96G [02:18<00:00, 28.7MB/s]
+Fetching 3 files: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3/3 [02:18<00:00, 46.26s/it]
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3/3 [00:03<00:00,  1.26s/it]
+generation_config.json: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 239/239 [00:00<00:00, 971kB/s]
+  Device: cuda
+  Parameters: 4,022,468,096
+
+[3/4] Setting up judge...
+  Judge URL: http://localhost:1234/v1
+  Judge model: deepseek/deepseek-r1-0528-qwen3-8b
+  Training samples: 2
+
+[4/4] Training for 1 epoch(s)...
+
+--- Epoch 1/1 ---
+
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+  Expected: Canvas bag replaced with nylon...
+    Rollout 1: reward=1, answer='<think>
+Okay, let's tackle thi...'
+    Rollout 2: reward=1, answer='<think>
+Okay, let's tackle thi...'
+    [eval-only] Skipping training step
+
+  Q2: What is the name of the demon possessing the death-row inmat...
+  Expected: Nefarious...
+    Rollout 1: reward=1, answer='<think>
+Okay, let's tackle thi...'
+    Rollout 2: reward=0, answer='<think>
+Okay, let's tackle thi...'
+    [eval-only] Skipping training step
+
+  Epoch 1 avg reward: 0.75

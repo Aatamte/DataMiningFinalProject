@@ -1,0 +1,153 @@
+2025-12-04 10:15:19,065 INFO    MainThread:7356 [wandb_setup.py:_flush():80] Current SDK version is 0.23.1
+2025-12-04 10:15:19,065 INFO    MainThread:7356 [wandb_setup.py:_flush():80] Configure stats pid to 7356
+2025-12-04 10:15:19,065 INFO    MainThread:7356 [wandb_setup.py:_flush():80] Loading settings from C:\Users\aaron\.config\wandb\settings
+2025-12-04 10:15:19,065 INFO    MainThread:7356 [wandb_setup.py:_flush():80] Loading settings from V:\DataMining2025\wandb\settings
+2025-12-04 10:15:19,065 INFO    MainThread:7356 [wandb_setup.py:_flush():80] Loading settings from environment variables
+2025-12-04 10:15:19,066 INFO    MainThread:7356 [wandb_init.py:setup_run_log_directory():714] Logging user logs to V:\DataMining2025\wandb\run-20251204_101519-axx7vdow\logs\debug.log
+2025-12-04 10:15:19,066 INFO    MainThread:7356 [wandb_init.py:setup_run_log_directory():715] Logging internal logs to V:\DataMining2025\wandb\run-20251204_101519-axx7vdow\logs\debug-internal.log
+2025-12-04 10:15:19,066 INFO    MainThread:7356 [wandb_init.py:init():841] calling init triggers
+2025-12-04 10:15:19,066 INFO    MainThread:7356 [wandb_init.py:init():846] wandb.init called with sweep_config: {}
+config: {'num_samples': 5, 'num_epochs': 1, 'max_turns': 3, 'num_rollouts': 2, 'lr': 1e-05, 'max_new_tokens': 1024, 'model_name': 'Qwen/Qwen3-4B-Instruct-2507', 'judge_model': 'deepseek/deepseek-r1-0528-qwen3-8b', 'output_dir': 'outputs/checkpoints', 'eval_only': True, '_wandb': {}}
+2025-12-04 10:15:19,066 INFO    MainThread:7356 [wandb_init.py:init():889] starting backend
+2025-12-04 10:15:21,346 INFO    MainThread:7356 [wandb_init.py:init():892] sending inform_init request
+2025-12-04 10:15:21,380 INFO    MainThread:7356 [wandb_init.py:init():900] backend started and connected
+2025-12-04 10:15:21,382 INFO    MainThread:7356 [wandb_init.py:init():970] updated telemetry
+2025-12-04 10:15:21,414 INFO    MainThread:7356 [wandb_init.py:init():994] communicating run to backend with 90.0 second timeout
+2025-12-04 10:15:21,935 INFO    MainThread:7356 [wandb_init.py:init():1041] starting run threads in backend
+2025-12-04 10:15:22,060 INFO    MainThread:7356 [wandb_run.py:_console_start():2521] atexit reg
+2025-12-04 10:15:22,060 INFO    MainThread:7356 [wandb_run.py:_redirect():2369] redirect: wrap_raw
+2025-12-04 10:15:22,060 INFO    MainThread:7356 [wandb_run.py:_redirect():2438] Wrapping output streams.
+2025-12-04 10:15:22,060 INFO    MainThread:7356 [wandb_run.py:_redirect():2461] Redirects installed.
+2025-12-04 10:15:22,063 INFO    MainThread:7356 [wandb_init.py:init():1081] run started, returning control to user process
+2025-12-04 10:18:48,849 INFO    wandb-AsyncioManager-main:7356 [service_client.py:_forward_responses():80] Reached EOF.
+2025-12-04 10:18:48,849 INFO    wandb-AsyncioManager-main:7356 [mailbox.py:close():137] Closing mailbox, abandoning 1 handles.
+2025-12-04 10:18:49,599 ERROR   wandb-AsyncioManager-main:7356 [asyncio_manager.py:fn_wrap_exceptions():183] Uncaught exception in run_soon callback.
+Traceback (most recent call last):
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\asyncio_manager.py", line 181, in fn_wrap_exceptions
+    await fn()
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 38, in publish
+    await self._send_server_request(request)
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 64, in _send_server_request
+    await self._writer.drain()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 386, in drain
+    await self._protocol._drain_helper()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 166, in _drain_helper
+    raise ConnectionResetError('Connection lost')
+ConnectionResetError: Connection lost
+2025-12-04 10:18:49,605 ERROR   wandb-AsyncioManager-main:7356 [asyncio_manager.py:fn_wrap_exceptions():183] Uncaught exception in run_soon callback.
+Traceback (most recent call last):
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\asyncio_manager.py", line 181, in fn_wrap_exceptions
+    await fn()
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 38, in publish
+    await self._send_server_request(request)
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 64, in _send_server_request
+    await self._writer.drain()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 386, in drain
+    await self._protocol._drain_helper()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 166, in _drain_helper
+    raise ConnectionResetError('Connection lost')
+ConnectionResetError: Connection lost
+2025-12-04 10:18:49,606 ERROR   wandb-AsyncioManager-main:7356 [asyncio_manager.py:fn_wrap_exceptions():183] Uncaught exception in run_soon callback.
+Traceback (most recent call last):
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\asyncio_manager.py", line 181, in fn_wrap_exceptions
+    await fn()
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 38, in publish
+    await self._send_server_request(request)
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 64, in _send_server_request
+    await self._writer.drain()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 386, in drain
+    await self._protocol._drain_helper()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 166, in _drain_helper
+    raise ConnectionResetError('Connection lost')
+ConnectionResetError: Connection lost
+2025-12-04 10:18:49,607 ERROR   wandb-AsyncioManager-main:7356 [asyncio_manager.py:fn_wrap_exceptions():183] Uncaught exception in run_soon callback.
+Traceback (most recent call last):
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\asyncio_manager.py", line 181, in fn_wrap_exceptions
+    await fn()
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 38, in publish
+    await self._send_server_request(request)
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 64, in _send_server_request
+    await self._writer.drain()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 386, in drain
+    await self._protocol._drain_helper()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 166, in _drain_helper
+    raise ConnectionResetError('Connection lost')
+ConnectionResetError: Connection lost
+2025-12-04 10:18:49,608 ERROR   wandb-AsyncioManager-main:7356 [asyncio_manager.py:fn_wrap_exceptions():183] Uncaught exception in run_soon callback.
+Traceback (most recent call last):
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\asyncio_manager.py", line 181, in fn_wrap_exceptions
+    await fn()
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 38, in publish
+    await self._send_server_request(request)
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 64, in _send_server_request
+    await self._writer.drain()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 386, in drain
+    await self._protocol._drain_helper()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 166, in _drain_helper
+    raise ConnectionResetError('Connection lost')
+ConnectionResetError: Connection lost
+2025-12-04 10:18:49,609 ERROR   wandb-AsyncioManager-main:7356 [asyncio_manager.py:fn_wrap_exceptions():183] Uncaught exception in run_soon callback.
+Traceback (most recent call last):
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\asyncio_manager.py", line 181, in fn_wrap_exceptions
+    await fn()
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 38, in publish
+    await self._send_server_request(request)
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 64, in _send_server_request
+    await self._writer.drain()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 386, in drain
+    await self._protocol._drain_helper()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 166, in _drain_helper
+    raise ConnectionResetError('Connection lost')
+ConnectionResetError: Connection lost
+2025-12-04 10:18:49,609 ERROR   wandb-AsyncioManager-main:7356 [asyncio_manager.py:fn_wrap_exceptions():183] Uncaught exception in run_soon callback.
+Traceback (most recent call last):
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\asyncio_manager.py", line 181, in fn_wrap_exceptions
+    await fn()
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 38, in publish
+    await self._send_server_request(request)
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 64, in _send_server_request
+    await self._writer.drain()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 386, in drain
+    await self._protocol._drain_helper()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 166, in _drain_helper
+    raise ConnectionResetError('Connection lost')
+ConnectionResetError: Connection lost
+2025-12-04 10:18:49,610 ERROR   wandb-AsyncioManager-main:7356 [asyncio_manager.py:fn_wrap_exceptions():183] Uncaught exception in run_soon callback.
+Traceback (most recent call last):
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\asyncio_manager.py", line 181, in fn_wrap_exceptions
+    await fn()
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 38, in publish
+    await self._send_server_request(request)
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 64, in _send_server_request
+    await self._writer.drain()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 386, in drain
+    await self._protocol._drain_helper()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 166, in _drain_helper
+    raise ConnectionResetError('Connection lost')
+ConnectionResetError: Connection lost
+2025-12-04 10:18:49,611 ERROR   wandb-AsyncioManager-main:7356 [asyncio_manager.py:fn_wrap_exceptions():183] Uncaught exception in run_soon callback.
+Traceback (most recent call last):
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\asyncio_manager.py", line 181, in fn_wrap_exceptions
+    await fn()
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 38, in publish
+    await self._send_server_request(request)
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 64, in _send_server_request
+    await self._writer.drain()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 386, in drain
+    await self._protocol._drain_helper()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 166, in _drain_helper
+    raise ConnectionResetError('Connection lost')
+ConnectionResetError: Connection lost
+2025-12-04 10:18:49,611 ERROR   wandb-AsyncioManager-main:7356 [asyncio_manager.py:fn_wrap_exceptions():183] Uncaught exception in run_soon callback.
+Traceback (most recent call last):
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\asyncio_manager.py", line 181, in fn_wrap_exceptions
+    await fn()
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 38, in publish
+    await self._send_server_request(request)
+  File "V:\DataMining2025\.venv\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 64, in _send_server_request
+    await self._writer.drain()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 386, in drain
+    await self._protocol._drain_helper()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\streams.py", line 166, in _drain_helper
+    raise ConnectionResetError('Connection lost')
+ConnectionResetError: Connection lost

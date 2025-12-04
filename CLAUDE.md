@@ -10,7 +10,7 @@ Train Small Language Models to perform efficient programmatic search over Wikipe
 # Setup (first time only)
 uv sync
 ollama pull qwen2.5:7b
-uv run python scripts/setup_chroma.py
+uv run python scripts/setup_environment.py
 
 # Run tests
 uv run pytest tests/ -v
@@ -48,7 +48,84 @@ uv run pytest tests/test_sandbox.py -v      # Integration tests (needs docker up
 
 # Regenerate ChromaDB (if version mismatch errors)
 rm -rf data/.chroma_db
-uv run python scripts/setup_chroma.py
+uv run python scripts/setup_environment.py
+```
+
+## Scripts Reference
+
+All scripts should be run with `uv run python scripts/<script>.py`.
+
+### `setup_environment.py` - Initial Setup (Run First!)
+Downloads corpus, builds ChromaDB index, and builds Docker image.
+
+```bash
+# Full setup (first time)
+uv run python scripts/setup_environment.py
+
+# Options
+uv run python scripts/setup_environment.py --data-dir /path/to/data  # Custom data dir
+uv run python scripts/setup_environment.py --skip-index              # Skip ChromaDB indexing
+uv run python scripts/setup_environment.py --docker-only             # Only rebuild Docker image
+
+# Dev mode (10 pages only for fast testing)
+DEV=1 uv run python scripts/setup_environment.py
+```
+
+### `run_environment.py` - Start Docker Server
+Stops any existing container, starts fresh, and waits for ready.
+
+```bash
+uv run python scripts/run_environment.py
+# Output: Server ready! Endpoint: http://localhost:8080
+```
+
+### `test_environment.py` - Verify Environment Works
+Tests all tools (search_pages, view_sections, read_section) and embedding quality. Requires server running.
+
+```bash
+uv run python scripts/run_environment.py   # Start server first
+uv run python scripts/test_environment.py  # Run tests
+```
+
+### `train.py` - Training Entrypoint
+Main training script with CLI arguments.
+
+```bash
+# Quick test (defaults: 3 samples, 1 epoch, 2 rollouts)
+uv run python scripts/train.py
+
+# Full training
+uv run python scripts/train.py --num_samples 100 --num_epochs 3 --num_rollouts 4
+
+# With live plotting
+uv run python scripts/train.py --live-plot
+
+# All options
+uv run python scripts/train.py \
+    --num_samples 50 \
+    --num_epochs 3 \
+    --max_turns 3 \
+    --num_rollouts 4 \
+    --lr 1e-5 \
+    --max_new_tokens 200 \
+    --model_name "Qwen/Qwen2.5-0.5B-Instruct" \
+    --judge_model "qwen2.5:7b"
+```
+
+### `plot_metrics.py` - Visualize Training Results
+Generates plots from a training run's metrics.json.
+
+```bash
+uv run python scripts/plot_metrics.py runs/train_20241203_143022
+uv run python scripts/plot_metrics.py runs/train_20241203_143022 --output custom.png
+uv run python scripts/plot_metrics.py runs/train_20241203_143022 --no-show  # Save only
+```
+
+### `test_sandbox.py` - Test Docker Sandbox (with mocks)
+Tests sandbox execution with mock tool handlers (doesn't require full setup).
+
+```bash
+uv run python scripts/test_sandbox.py
 ```
 
 ## Key Files
@@ -56,7 +133,7 @@ uv run python scripts/setup_chroma.py
 | File | Purpose |
 |------|---------|
 | `scripts/train.py` | Training entrypoint with CLI args |
-| `scripts/setup_chroma.py` | Index Wikipedia corpus into ChromaDB |
+| `scripts/setup_environment.py` | Index Wikipedia corpus into ChromaDB |
 | `src/trainer/core.py` | Main `Trainer` class |
 | `src/trainer/episode.py` | Episode execution, REINFORCE loss |
 | `src/trainer/parsing.py` | Parse tool calls and answers from LLM output |
@@ -92,14 +169,14 @@ Final answers use:
 **ChromaDB `'_type'` error:**
 ```bash
 rm -rf data/.chroma_db
-python scripts/setup_chroma.py
+python scripts/setup_environment.py
 ```
 
 **Telemetry error in Docker:**
 Already fixed - `ANONYMIZED_TELEMETRY=False` is set in Dockerfile.
 
 **Tests failing with NoneType:**
-ChromaDB not loaded. Run `setup_chroma.py` and restart docker container.
+ChromaDB not loaded. Run `setup_environment.py` and restart docker container.
 
 **Ollama not responding:**
 ```bash

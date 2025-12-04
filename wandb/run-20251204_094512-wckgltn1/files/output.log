@@ -1,0 +1,187 @@
+[34m[1mwandb[0m: Detected [openai] in use.
+[34m[1mwandb[0m: Use W&B Weave for improved LLM call tracing. Install Weave with `pip install weave` then add `import weave` to the top of your script.
+[34m[1mwandb[0m: For more information, check out the docs at: https://weave-docs.wandb.ai/
+wandb enabled: DataMiningSLMSearch/train_20251204_094511
+
+[1/4] Loading questions...
+
+[2/4] Loading model: Qwen/Qwen3-4B...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3/3 [00:03<00:00,  1.24s/it]
+  Device: cuda
+  Parameters: 4,022,468,096
+
+[3/4] Setting up judge...
+  Judge URL: http://localhost:1234/v1
+  Judge model: deepseek/deepseek-r1-0528-qwen3-8b
+  Training samples: 2
+
+[4/4] Training for 1 epoch(s)...
+
+--- Epoch 1/1 ---
+
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+  Expected: Canvas bag replaced with nylon...
+  Judge error: Invalid JSON: Expecting value: line 1 column 1 (char 0)
+Original response:
+<think>
+We are given a question and a ground truth answer.
+Question: What controversy involved the Fallout 76 Power Armor edition's physical item?
+Ground truth answer: Canvas bag replaced with nylon
+
+The task is to determine if the response contains the correct answer, even if the wording or formatting differs.
+
+Looking at the provided response:
+```
+The Power Armor Edition of Fallout 76 was a special collector's version released in collaboration with Atlas Obscura. It included physical items such as an authentic power armor piece and other collectibles. However, there was controversy regarding the materials used for these items. Specifically, it was reported that the original plan involved using canvas bags to replace some nylon components, but this decision faced criticism from fans who expected higher quality materials.
+
+The Power Armor Edition of Fallout 76 is a special collector's version released in collaboration with Atlas Obscura. It included physical items such as an authentic
+    Rollout 1: reward=0, answer='<think>
+Okay, let's see. The u...'
+Traceback (most recent call last):
+  File "V:\DataMining2025\src\trainer\core.py", line 227, in train
+    episode = await agent.run(question)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\src\agent\agent.py", line 176, in run
+    # Generate response
+  File "V:\DataMining2025\src\agent\agent.py", line 107, in step
+    with torch.no_grad():
+                  ^^^^^^^
+    ...<5 lines>...
+            pad_token_id=self.tokenizer.eos_token_id,
+
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\utils\_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\generation\utils.py", line 2564, in generate
+    result = decoding_method(
+        self,
+    ...<5 lines>...
+        **model_kwargs,
+    )
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\generation\utils.py", line 2787, in _sample
+    outputs = model_forward(**model_inputs, return_dict=True)
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\utils\generic.py", line 918, in wrapper
+    output = func(self, *args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\models\qwen3\modeling_qwen3.py", line 480, in forward
+    outputs: BaseModelOutputWithPast = self.model(
+                                       ~~~~~~~~~~^
+        input_ids=input_ids,
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\utils\generic.py", line 1072, in wrapper
+    outputs = func(self, *args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\models\qwen3\modeling_qwen3.py", line 410, in forward
+    hidden_states = decoder_layer(
+        hidden_states,
+    ...<6 lines>...
+        **kwargs,
+    )
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\modeling_layers.py", line 94, in __call__
+    return super().__call__(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\utils\deprecation.py", line 172, in wrapped_func
+    return func(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\models\qwen3\modeling_qwen3.py", line 260, in forward
+    hidden_states, _ = self.self_attn(
+                       ~~~~~~~~~~~~~~^
+        hidden_states=hidden_states,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\utils\deprecation.py", line 172, in wrapped_func
+    return func(*args, **kwargs)
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\models\qwen3\modeling_qwen3.py", line 205, in forward
+    query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin)
+                               ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\models\qwen3\modeling_qwen3.py", line 116, in apply_rotary_pos_emb
+    k_embed = (k * cos) + (rotate_half(k) * sin)
+                           ~~~~~~~~~~~^^^
+  File "V:\DataMining2025\.venv\Lib\site-packages\transformers\models\qwen3\modeling_qwen3.py", line 86, in rotate_half
+    def rotate_half(x):
+
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 157, in _on_sigint
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "V:\DataMining2025\scripts\train.py", line 149, in main_async
+    await trainer.train(live_plot=args.live_plot)
+  File "V:\DataMining2025\src\trainer\core.py", line 217, in train
+    async with SandboxClient() as sandbox:
+               ~~~~~~~~~~~~~^^
+  File "V:\DataMining2025\src\environment\sandbox.py", line 109, in __aexit__
+    await self.close()
+  File "V:\DataMining2025\src\environment\sandbox.py", line 103, in close
+    await self._client.aclose()
+  File "V:\DataMining2025\.venv\Lib\site-packages\httpx\_client.py", line 1985, in aclose
+    await self._transport.aclose()
+  File "V:\DataMining2025\.venv\Lib\site-packages\httpx\_transports\default.py", line 406, in aclose
+    await self._pool.aclose()
+  File "V:\DataMining2025\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 353, in aclose
+    await self._close_connections(closing_connections)
+  File "V:\DataMining2025\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 345, in _close_connections
+    await connection.aclose()
+  File "V:\DataMining2025\.venv\Lib\site-packages\httpcore\_async\connection.py", line 173, in aclose
+    await self._connection.aclose()
+  File "V:\DataMining2025\.venv\Lib\site-packages\httpcore\_async\http11.py", line 258, in aclose
+    await self._network_stream.aclose()
+  File "V:\DataMining2025\.venv\Lib\site-packages\httpcore\_backends\anyio.py", line 53, in aclose
+    await self._stream.aclose()
+  File "V:\DataMining2025\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 1353, in aclose
+    await sleep(0)
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\tasks.py", line 706, in sleep
+    await __sleep0()
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\tasks.py", line 700, in __sleep0
+    yield
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "V:\DataMining2025\scripts\train.py", line 158, in <module>
+    main()
+    ~~~~^^
+  File "V:\DataMining2025\scripts\train.py", line 154, in main
+    asyncio.run(main_async())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\aaron\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

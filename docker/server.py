@@ -77,14 +77,22 @@ def search_pages(query: str, n: int = 5) -> list[dict]:
 
     results = chroma_collection.query(
         query_embeddings=query_embedding,
-        n_results=n
+        n_results=n,
+        include=["metadatas", "distances"]
     )
 
     output = []
     if results and results["ids"] and results["ids"][0]:
         for i, page_id in enumerate(results["ids"][0]):
             title = results["metadatas"][0][i]["title"]
-            output.append({"page_id": page_id, "title": title})
+            # ChromaDB returns L2 distance, convert to similarity (1 / (1 + distance))
+            distance = results["distances"][0][i] if results.get("distances") else None
+            similarity = 1 / (1 + distance) if distance is not None else None
+            output.append({
+                "page_id": page_id,
+                "title": title,
+                "similarity": round(similarity, 4) if similarity else None
+            })
 
     return output
 
@@ -192,8 +200,8 @@ def execute_code(code: str, timeout: float) -> dict[str, Any]:
     tool_calls = []
 
     # Wrap tools to track calls
-    def tracked_search_pages(query: str) -> list[dict]:
-        result = search_pages(query)
+    def tracked_search_pages(query: str, n: int = 5) -> list[dict]:
+        result = search_pages(query, n)
         tool_calls.append({"tool": "search_pages", "arg": query, "result_count": len(result)})
         return result
 
@@ -235,6 +243,15 @@ def execute_code(code: str, timeout: float) -> dict[str, Any]:
         "type": type,
         "hasattr": hasattr,
         "getattr": getattr,
+        "any": any,
+        "all": all,
+        "ord": ord,
+        "chr": chr,
+        "repr": repr,
+        "iter": iter,
+        "next": next,
+        "slice": slice,
+        "format": format,
         "True": True,
         "False": False,
         "None": None,
@@ -252,11 +269,22 @@ def execute_code(code: str, timeout: float) -> dict[str, Any]:
         "__import__": __import__,
     }
 
+    import re
+    import json
+    import string
+    from collections import Counter, defaultdict
+
     exec_globals = {
         "__builtins__": safe_builtins,
         "search_pages": tracked_search_pages,
         "view_sections": tracked_view_sections,
         "read_section": tracked_read_section,
+        # Pre-imported modules
+        "re": re,
+        "json": json,
+        "string": string,
+        "Counter": Counter,
+        "defaultdict": defaultdict,
     }
 
     # Capture stdout

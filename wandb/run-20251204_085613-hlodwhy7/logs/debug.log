@@ -1,0 +1,26 @@
+2025-12-04 08:56:13,047 INFO    MainThread:10152 [wandb_setup.py:_flush():80] Current SDK version is 0.23.1
+2025-12-04 08:56:13,047 INFO    MainThread:10152 [wandb_setup.py:_flush():80] Configure stats pid to 10152
+2025-12-04 08:56:13,047 INFO    MainThread:10152 [wandb_setup.py:_flush():80] Loading settings from C:\Users\aaron\.config\wandb\settings
+2025-12-04 08:56:13,047 INFO    MainThread:10152 [wandb_setup.py:_flush():80] Loading settings from V:\DataMining2025\wandb\settings
+2025-12-04 08:56:13,047 INFO    MainThread:10152 [wandb_setup.py:_flush():80] Loading settings from environment variables
+2025-12-04 08:56:13,047 INFO    MainThread:10152 [wandb_init.py:setup_run_log_directory():714] Logging user logs to V:\DataMining2025\wandb\run-20251204_085613-hlodwhy7\logs\debug.log
+2025-12-04 08:56:13,047 INFO    MainThread:10152 [wandb_init.py:setup_run_log_directory():715] Logging internal logs to V:\DataMining2025\wandb\run-20251204_085613-hlodwhy7\logs\debug-internal.log
+2025-12-04 08:56:13,047 INFO    MainThread:10152 [wandb_init.py:init():841] calling init triggers
+2025-12-04 08:56:13,047 INFO    MainThread:10152 [wandb_init.py:init():846] wandb.init called with sweep_config: {}
+config: {'num_samples': 2, 'num_epochs': 1, 'max_turns': 3, 'num_rollouts': 2, 'lr': 1e-05, 'max_new_tokens': 200, 'model_name': 'Qwen/Qwen2.5-3B-Instruct', 'judge_model': 'qwen2.5:7b', 'output_dir': 'outputs/checkpoints', 'eval_only': True, '_wandb': {}}
+2025-12-04 08:56:13,047 INFO    MainThread:10152 [wandb_init.py:init():889] starting backend
+2025-12-04 08:56:15,376 INFO    MainThread:10152 [wandb_init.py:init():892] sending inform_init request
+2025-12-04 08:56:15,413 INFO    MainThread:10152 [wandb_init.py:init():900] backend started and connected
+2025-12-04 08:56:15,415 INFO    MainThread:10152 [wandb_init.py:init():970] updated telemetry
+2025-12-04 08:56:15,460 INFO    MainThread:10152 [wandb_init.py:init():994] communicating run to backend with 90.0 second timeout
+2025-12-04 08:56:15,935 INFO    MainThread:10152 [wandb_init.py:init():1041] starting run threads in backend
+2025-12-04 08:56:16,636 INFO    MainThread:10152 [wandb_run.py:_console_start():2521] atexit reg
+2025-12-04 08:56:16,636 INFO    MainThread:10152 [wandb_run.py:_redirect():2369] redirect: wrap_raw
+2025-12-04 08:56:16,636 INFO    MainThread:10152 [wandb_run.py:_redirect():2438] Wrapping output streams.
+2025-12-04 08:56:16,636 INFO    MainThread:10152 [wandb_run.py:_redirect():2461] Redirects installed.
+2025-12-04 08:56:16,642 INFO    MainThread:10152 [wandb_init.py:init():1081] run started, returning control to user process
+2025-12-04 08:57:56,747 INFO    MainThread:10152 [wandb_run.py:_finish():2287] finishing run personal-org-aaron-tamte/DataMiningSLMSearch/hlodwhy7
+2025-12-04 08:57:56,748 INFO    MainThread:10152 [wandb_run.py:_atexit_cleanup():2486] got exitcode: 0
+2025-12-04 08:57:56,748 INFO    MainThread:10152 [wandb_run.py:_restore():2468] restore
+2025-12-04 08:57:56,748 INFO    MainThread:10152 [wandb_run.py:_restore():2474] restore done
+2025-12-04 08:57:57,558 INFO    MainThread:10152 [wandb_run.py:_footer_sync_info():3862] logging synced files

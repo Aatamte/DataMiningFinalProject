@@ -1,0 +1,59 @@
+wandb: Detected [openai] in use.
+wandb: Use W&B Weave for improved LLM call tracing. Install Weave with `pip install weave` then add `import weave` to the top of your script.
+wandb: For more information, check out the docs at: https://weave-docs.wandb.ai/
+wandb enabled: DataMiningSLMSearch/train_20251203_222003
+
+[1/4] Loading questions...
+
+[2/4] Loading model: Qwen/Qwen2.5-3B-Instruct...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|##########| 2/2 [00:04<00:00,  2.13s/it]
+  Device: cuda
+  Parameters: 3,085,938,688
+
+[3/4] Setting up judge...
+  Judge model: qwen2.5:7b
+  Training samples: 10
+
+[4/4] Training for 1 epoch(s)...
+
+--- Epoch 1/1 ---
+
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+  Expected: Canvas bag replaced with nylon...
+    Rollout 1: reward=0, answer='None of the pages that were re...'
+    Rollout 2: reward=0, answer='Based on the previous searches...'
+    Loss: 1.8241
+
+  Q2: What is the name of the demon possessing the death-row inmat...
+  Expected: Nefarious...
+    Rollout 1: reward=0, answer=', Nefarious explains that the ...'
+    Rollout 2: reward=0, answer='It appears that there was an e...'
+    Loss: 0.9622
+
+  Q3: What was the estimated budget for the 2020 Sonic the Hedgeho...
+  Expected: $90 million...
+    Rollout 1: reward=1, answer='$90 million...'
+    Rollout 2: reward=0, answer='It appears there was an issue ...'
+    Loss: -0.0753
+
+  Q4: Which university did the character Mariana Adams Foster grad...
+  Expected: MIT...
+    Rollout 1: reward=0, answer='None of the search results dir...'
+    Rollout 2: reward=0, answer='Based on the output, it seems ...'
+    Loss: 0.6841
+
+  Q5: Which 2023 film featuring a live-action remake of a classic ...
+  Expected: The Little Mermaid...
+    Rollout 1: reward=0, answer='{result['title']}...'
+    Rollout 2: reward=0, answer='Walt Disney Animation Studios ...'
+    Loss: 0.6141
+
+  Q6: Which university did Miles Teller attend for his Bachelor of...
+  Expected: New York University...
+    Rollout 1: reward=0, answer='Kidman, and His First Film Rol...'
+    Rollout 2: reward=0, answer=', 2010). "[Hole](Rabbit)(Rabbi...'
+    Loss: 0.6432
+
+  Q7: Who is the main detective character that teams up with Jake ...
+  Expected: McCabe...

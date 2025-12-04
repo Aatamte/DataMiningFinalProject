@@ -59,7 +59,7 @@ class Conversation:
                 messages.append({"role": "assistant", "content": msg.content})
             elif msg.role == Role.EXECUTION:
                 # Execution results come from the environment, use "user" role
-                messages.append({"role": "user", "content": f"[Output]\n{msg.content}"})
+                messages.append({"role": "user", "content": msg.content})
 
         return messages
 
@@ -78,7 +78,7 @@ class Conversation:
             elif msg.role == Role.ASSISTANT:
                 parts.append(msg.content)
             elif msg.role == Role.EXECUTION:
-                parts.append(f"\n\n{msg.content}\n\nAssistant:")
+                parts.append(f"\n\n{msg.content}")
 
         # If last message is USER, add Assistant: prompt
         if self.messages and self.messages[-1].role == Role.USER:

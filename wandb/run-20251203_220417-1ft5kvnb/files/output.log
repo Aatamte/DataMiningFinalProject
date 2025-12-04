@@ -1,0 +1,31 @@
+wandb: Detected [openai] in use.
+wandb: Use W&B Weave for improved LLM call tracing. Install Weave with `pip install weave` then add `import weave` to the top of your script.
+wandb: For more information, check out the docs at: https://weave-docs.wandb.ai/
+wandb enabled: DataMiningSLMSearch/train_20251203_220416
+
+[1/4] Loading questions...
+
+[2/4] Loading model: Qwen/Qwen2.5-3B-Instruct...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|##########| 2/2 [00:05<00:00,  2.74s/it]
+  Device: cuda
+  Parameters: 3,085,938,688
+
+[3/4] Setting up judge...
+  Judge model: qwen2.5:7b
+  Training samples: 10
+
+[4/4] Training for 1 epoch(s)...
+
+--- Epoch 1/1 ---
+
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+  Expected: Canvas bag replaced with nylon...
+    Rollout 1: reward=0, answer='It appears that there are no d...'
+    Rollout 2: reward=0, answer='It appears that the search did...'
+    Loss: 1.1299
+
+  Q2: What is the name of the demon possessing the death-row inmat...
+  Expected: Nefarious...
+    Rollout 1: reward=0, answer='It seems there was an error be...'
+    Rollout 2: reward=0, answer='. Nefarious tells Martin that ...'

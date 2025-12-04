@@ -24,9 +24,15 @@ def __getattr__(name):
     if name == "get_judge_reward":
         from .episode import get_judge_reward
         return get_judge_reward
+    if name == "JudgeResult":
+        from .episode import JudgeResult
+        return JudgeResult
     if name == "compute_reinforce_loss":
         from .episode import compute_reinforce_loss
         return compute_reinforce_loss
+    if name == "EpisodeLogger":
+        from .episode_logger import EpisodeLogger
+        return EpisodeLogger
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -39,4 +45,5 @@ __all__ = [
     "compute_reinforce_loss",
     "parse_python_code",
     "parse_answer",
+    "EpisodeLogger",
 ]

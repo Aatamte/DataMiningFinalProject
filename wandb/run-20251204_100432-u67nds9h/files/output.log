@@ -1,0 +1,49 @@
+[34m[1mwandb[0m: Detected [openai] in use.
+[34m[1mwandb[0m: Use W&B Weave for improved LLM call tracing. Install Weave with `pip install weave` then add `import weave` to the top of your script.
+[34m[1mwandb[0m: For more information, check out the docs at: https://weave-docs.wandb.ai/
+wandb enabled: DataMiningSLMSearch/train_20251204_100431
+
+[1/4] Loading questions...
+
+[2/4] Loading model: Qwen/Qwen3-4B-Instruct-2507...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3/3 [00:04<00:00,  1.37s/it]
+  Device: cuda
+  Parameters: 4,022,468,096
+
+[3/4] Setting up judge...
+  Judge URL: http://localhost:1234/v1
+  Judge model: deepseek/deepseek-r1-0528-qwen3-8b
+  Training samples: 2
+
+[4/4] Training for 1 epoch(s)...
+
+--- Epoch 1/1 ---
+
+  Q1: What controversy involved the Fallout 76 Power Armor edition...
+  Expected: Canvas bag replaced with nylon...
+    Rollout 1:
+      Answer: other projects and reassigning them to *Fallout 76*, resulting in a lack of quality control and poor development practices. The article also claimed that the game's [quality assurance](Quality assurance (software)) team was understaffed and had to be restructured due to poor oversight. The article further claimed that the game's development was plagued by poor communication and that developers were not being properly compensated for their work. The article also claimed that the game's release was delayed due to poor planning and that the game's post-launch support was lacking.
+
+The *Fallout 76* community has been active in advocating for better development practices and more transparent communication from Bethesda. The community has also been vocal in demanding better support and more responsive customer service.
+</python_output>
+      Judge: INCORRECT
+    Rollout 2:
+      Answer: other games, including *The Elder Scrolls Online*, to help finish *Fallout 76*. The article claimed that the company's leadership had failed to properly manage the project, and that the lack of proper oversight led to a lack of quality control and poor communication among teams. The article also claimed that the game had suffered from a lack of innovation and that the game's core gameplay was unoriginal and failed to meet expectations.
+
+The *Fallout 76* team has since been working on improving the game's quality and addressing the issues raised in the article. In 2023, Bethesda announced that they would be releasing a new update to the game that would include new content and features, including a new [mount](Mount (Fallout 76)) and a new [quest](Quest (Fallout 76)) line. The update was released in October 2023 and has been well received by fans.
+</python_output>
+      Judge: INCORRECT
+    [eval-only] Skipping training step
+
+  Q2: What is the name of the demon possessing the death-row inmat...
+  Expected: Nefarious...
+    Rollout 1:
+      Answer: Unable to determine the name of the demon possessing the death-row inmate in the film Nefarious based on available information.
+      Judge: INCORRECT
+    Rollout 2:
+      Answer: Unable to determine the name of the demon possessing the death-row inmate in the film Nefarious based on available information.
+      Judge: INCORRECT
+    [eval-only] Skipping training step
+
+  Epoch 1 avg reward: 0.00

@@ -14,6 +14,7 @@ from src.llm_logger import LLMLogger, set_llm_logger
 from src.agent import Agent, AgentConfig
 from .metrics import MetricsTracker, setup_logging, setup_run_dir
 from .episode import get_judge_reward, compute_reinforce_loss
+from .episode_logger import EpisodeLogger
 
 
 @dataclass
@@ -26,14 +27,17 @@ class TrainerConfig:
     max_turns: int = 3
     num_rollouts: int = 2
     lr: float = 1e-5
-    max_new_tokens: int = 200
+    max_new_tokens: int = 1024
 
     # Model settings
-    model_name: str = "Qwen/Qwen2.5-0.5B-Instruct"
-    judge_model: str = "qwen2.5:7b"
+    model_name: str = os.environ.get("TRAIN_MODEL", "Qwen/Qwen3-4B")
+    judge_model: str = os.environ.get("JUDGE_MODEL", "deepseek/deepseek-r1-0528-qwen3-8b")
 
     # Paths
     output_dir: str = "outputs/checkpoints"
+
+    # Eval mode
+    eval_only: bool = False
 
 
 class Trainer:
@@ -65,6 +69,7 @@ class Trainer:
         self.logger = None
         self.metrics = None
         self.llm_logger = None
+        self.episode_logger = None
         self.device = None
         self.run_name = None
         self.run_dir = None
@@ -83,6 +88,9 @@ class Trainer:
         # Setup LLM call logging
         self.llm_logger = LLMLogger(self.run_dir / "logs", "llm")
         set_llm_logger(self.llm_logger)
+
+        # Setup episode logging
+        self.episode_logger = EpisodeLogger(self.run_dir)
 
         self._log_header(log_file)
         self._setup_wandb()
@@ -112,7 +120,9 @@ class Trainer:
 
         # Setup judge
         self.logger.info("\n[3/4] Setting up judge...")
+        judge_url = os.environ.get("JUDGE_BASE_URL", "http://localhost:1234/v1")
         self.judge_client = get_local_judge_client()
+        self.logger.info(f"  Judge URL: {judge_url}")
         self.logger.info(f"  Judge model: {cfg.judge_model}")
 
     def _log_header(self, log_file) -> None:
@@ -129,6 +139,8 @@ class Trainer:
         self.logger.info(f"Max turns: {cfg.max_turns}")
         self.logger.info(f"Rollouts: {cfg.num_rollouts}")
         self.logger.info(f"LR: {cfg.lr}")
+        if cfg.eval_only:
+            self.logger.info("Mode: EVAL ONLY (no weight updates)")
         self.logger.info("=" * 60)
 
     def _setup_wandb(self) -> None:
@@ -214,32 +226,58 @@ class Trainer:
                         # Run episode using agent
                         episode = await agent.run(question)
 
-                        # Get reward from judge
-                        reward = await get_judge_reward(
-                            self.judge_client, cfg.judge_model,
-                            question, answer, episode.final_answer or ""
-                        )
+                        # Get reward from judge (skip if no answer)
+                        if episode.final_answer is None:
+                            # No answer = automatic 0
+                            from src.trainer.episode import JudgeResult
+                            judge_result = JudgeResult(reward=0.0, correct=False)
+                        else:
+                            judge_result = await get_judge_reward(
+                                self.judge_client, cfg.judge_model,
+                                question, answer, episode.final_answer
+                            )
 
                         episodes.append(episode)
-                        rewards.append(reward)
+                        rewards.append(judge_result.reward)
 
-                        answer_preview = (episode.final_answer or "")[:30]
-                        self.logger.info(f"    Rollout {r + 1}: reward={reward:.0f}, answer='{answer_preview}...'")
+                        # Detailed logging
+                        self.logger.info(f"    Rollout {r + 1}:")
+                        self.logger.info(f"      Answer: {episode.final_answer or '(none)'}")
+                        if episode.final_answer is None:
+                            self.logger.info(f"      Judge: INCORRECT (no answer)")
+                        elif judge_result.error:
+                            self.logger.info(f"      Judge error: {judge_result.error}")
+                        else:
+                            self.logger.info(f"      Judge: {'CORRECT' if judge_result.correct else 'INCORRECT'}")
+
+                        # Log episode details
+                        self.episode_logger.log_episode(
+                            q_idx=idx + 1,
+                            rollout_idx=r + 1,
+                            question=question,
+                            expected=answer,
+                            episode=episode,
+                            reward=judge_result.reward,
+                        )
 
                 epoch_rewards.extend(rewards)
 
-                # Training step
-                self.model.train()
-                self.optimizer.zero_grad()
+                # Training step (skip if eval_only)
+                loss_val = 0.0
+                if not cfg.eval_only:
+                    self.model.train()
+                    self.optimizer.zero_grad()
 
-                loss = compute_reinforce_loss(
-                    self.model, self.tokenizer, episodes, rewards, self.device
-                )
-                loss.backward()
-                self.optimizer.step()
-
-                loss_val = loss.item()
-                self.logger.info(f"    Loss: {loss_val:.4f}")
+                    # compute_reinforce_loss accumulates gradients internally via backward()
+                    loss = compute_reinforce_loss(
+                        self.model, self.tokenizer, episodes, rewards, self.device
+                    )
+                    # No loss.backward() needed - already done inside compute_reinforce_loss
+                    self.optimizer.step()
+                    loss_val = loss.item()
+                    self.logger.info(f"    Loss: {loss_val:.4f}")
+                else:
+                    self.logger.info(f"    [eval-only] Skipping training step")
 
                 # Track metrics
                 self.metrics.log_step(loss_val, rewards)
@@ -255,7 +293,7 @@ class Trainer:
                     plot_func()
 
                 # Clear memory
-                del episodes, rewards, loss
+                del episodes, rewards
                 torch.cuda.empty_cache()
 
             avg_reward = sum(epoch_rewards) / len(epoch_rewards) if epoch_rewards else 0

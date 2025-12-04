@@ -1,5 +1,6 @@
 """Agent class for running episodes."""
 
+import os
 import time
 from dataclasses import dataclass
 
@@ -24,12 +25,14 @@ class AgentConfig:
         max_new_tokens: Maximum tokens to generate per turn
         temperature: Sampling temperature
         max_context: Maximum context length in tokens
+        enable_thinking: Enable thinking mode for reasoning models (Qwen3, etc.)
     """
 
     max_turns: int = 3
-    max_new_tokens: int = 200
+    max_new_tokens: int = 1024
     temperature: float = 0.7
     max_context: int = 1500
+    enable_thinking: bool = os.environ.get("TRAIN_ENABLE_THINKING", "false").lower() == "true"
 
 
 class Agent:
@@ -89,6 +92,7 @@ class Agent:
             messages,
             tokenize=False,
             add_generation_prompt=True,
+            enable_thinking=self.config.enable_thinking,
         )
 
         # Tokenize
@@ -151,9 +155,9 @@ class Agent:
         try:
             result = await self.sandbox.execute(code)
             if result.get("error"):
-                content = f"Error:\n{result['error']}"
+                content = f"<python_output>\nError: {result['error']}\n</python_output>"
             else:
-                content = f"Output:\n{result['output']}"
+                content = f"<python_output>\n{result['output']}\n</python_output>"
         except Exception as e:
             content = f"Execution error: {str(e)}"
 
@@ -201,13 +205,10 @@ class Agent:
                     num_turns=num_turns,
                 )
 
-        # Max turns reached
-        last_response = conversation.last_message(Role.ASSISTANT)
-        final_answer = last_response.content.strip() if last_response else None
-
+        # Max turns reached without <answer> tag - no answer
         return EpisodeResult(
             question=question,
             conversation=conversation,
-            final_answer=final_answer,
+            final_answer=None,
             num_turns=num_turns,
         )
