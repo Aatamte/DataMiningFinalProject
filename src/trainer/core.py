@@ -181,9 +181,19 @@ class Trainer:
         cfg = self.config
 
         # Setup run directory and logging
-        self.run_name = generate_run_name()
-        self.run_dir = setup_run_dir(self.run_name, base_dir=cfg.output_dir)
-        self.logger, log_file = setup_logging(self.run_dir)
+        # If resuming, reuse the existing run name and directory
+        if cfg.resume_from:
+            self.run_name = cfg.resume_from
+            self.run_dir = Path(cfg.output_dir) / self.run_name
+            if not self.run_dir.exists():
+                raise ValueError(f"Run directory not found: {self.run_dir}")
+            self.logger, log_file = setup_logging(self.run_dir)
+            self.logger.info(f"Resuming run: {self.run_name}")
+        else:
+            self.run_name = generate_run_name()
+            self.run_dir = setup_run_dir(self.run_name, base_dir=cfg.output_dir)
+            self.logger, log_file = setup_logging(self.run_dir)
+
         self.metrics = MetricsTracker(self.run_dir)
 
         # Setup LLM call logging
@@ -284,14 +294,29 @@ class Trainer:
         import wandb
 
         wandb_entity = os.environ.get("WANDB_ENTITY")
-        wandb.init(
-            project=wandb_project,
-            entity=wandb_entity,
-            name=self.run_name,
-            config=asdict(self.config),
-        )
+
+        # If resuming, try to continue the existing wandb run
+        if self.config.resume_from:
+            wandb.init(
+                project=wandb_project,
+                entity=wandb_entity,
+                name=self.run_name,
+                id=self.run_name,  # Use run_name as wandb id for resumption
+                resume="allow",  # Resume if exists, create if not
+                config=asdict(self.config),
+            )
+            self.logger.info(f"wandb resumed: {wandb_project}/{self.run_name}")
+        else:
+            wandb.init(
+                project=wandb_project,
+                entity=wandb_entity,
+                name=self.run_name,
+                id=self.run_name,  # Use run_name as wandb id
+                config=asdict(self.config),
+            )
+            self.logger.info(f"wandb enabled: {wandb_project}/{self.run_name}")
+
         self.use_wandb = True
-        self.logger.info(f"wandb enabled: {wandb_project}/{self.run_name}")
 
     def _log_wandb(self, metrics: dict, step: int | None = None) -> None:
         """Log metrics to wandb if enabled."""
@@ -333,11 +358,11 @@ class Trainer:
         if torch.cuda.is_available():
             state_dict["cuda_rng_state"] = torch.cuda.get_rng_state()
 
-        # Atomic save: write to temp file, then rename
+        # Atomic save: write to temp file, then replace
         state_path = checkpoint_dir / "training_state.pt"
         temp_path = checkpoint_dir / "training_state.pt.tmp"
         torch.save(state_dict, temp_path)
-        temp_path.rename(state_path)
+        temp_path.replace(state_path)  # replace() works on Windows (rename() doesn't)
 
         self.logger.info(f"Saved checkpoint: {checkpoint_dir} (epoch={self.training_state.epoch}, step={self.training_state.global_step})")
         return checkpoint_dir
@@ -513,9 +538,22 @@ class Trainer:
                     self.logger.info("    Judging rollouts in parallel...")
                     judge_results = await asyncio.gather(*[judge_episode(ep) for ep in episodes])
 
-                    # Phase 3: Process results and log
+                    # Phase 3: Process results and collect stats
+                    correct_count = 0
+                    approach_scores = []
+                    answer_count = 0
+                    total_turns = 0
+
                     for r, (episode, judge_result) in enumerate(zip(episodes, judge_results)):
                         rewards.append(judge_result.reward)
+                        total_turns += episode.num_turns
+
+                        # Track stats
+                        if episode.final_answer is not None:
+                            answer_count += 1
+                        if judge_result.correct:
+                            correct_count += 1
+                        approach_scores.append(judge_result.approach_score)
 
                         # Detailed logging
                         if episode.final_answer is None:
@@ -563,15 +601,26 @@ class Trainer:
 
                 # Track metrics
                 self.metrics.log_step(loss_val, rewards)
+                n_rollouts = len(rewards)
                 wandb_metrics = {
-                    "loss": loss_val,
-                    "reward_mean": sum(rewards) / len(rewards),
+                    # Rewards
+                    "reward_mean": sum(rewards) / n_rollouts,
                     "reward_max": max(rewards),
                     "reward_min": min(rewards),
+                    # Accuracy & quality
+                    "accuracy": correct_count / n_rollouts,
+                    "correct_count": correct_count,
+                    "approach_score_avg": sum(approach_scores) / n_rollouts,
+                    "answer_rate": answer_count / n_rollouts,
+                    "avg_turns": total_turns / n_rollouts,
+                    # Training
+                    "loss": loss_val,
+                    "learning_rate": cfg.lr,
+                    "global_step": self.training_state.global_step,
                 }
                 if not cfg.eval_only:
                     wandb_metrics["grad_norm"] = grad_norm.item() if hasattr(grad_norm, 'item') else grad_norm
-                self._log_wandb(wandb_metrics)
+                self._log_wandb(wandb_metrics, step=self.training_state.global_step)
 
                 # Update live plot
                 if plot_func:
@@ -590,9 +639,9 @@ class Trainer:
                 if cfg.save_every_n_steps > 0 and self.training_state.global_step % cfg.save_every_n_steps == 0 and not cfg.eval_only:
                     self.save_checkpoint(f"step_{self.training_state.global_step}")
 
-                # Save "latest" checkpoint if enough time has passed
+                # Always save "latest" checkpoint after each weight update
                 if not cfg.eval_only:
-                    self._maybe_save_latest()
+                    self.save_checkpoint("latest")
 
                 # Print progress with ETA
                 completed_steps = epoch * len(subset) + idx + 1

@@ -27,7 +27,7 @@ lora:
 checkpoint:
   save_final: true
   save_every_epoch: false
-  interval_minutes: 10
+  resume_from: "gentle_wolf"
 
 judge:
   model: "deepseek/deepseek-r1-0528-qwen3-8b"
