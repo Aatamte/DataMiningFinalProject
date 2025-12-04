@@ -43,30 +43,30 @@ def validate_environment(config: dict) -> bool:
         if resp.status_code == 200:
             models = resp.json()
             model_ids = [m.get("id", "") for m in models.get("data", [])]
-            print(f"  ✓ API reachable, available models: {model_ids}")
+            print(f"  [OK] API reachable, available models: {model_ids}")
 
             # Check if judge model is available
             if judge_model in model_ids or any(judge_model in m for m in model_ids):
-                print(f"  ✓ Judge model '{judge_model}' available")
+                print(f"  [OK] Judge model '{judge_model}' available")
             else:
-                print(f"  ✗ Judge model '{judge_model}' not found in available models")
+                print(f"  [FAIL] Judge model '{judge_model}' not found in available models")
                 print(f"    Available: {model_ids}")
                 all_ok = False
         else:
-            print(f"  ✗ API returned status {resp.status_code}")
+            print(f"  [FAIL] API returned status {resp.status_code}")
             all_ok = False
     except httpx.ConnectError:
-        print(f"  ✗ Cannot connect to {judge_url}")
+        print(f"  [FAIL] Cannot connect to {judge_url}")
         print("    Is LM Studio / Ollama running?")
         all_ok = False
     except Exception as e:
-        print(f"  ✗ Error: {e}")
+        print(f"  [FAIL] Error: {e}")
         all_ok = False
 
     # Check training model exists on HuggingFace (just validate format)
     print(f"\n[2/2] Checking training model: {model_name}")
     if "/" in model_name:
-        print("  ✓ Model name format valid (will download if needed)")
+        print("  [OK] Model name format valid (will download if needed)")
     else:
         print(f"  ! Warning: Model name '{model_name}' may be local path")
 

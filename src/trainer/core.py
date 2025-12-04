@@ -24,7 +24,7 @@ class TrainerConfig:
     """Configuration for the Trainer."""
 
     # Model settings
-    model_name: str = "Qwen/Qwen2.5-0.5B-Instruct"
+    model_name: str = "Qwen/Qwen3-4B-Instruct-2507"
     max_context: int = 2048
 
     # Training params
@@ -87,7 +87,7 @@ class TrainerConfig:
             lora_r=get("lora", "r", cls.lora_r),
             lora_alpha=get("lora", "alpha", cls.lora_alpha),
             lora_dropout=get("lora", "dropout", cls.lora_dropout),
-            lora_target_modules=get("lora", "target_modules", cls.lora_target_modules),
+            lora_target_modules=get("lora", "target_modules", ["q_proj", "v_proj", "k_proj", "o_proj"]),
             # Checkpoint
             save_final=get("checkpoint", "save_final", cls.save_final),
             save_every_epoch=get("checkpoint", "save_every_epoch", cls.save_every_epoch),

@@ -1,16 +1,16 @@
-# Default training configuration for SLM-RL Search
+# Small training run - good for testing/validation
 
 model:
   name: "Qwen/Qwen3-4B-Instruct-2507"
   max_context: 2048
 
 training:
-  num_samples: 50
-  num_epochs: 3
-  num_rollouts: 4
+  num_samples: 10
+  num_epochs: 2
+  num_rollouts: 3
   max_turns: 3
   learning_rate: 1.0e-5
-  max_new_tokens: 1024
+  max_new_tokens: 512
   temperature: 0.7
 
 lora:

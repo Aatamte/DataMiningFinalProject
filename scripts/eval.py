@@ -5,7 +5,7 @@ Evaluate a model on the wiki-search task without training.
 Usage:
     uv run python scripts/eval.py
     uv run python scripts/eval.py --model Qwen/Qwen3-4B --q_percentage 10
-    uv run python scripts/eval.py --model runs/train_.../checkpoints/final --base_model Qwen/Qwen2.5-0.5B-Instruct
+    uv run python scripts/eval.py --model runs/train_.../checkpoints/final --base_model Qwen/Qwen3-4B-Instruct-2507
 """
 
 import argparse

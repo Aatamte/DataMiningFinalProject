@@ -245,14 +245,7 @@ class Agent:
             if code:
                 execution_result = await self.execute_code(code)
                 conversation.add_message(execution_result)
-            else:
-                # No code or answer - treat response as final answer
-                return EpisodeResult(
-                    question=question,
-                    conversation=conversation,
-                    final_answer=response.content.strip(),
-                    num_turns=num_turns,
-                )
+            # If no code and no answer, continue to next turn (or hit max turns)
 
         # Max turns reached without <answer> tag - no answer
         return EpisodeResult(

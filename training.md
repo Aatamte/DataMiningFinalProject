@@ -2,15 +2,11 @@
 
 ## Default Model
 
-The default model is `Qwen/Qwen2.5-3B-Instruct`. This can be changed via:
-```bash
-uv run python scripts/train.py --model_name "Qwen/Qwen2.5-0.5B-Instruct"
-```
+The default model is `Qwen/Qwen3-4B-Instruct-2507`. This can be changed via the config YAML.
 
 | Model | VRAM Required | Notes |
 |-------|---------------|-------|
-| Qwen2.5-0.5B-Instruct | ~1GB | Fast, good for testing |
-| Qwen2.5-3B-Instruct | ~6GB | Better learning capacity |
+| Qwen3-4B-Instruct-2507 | ~8GB | Good balance of speed and capability |
 
 ## Training Duration Factors
 

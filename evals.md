@@ -78,12 +78,12 @@ evals/
 
 ```bash
 # Evaluate base model
-uv run python scripts/eval.py --model Qwen/Qwen2.5-0.5B-Instruct --q_percentage 10
+uv run python scripts/eval.py --model Qwen/Qwen3-4B-Instruct-2507 --q_percentage 10
 
 # Evaluate LoRA fine-tuned checkpoint
 uv run python scripts/eval.py \
     --model runs/train_20241204_143022/checkpoints/final \
-    --base_model Qwen/Qwen2.5-0.5B-Instruct \
+    --base_model Qwen/Qwen3-4B-Instruct-2507 \
     --q_percentage 10
 ```
 
@@ -139,6 +139,6 @@ Baseline evaluations on wiki-search task.
 
 | Model | Quant | Accuracy | Avg Turns | Questions | Notes |
 |-------|-------|----------|-----------|-----------|-------|
-| Qwen3-4B-Instruct-2507 | F16 | | | | |
-| google/gemma-3-4b | | | | | |
+| Qwen3-4B-Instruct-2507 | F16 | 42.68% | 2.31 | 478 | |
+| google/gemma-3-4b | | 23.22% | 2.01 | 478 | |
 | Qwen3-1.7B | Q8_0 | | | | |

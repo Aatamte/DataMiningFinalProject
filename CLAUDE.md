@@ -108,7 +108,7 @@ uv run python scripts/train.py \
     --num_rollouts 4 \
     --lr 1e-5 \
     --max_new_tokens 200 \
-    --model_name "Qwen/Qwen2.5-0.5B-Instruct" \
+    --model_name "Qwen/Qwen3-4B-Instruct-2507" \
     --judge_model "qwen2.5:7b"
 ```
 

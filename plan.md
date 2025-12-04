@@ -227,7 +227,7 @@ Or use smaller judge (qwen2.5:3b) to fit both.
 ```yaml
 # configs/default.yaml
 model:
-  name: "Qwen/Qwen2.5-0.5B-Instruct"
+  name: "Qwen/Qwen3-4B-Instruct-2507"
   max_length: 2048
 
 training:

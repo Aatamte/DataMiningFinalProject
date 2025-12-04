@@ -1,5 +1,6 @@
 """REINFORCE training utilities."""
 
+import logging
 import time
 from dataclasses import dataclass
 
@@ -8,6 +9,8 @@ import torch
 from src.prompts import build_judge_prompt, parse_judge_response
 from src.llm_logger import get_llm_logger
 from src.agent import EpisodeResult
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -88,7 +91,8 @@ def compute_reinforce_loss(
     episodes: list[EpisodeResult],
     rewards: list[float],
     device: str,
-    baseline: float = 0.5
+    baseline: float = 0.5,
+    debug: bool = True
 ) -> torch.Tensor:
     """Compute REINFORCE loss for policy gradient update.
 
@@ -105,6 +109,7 @@ def compute_reinforce_loss(
         rewards: List of rewards corresponding to each episode
         device: Device to compute on
         baseline: Fixed baseline for advantage computation
+        debug: If True, log detailed diagnostic information
 
     Returns:
         Computed loss tensor (scalar for logging, gradients already accumulated)
@@ -112,15 +117,31 @@ def compute_reinforce_loss(
     total_loss_value = 0.0
     n_steps = 0
 
-    for episode, reward in zip(episodes, rewards):
+    # Diagnostic tracking
+    diag_info = {
+        "total_prompt_tokens": 0,
+        "total_response_tokens": 0,
+        "total_tokens": 0,
+        "steps": [],
+    }
+
+    for ep_idx, (episode, reward) in enumerate(zip(episodes, rewards)):
         advantage = reward - baseline
 
         # Get trajectory in (prompt, response) format
         trajectory = episode.trajectory()
 
+        if debug:
+            print(f"  [DIAG] Episode {ep_idx}: reward={reward}, advantage={advantage:+.2f}, turns={len(trajectory)}")
+
         # For each turn in the trajectory, compute loss
-        for prompt, response in trajectory:
+        for turn_idx, (prompt, response) in enumerate(trajectory):
             full_text = prompt + response
+
+            # Tokenize separately to measure lengths
+            prompt_tokens = tokenizer(prompt, return_tensors="pt", add_special_tokens=False)["input_ids"]
+            response_tokens = tokenizer(response, return_tensors="pt", add_special_tokens=False)["input_ids"]
+
             inputs = tokenizer(
                 full_text,
                 return_tensors="pt",
@@ -128,14 +149,50 @@ def compute_reinforce_loss(
                 max_length=2048
             ).to(device)
 
-            # Get log probabilities
-            outputs = model(**inputs, labels=inputs["input_ids"])
+            prompt_len = prompt_tokens.shape[1]
+            response_len = response_tokens.shape[1]
+            total_len = inputs["input_ids"].shape[1]
+
+            # Track for diagnostics
+            diag_info["total_prompt_tokens"] += prompt_len
+            diag_info["total_response_tokens"] += response_len
+            diag_info["total_tokens"] += total_len
+
+            # Create labels with -100 for prompt tokens (only compute loss on response)
+            labels = inputs["input_ids"].clone()
+            labels[0, :prompt_len] = -100  # Mask prompt tokens
+
+            # Get log probabilities (loss only on response tokens now)
+            outputs = model(**inputs, labels=labels)
             loss = outputs.loss
 
             # Weight by advantage (REINFORCE)
             # positive advantage = reward > baseline = reinforce this behavior
             # negative advantage = reward < baseline = discourage this behavior
             weighted_loss = loss * (-advantage)
+
+            if debug:
+                step_info = {
+                    "episode": ep_idx,
+                    "turn": turn_idx,
+                    "prompt_tokens": prompt_len,
+                    "response_tokens": response_len,
+                    "total_tokens": total_len,
+                    "loss": loss.item(),
+                    "weighted_loss": weighted_loss.item(),
+                    "advantage": advantage,
+                    "prompt_preview": prompt[-100:].replace('\n', '\\n'),
+                    "response_preview": response[:100].replace('\n', '\\n'),
+                }
+                diag_info["steps"].append(step_info)
+
+                print(f"    [DIAG] Turn {turn_idx}: "
+                      f"prompt={prompt_len} tok, response={response_len} tok, total={total_len} tok | "
+                      f"loss={loss.item():.4f}, weighted={weighted_loss.item():.4f}")
+
+                # Show token breakdown (prompt tokens now masked with -100)
+                pct_response = (response_len / total_len) * 100 if total_len > 0 else 0
+                print(f"    [DIAG] Loss computed on {response_len} response tokens ({pct_response:.1f}% of sequence)")
 
             # Accumulate gradients immediately (avoids building giant graph)
             # Scale by 1/n_steps will be applied after we know total steps
@@ -145,8 +202,34 @@ def compute_reinforce_loss(
             n_steps += 1
 
             # Free memory
-            del inputs, outputs, loss, weighted_loss
+            del inputs, outputs, loss, weighted_loss, prompt_tokens, response_tokens, labels
             torch.cuda.empty_cache()
+
+    # Scale gradients by 1/n_steps (average instead of sum)
+    if n_steps > 0:
+        for param in model.parameters():
+            if param.grad is not None:
+                param.grad /= n_steps
+
+    # Log gradient accumulation diagnostic
+    if debug:
+        print(f"  [DIAG] === GRADIENT ACCUMULATION SUMMARY ===")
+        print(f"  [DIAG] Total backward() calls: {n_steps}")
+        print(f"  [DIAG] Gradients scaled by 1/{n_steps} (averaged)")
+        print(f"  [DIAG] Total prompt tokens in loss: {diag_info['total_prompt_tokens']}")
+        print(f"  [DIAG] Total response tokens in loss: {diag_info['total_response_tokens']}")
+        print(f"  [DIAG] Prompt/Response ratio: {diag_info['total_prompt_tokens']}/{diag_info['total_response_tokens']}")
+
+        # Check gradient norms
+        total_grad_norm = 0.0
+        param_count = 0
+        for param in model.parameters():
+            if param.grad is not None:
+                total_grad_norm += param.grad.norm().item() ** 2
+                param_count += 1
+        total_grad_norm = total_grad_norm ** 0.5
+        print(f"  [DIAG] Gradient L2 norm (after scaling): {total_grad_norm:.4f}")
+        print(f"  [DIAG] Parameters with gradients: {param_count}")
 
     # Return scalar tensor for logging (gradients already accumulated)
     avg_loss = total_loss_value / max(n_steps, 1)

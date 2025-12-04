@@ -1,16 +1,16 @@
-# Default training configuration for SLM-RL Search
+# Minimal config for debugging/validation
 
 model:
   name: "Qwen/Qwen3-4B-Instruct-2507"
   max_context: 2048
 
 training:
-  num_samples: 50
-  num_epochs: 3
-  num_rollouts: 4
+  num_samples: 1
+  num_epochs: 1
+  num_rollouts: 2
   max_turns: 3
   learning_rate: 1.0e-5
-  max_new_tokens: 1024
+  max_new_tokens: 512
   temperature: 0.7
 
 lora:
@@ -25,7 +25,7 @@ lora:
     - "o_proj"
 
 checkpoint:
-  save_final: true
+  save_final: false
   save_every_epoch: false
 
 judge:
