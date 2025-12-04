@@ -4,7 +4,7 @@ import os
 import time
 from dataclasses import dataclass
 
-import torch
+import httpx
 
 from src.prompts import SYSTEM_PROMPT
 from src.environment import SandboxClient
@@ -26,6 +26,9 @@ class AgentConfig:
         temperature: Sampling temperature
         max_context: Maximum context length in tokens
         enable_thinking: Enable thinking mode for reasoning models (Qwen3, etc.)
+        use_api: Use OpenAI-compatible API instead of local model
+        api_url: Base URL for API (when use_api=True)
+        api_model: Model name for API (when use_api=True)
     """
 
     max_turns: int = 3
@@ -33,6 +36,9 @@ class AgentConfig:
     temperature: float = 0.7
     max_context: int = 1500
     enable_thinking: bool = os.environ.get("TRAIN_ENABLE_THINKING", "false").lower() == "true"
+    use_api: bool = os.environ.get("EVAL_USE_API", "false").lower() == "true"
+    api_url: str = os.environ.get("EVAL_API_URL", "http://localhost:1234/v1")
+    api_model: str = os.environ.get("EVAL_MODEL", "")
 
 
 class Agent:
@@ -40,6 +46,10 @@ class Agent:
 
     The agent manages the conversation, generates responses, executes code
     in a sandbox, and returns structured episode results.
+
+    Supports two modes:
+    - Local model: Pass model/tokenizer, uses torch for inference
+    - API mode: Set use_api=True in config, uses OpenAI-compatible API
     """
 
     def __init__(
@@ -52,8 +62,8 @@ class Agent:
         """Initialize the agent.
 
         Args:
-            model: The language model
-            tokenizer: Tokenizer for the model
+            model: The language model (can be None if using API mode)
+            tokenizer: Tokenizer for the model (can be None if using API mode)
             sandbox: Sandbox client for code execution
             config: Agent configuration (uses defaults if None)
         """
@@ -61,7 +71,14 @@ class Agent:
         self.tokenizer = tokenizer
         self.sandbox = sandbox
         self.config = config or AgentConfig()
-        self.device = next(model.parameters()).device
+
+        if self.config.use_api:
+            self.device = None
+            self._http_client = httpx.AsyncClient(timeout=120.0)
+        else:
+            import torch
+            self.device = next(model.parameters()).device
+            self._http_client = None
 
     def _create_conversation(self, question: str) -> Conversation:
         """Create initial conversation with system prompt and question.
@@ -86,8 +103,62 @@ class Agent:
         Returns:
             The generated assistant message
         """
-        # Convert to chat messages and apply template
         messages = conversation.to_messages()
+
+        if self.config.use_api:
+            response_text, latency_ms, tokens_generated = await self._step_api(messages)
+            model_name = self.config.api_model
+        else:
+            response_text, latency_ms, tokens_generated = await self._step_local(messages)
+            model_name = self.model.config.name_or_path
+
+        # Truncate after </python> to prevent hallucinated outputs
+        # Model tends to generate fake "Output:" after code blocks
+        if "</python>" in response_text:
+            python_end = response_text.find("</python>") + len("</python>")
+            response_text = response_text[:python_end]
+
+        # Log the call
+        llm_logger = get_llm_logger()
+        if llm_logger:
+            llm_logger.log_model_call(
+                model=model_name,
+                messages=messages,
+                response=response_text,
+                max_new_tokens=self.config.max_new_tokens,
+                temperature=self.config.temperature,
+                latency_ms=latency_ms,
+                tokens_generated=tokens_generated,
+            )
+
+        return Message(Role.ASSISTANT, response_text)
+
+    async def _step_api(self, messages: list[dict]) -> tuple[str, float, int]:
+        """Generate via OpenAI-compatible API."""
+        start_time = time.perf_counter()
+
+        response = await self._http_client.post(
+            f"{self.config.api_url}/chat/completions",
+            json={
+                "model": self.config.api_model,
+                "messages": messages,
+                "max_tokens": self.config.max_new_tokens,
+                "temperature": self.config.temperature,
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        latency_ms = (time.perf_counter() - start_time) * 1000
+        response_text = data["choices"][0]["message"]["content"]
+        tokens_generated = data.get("usage", {}).get("completion_tokens", 0)
+
+        return response_text, latency_ms, tokens_generated
+
+    async def _step_local(self, messages: list[dict]) -> tuple[str, float, int]:
+        """Generate via local model."""
+        import torch
+
         prompt = self.tokenizer.apply_chat_template(
             messages,
             tokenize=False,
@@ -95,7 +166,6 @@ class Agent:
             enable_thinking=self.config.enable_thinking,
         )
 
-        # Tokenize
         inputs = self.tokenizer(
             prompt,
             return_tensors="pt",
@@ -105,7 +175,6 @@ class Agent:
 
         input_length = inputs["input_ids"].shape[1]
 
-        # Generate
         start_time = time.perf_counter()
         with torch.no_grad():
             outputs = self.model.generate(
@@ -117,31 +186,11 @@ class Agent:
             )
         latency_ms = (time.perf_counter() - start_time) * 1000
 
-        # Decode only the generated tokens (not the prompt)
         generated_tokens = outputs[0][input_length:]
         response_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
+        tokens_generated = outputs.shape[1] - input_length
 
-        # Truncate after </python> to prevent hallucinated outputs
-        # Model tends to generate fake "Output:" after code blocks
-        if "</python>" in response_text:
-            python_end = response_text.find("</python>") + len("</python>")
-            response_text = response_text[:python_end]
-
-        # Log the call
-        llm_logger = get_llm_logger()
-        if llm_logger:
-            tokens_generated = outputs.shape[1] - input_length
-            llm_logger.log_model_call(
-                model=self.model.config.name_or_path,
-                messages=messages,
-                response=response_text,
-                max_new_tokens=self.config.max_new_tokens,
-                temperature=self.config.temperature,
-                latency_ms=latency_ms,
-                tokens_generated=tokens_generated,
-            )
-
-        return Message(Role.ASSISTANT, response_text)
+        return response_text, latency_ms, tokens_generated
 
     async def execute_code(self, code: str) -> Message:
         """Execute code in the sandbox.

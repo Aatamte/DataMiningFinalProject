@@ -17,6 +17,7 @@ outputs/
 # Environment
 .env
 
-# Training outputs
+# Training and eval outputs
 runs/
+evals/
 wandb/
