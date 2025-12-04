@@ -181,16 +181,22 @@ class Trainer:
         cfg = self.config
 
         # Setup run directory and logging
-        # If resuming, reuse the existing run name and directory
-        if cfg.resume_from:
+        # Priority: RUN_ID env var > resume_from config > generate random name
+        run_id = os.environ.get("RUN_ID")
+        if run_id:
+            self.run_name = run_id
+        elif cfg.resume_from:
             self.run_name = cfg.resume_from
-            self.run_dir = Path(cfg.output_dir) / self.run_name
-            if not self.run_dir.exists():
-                raise ValueError(f"Run directory not found: {self.run_dir}")
+        else:
+            self.run_name = generate_run_name()
+
+        self.run_dir = Path(cfg.output_dir) / self.run_name
+        if self.run_dir.exists():
+            # Existing run - resume
             self.logger, log_file = setup_logging(self.run_dir)
             self.logger.info(f"Resuming run: {self.run_name}")
         else:
-            self.run_name = generate_run_name()
+            # New run - create directory
             self.run_dir = setup_run_dir(self.run_name, base_dir=cfg.output_dir)
             self.logger, log_file = setup_logging(self.run_dir)
 
@@ -294,29 +300,19 @@ class Trainer:
         import wandb
 
         wandb_entity = os.environ.get("WANDB_ENTITY")
+        # Use RUN_ID env var if set, otherwise use run_name
+        wandb_run_id = os.environ.get("RUN_ID", self.run_name)
 
-        # If resuming, try to continue the existing wandb run
-        if self.config.resume_from:
-            wandb.init(
-                project=wandb_project,
-                entity=wandb_entity,
-                name=self.run_name,
-                id=self.run_name,  # Use run_name as wandb id for resumption
-                resume="allow",  # Resume if exists, create if not
-                config=asdict(self.config),
-            )
-            self.logger.info(f"wandb resumed: {wandb_project}/{self.run_name}")
-        else:
-            wandb.init(
-                project=wandb_project,
-                entity=wandb_entity,
-                name=self.run_name,
-                id=self.run_name,  # Use run_name as wandb id
-                config=asdict(self.config),
-            )
-            self.logger.info(f"wandb enabled: {wandb_project}/{self.run_name}")
-
+        wandb.init(
+            project=wandb_project,
+            entity=wandb_entity,
+            name=self.run_name,
+            id=wandb_run_id,
+            resume="allow",  # Resume if exists, create if not
+            config=asdict(self.config),
+        )
         self.use_wandb = True
+        self.logger.info(f"wandb enabled: {wandb_project}/{self.run_name} (id={wandb_run_id})")
 
     def _log_wandb(self, metrics: dict, step: int | None = None) -> None:
         """Log metrics to wandb if enabled."""

@@ -27,11 +27,11 @@ lora:
 checkpoint:
   save_final: true
   save_every_epoch: false
-  resume_from: "gentle_wolf"
+  resume_from: "slm_training_v1"
 
 judge:
   model: "deepseek/deepseek-r1-0528-qwen3-8b"
-  base_url: "http://10.0.0.9:1234/v1"
+  base_url: "http://localhost:1234/v1"
 
 environment:
   sandbox_host: "localhost"
