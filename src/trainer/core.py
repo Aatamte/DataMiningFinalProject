@@ -1,14 +1,38 @@
 """Core Trainer class for SLM-RL training."""
 
+import asyncio
+import json
 import os
+import random
+import tempfile
+import time
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import torch
+
+# Docker-style random name generation
+ADJECTIVES = [
+    "happy", "clever", "brave", "calm", "eager", "fancy", "gentle", "jolly",
+    "kind", "lively", "merry", "nice", "proud", "quick", "sharp", "smart",
+    "swift", "warm", "wise", "bold", "bright", "cool", "fast", "keen"
+]
+NOUNS = [
+    "panda", "falcon", "tiger", "wolf", "eagle", "hawk", "lion", "bear",
+    "fox", "owl", "dolphin", "otter", "badger", "raven", "phoenix", "dragon",
+    "newton", "tesla", "curie", "darwin", "fermi", "gauss", "euler", "turing"
+]
+
+def generate_run_name() -> str:
+    """Generate a unique Docker-style run name."""
+    return f"{random.choice(ADJECTIVES)}_{random.choice(NOUNS)}"
+
+
 from torch.optim import AdamW
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import LoraConfig, get_peft_model, TaskType
+from peft import LoraConfig, get_peft_model, TaskType, PeftModel
 
 from src.environment import load_questions, SandboxClient
 from src.judge import get_local_judge_client
@@ -17,6 +41,14 @@ from src.agent import Agent, AgentConfig
 from .metrics import MetricsTracker, setup_logging, setup_run_dir
 from .episode import get_judge_reward, compute_reinforce_loss
 from .episode_logger import EpisodeLogger
+
+
+@dataclass
+class TrainingState:
+    """Training state for checkpointing and resumption."""
+    epoch: int = 0
+    step: int = 0  # Step within current epoch
+    global_step: int = 0
 
 
 @dataclass
@@ -35,6 +67,7 @@ class TrainerConfig:
     lr: float = 1e-5
     max_new_tokens: int = 1024
     temperature: float = 0.7
+    max_grad_norm: float = 1.0  # Gradient clipping for stability
 
     # LoRA settings
     use_lora: bool = True
@@ -46,6 +79,9 @@ class TrainerConfig:
     # Checkpoint settings
     save_final: bool = True
     save_every_epoch: bool = False
+    save_every_n_steps: int = 0  # 0 = disabled, N = save every N steps
+    checkpoint_interval_minutes: int = 15  # Auto-save "latest" every N minutes (0 = disabled)
+    resume_from: str = ""  # Path to checkpoint to resume from (empty = start fresh)
 
     # Judge settings
     judge_model: str = "deepseek/deepseek-r1-0528-qwen3-8b"
@@ -82,6 +118,7 @@ class TrainerConfig:
             lr=get("training", "learning_rate", cls.lr),
             max_new_tokens=get("training", "max_new_tokens", cls.max_new_tokens),
             temperature=get("training", "temperature", cls.temperature),
+            max_grad_norm=get("training", "max_grad_norm", cls.max_grad_norm),
             # LoRA
             use_lora=get("lora", "enabled", cls.use_lora),
             lora_r=get("lora", "r", cls.lora_r),
@@ -91,6 +128,9 @@ class TrainerConfig:
             # Checkpoint
             save_final=get("checkpoint", "save_final", cls.save_final),
             save_every_epoch=get("checkpoint", "save_every_epoch", cls.save_every_epoch),
+            save_every_n_steps=get("checkpoint", "save_every_n_steps", cls.save_every_n_steps),
+            checkpoint_interval_minutes=get("checkpoint", "interval_minutes", cls.checkpoint_interval_minutes),
+            resume_from=get("checkpoint", "resume_from", cls.resume_from),
             # Judge
             judge_model=get("judge", "model", cls.judge_model),
             judge_base_url=get("judge", "base_url", cls.judge_base_url),
@@ -133,13 +173,15 @@ class Trainer:
         self.run_name = None
         self.run_dir = None
         self.use_wandb = False
+        self.training_state = TrainingState()
+        self._last_checkpoint_time = 0.0  # For time-based checkpointing
 
     def setup(self) -> None:
         """Initialize all components for training."""
         cfg = self.config
 
         # Setup run directory and logging
-        self.run_name = f"train_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.run_name = generate_run_name()
         self.run_dir = setup_run_dir(self.run_name, base_dir=cfg.output_dir)
         self.logger, log_file = setup_logging(self.run_dir)
         self.metrics = MetricsTracker(self.run_dir)
@@ -155,8 +197,10 @@ class Trainer:
         self._setup_wandb()
 
         # Load questions dataset (tools executed via Docker sandbox)
-        self.logger.info("\n[1/4] Loading questions...")
-        self.dataset = load_questions()
+        # Only use training split (first 80%) - test split reserved for eval
+        self.logger.info("\n[1/4] Loading questions (train split)...")
+        self.dataset = load_questions(subset="train")
+        self.logger.info(f"  Train set size: {len(self.dataset)} questions")
 
         # Load model
         self.logger.info(f"\n[2/4] Loading model: {cfg.model_name}...")
@@ -202,6 +246,14 @@ class Trainer:
         self.judge_client = get_local_judge_client(cfg.judge_base_url)
         self.logger.info(f"  Judge URL: {cfg.judge_base_url}")
         self.logger.info(f"  Judge model: {cfg.judge_model}")
+
+        # Load checkpoint if resuming
+        if cfg.resume_from:
+            self.logger.info(f"\n[3.5/4] Resuming from checkpoint: {cfg.resume_from}")
+            self.load_checkpoint(cfg.resume_from)
+
+        # Initialize checkpoint timer
+        self._last_checkpoint_time = time.time()
 
     def _log_header(self, log_file) -> None:
         """Log training header info."""
@@ -249,10 +301,12 @@ class Trainer:
         wandb.log(metrics, step=step)
 
     def save_checkpoint(self, name: str = "final") -> Path:
-        """Save model checkpoint.
+        """Save full training checkpoint (model + optimizer + state).
+
+        Uses atomic saving to prevent corruption if interrupted.
 
         Args:
-            name: Checkpoint name (e.g., "final", "epoch_1")
+            name: Checkpoint name (e.g., "final", "step_100", "latest")
 
         Returns:
             Path to saved checkpoint directory
@@ -260,17 +314,108 @@ class Trainer:
         checkpoint_dir = self.run_dir / "checkpoints" / name
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
+        # Save model weights (LoRA adapter or full model)
         if self.config.use_lora:
-            # Save only LoRA adapter weights
             self.model.save_pretrained(checkpoint_dir)
-            self.logger.info(f"Saved LoRA adapter: {checkpoint_dir}")
         else:
-            # Save full model
             self.model.save_pretrained(checkpoint_dir)
             self.tokenizer.save_pretrained(checkpoint_dir)
-            self.logger.info(f"Saved full model: {checkpoint_dir}")
 
+        # Save training state (optimizer, epoch, step, etc.) atomically
+        state_dict = {
+            "optimizer_state": self.optimizer.state_dict(),
+            "training_state": asdict(self.training_state),
+            "config": asdict(self.config),
+            "metrics": self.metrics.metrics if self.metrics else {},
+            "torch_rng_state": torch.get_rng_state(),
+            "run_name": self.run_name,
+        }
+        if torch.cuda.is_available():
+            state_dict["cuda_rng_state"] = torch.cuda.get_rng_state()
+
+        # Atomic save: write to temp file, then rename
+        state_path = checkpoint_dir / "training_state.pt"
+        temp_path = checkpoint_dir / "training_state.pt.tmp"
+        torch.save(state_dict, temp_path)
+        temp_path.rename(state_path)
+
+        self.logger.info(f"Saved checkpoint: {checkpoint_dir} (epoch={self.training_state.epoch}, step={self.training_state.global_step})")
         return checkpoint_dir
+
+    def load_checkpoint(self, checkpoint_path: str) -> None:
+        """Load training checkpoint to resume training.
+
+        Args:
+            checkpoint_path: Path to checkpoint directory, or just a run name
+                            (e.g., "train_20251204_162911" will look for
+                             runs/train_20251204_162911/checkpoints/latest)
+        """
+        checkpoint_dir = Path(checkpoint_path)
+
+        # If it's just a run name, look for latest checkpoint in that run
+        if not checkpoint_dir.exists():
+            run_dir = Path(self.config.output_dir) / checkpoint_path / "checkpoints" / "latest"
+            if run_dir.exists():
+                checkpoint_dir = run_dir
+            else:
+                raise ValueError(f"Checkpoint not found: {checkpoint_path}\n  Tried: {checkpoint_dir} and {run_dir}")
+
+        state_path = checkpoint_dir / "training_state.pt"
+        if not state_path.exists():
+            raise ValueError(f"Training state not found: {state_path}")
+
+        self.logger.info(f"Loading checkpoint: {checkpoint_dir}")
+
+        # Load training state
+        state_dict = torch.load(state_path, map_location="cpu", weights_only=False)
+
+        # Restore optimizer state
+        self.optimizer.load_state_dict(state_dict["optimizer_state"])
+
+        # Restore training state
+        ts = state_dict["training_state"]
+        self.training_state = TrainingState(
+            epoch=ts["epoch"],
+            step=ts["step"],
+            global_step=ts["global_step"],
+        )
+
+        # Restore metrics if available
+        if "metrics" in state_dict and self.metrics:
+            self.metrics.metrics = state_dict["metrics"]
+
+        # Restore RNG states for reproducibility
+        if "torch_rng_state" in state_dict:
+            torch.set_rng_state(state_dict["torch_rng_state"])
+        if "cuda_rng_state" in state_dict and torch.cuda.is_available():
+            torch.cuda.set_rng_state(state_dict["cuda_rng_state"])
+
+        # Load model weights
+        if self.config.use_lora:
+            # For LoRA, we need to load the adapter weights
+            # The base model is already loaded, just load LoRA weights
+            self.model.load_adapter(checkpoint_dir, adapter_name="default")
+            self.logger.info("Loaded LoRA adapter weights")
+        else:
+            # For full model, load state dict
+            self.model.load_state_dict(
+                torch.load(checkpoint_dir / "pytorch_model.bin", map_location=self.device)
+            )
+            self.logger.info("Loaded full model weights")
+
+        self.logger.info(f"Resumed from epoch={self.training_state.epoch}, step={self.training_state.step}, global_step={self.training_state.global_step}")
+
+    def _maybe_save_latest(self) -> None:
+        """Save 'latest' checkpoint if enough time has passed."""
+        if self.config.checkpoint_interval_minutes <= 0:
+            return
+
+        current_time = time.time()
+        interval_seconds = self.config.checkpoint_interval_minutes * 60
+
+        if current_time - self._last_checkpoint_time >= interval_seconds:
+            self.save_checkpoint("latest")
+            self._last_checkpoint_time = current_time
 
     async def train(self, live_plot: bool = False) -> None:
         """Run the training loop.
@@ -300,13 +445,32 @@ class Trainer:
         subset = self.dataset.select(range(min(cfg.num_samples, len(self.dataset))))
         self.logger.info(f"  Training samples: {len(subset)}")
 
-        self.logger.info(f"\n[4/4] Training for {cfg.num_epochs} epoch(s)...")
+        # Get starting point (for resumption)
+        start_epoch = self.training_state.epoch
+        start_step = self.training_state.step
 
-        for epoch in range(cfg.num_epochs):
+        if start_epoch > 0 or start_step > 0:
+            self.logger.info(f"\n[4/4] Resuming training from epoch {start_epoch + 1}, step {start_step + 1}...")
+        else:
+            self.logger.info(f"\n[4/4] Training for {cfg.num_epochs} epoch(s)...")
+
+        # For ETA calculation
+        total_steps = cfg.num_epochs * len(subset)
+        completed_steps = start_epoch * len(subset) + start_step
+        training_start_time = time.time()
+
+        for epoch in range(start_epoch, cfg.num_epochs):
             self.logger.info(f"\n--- Epoch {epoch + 1}/{cfg.num_epochs} ---")
             epoch_rewards = []
 
+            # Determine starting step for this epoch
+            epoch_start_step = start_step if epoch == start_epoch else 0
+
             for idx, item in enumerate(subset):
+                # Skip already completed steps when resuming
+                if idx < epoch_start_step:
+                    continue
+
                 question = item.get('question', item.get('prompt', ''))
                 answer = item.get('answer', '')
 
@@ -328,33 +492,39 @@ class Trainer:
                     )
                     agent = Agent(self.model, self.tokenizer, sandbox, agent_config)
 
+                    # Phase 1: Collect all rollouts (sequential - same sandbox)
                     for r in range(cfg.num_rollouts):
-                        # Run episode using agent
                         episode = await agent.run(question)
-
-                        # Get reward from judge (skip if no answer)
-                        if episode.final_answer is None:
-                            # No answer = automatic 0
-                            from src.trainer.episode import JudgeResult
-                            judge_result = JudgeResult(reward=0.0, correct=False)
-                        else:
-                            judge_result = await get_judge_reward(
-                                self.judge_client, cfg.judge_model,
-                                question, answer, episode.final_answer
-                            )
-
                         episodes.append(episode)
+                        self.logger.info(f"    Rollout {r + 1}: Answer = {episode.final_answer or '(none)'}")
+
+                    # Phase 2: Judge all rollouts in parallel
+                    async def judge_episode(ep):
+                        if ep.final_answer is None:
+                            from src.trainer.episode import JudgeResult
+                            return JudgeResult(reward=0.0, correct=False, approach_score=0)
+                        trajectory = ep.format_for_judge()
+                        return await get_judge_reward(
+                            self.judge_client, cfg.judge_model,
+                            question, answer, ep.final_answer,
+                            trajectory=trajectory
+                        )
+
+                    self.logger.info("    Judging rollouts in parallel...")
+                    judge_results = await asyncio.gather(*[judge_episode(ep) for ep in episodes])
+
+                    # Phase 3: Process results and log
+                    for r, (episode, judge_result) in enumerate(zip(episodes, judge_results)):
                         rewards.append(judge_result.reward)
 
                         # Detailed logging
-                        self.logger.info(f"    Rollout {r + 1}:")
-                        self.logger.info(f"      Answer: {episode.final_answer or '(none)'}")
                         if episode.final_answer is None:
-                            self.logger.info("      Judge: INCORRECT (no answer)")
+                            self.logger.info(f"    Rollout {r + 1} Judge: INCORRECT (no answer)")
                         elif judge_result.error:
-                            self.logger.info(f"      Judge error: {judge_result.error}")
+                            self.logger.info(f"    Rollout {r + 1} Judge error: {judge_result.error}")
                         else:
-                            self.logger.info(f"      Judge: {'CORRECT' if judge_result.correct else 'INCORRECT'}")
+                            status = "CORRECT" if judge_result.correct else "INCORRECT"
+                            self.logger.info(f"    Rollout {r + 1} Judge: {status} | Approach: {judge_result.approach_score}/100 | Reward: {judge_result.reward:.2f}")
 
                         # Log episode details
                         self.episode_logger.log_episode(
@@ -379,20 +549,29 @@ class Trainer:
                         self.model, self.tokenizer, episodes, rewards, self.device
                     )
                     # No loss.backward() needed - already done inside compute_reinforce_loss
+
+                    # Gradient clipping for stability
+                    grad_norm = torch.nn.utils.clip_grad_norm_(
+                        self.model.parameters(), max_norm=cfg.max_grad_norm
+                    )
+
                     self.optimizer.step()
                     loss_val = loss.item()
-                    self.logger.info(f"    Loss: {loss_val:.4f}")
+                    self.logger.info(f"    Loss: {loss_val:.4f} | Grad norm: {grad_norm:.4f}")
                 else:
                     self.logger.info("    [eval-only] Skipping training step")
 
                 # Track metrics
                 self.metrics.log_step(loss_val, rewards)
-                self._log_wandb({
+                wandb_metrics = {
                     "loss": loss_val,
                     "reward_mean": sum(rewards) / len(rewards),
                     "reward_max": max(rewards),
                     "reward_min": min(rewards),
-                })
+                }
+                if not cfg.eval_only:
+                    wandb_metrics["grad_norm"] = grad_norm.item() if hasattr(grad_norm, 'item') else grad_norm
+                self._log_wandb(wandb_metrics)
 
                 # Update live plot
                 if plot_func:
@@ -401,6 +580,33 @@ class Trainer:
                 # Clear memory
                 del episodes, rewards
                 torch.cuda.empty_cache()
+
+                # Update training state
+                self.training_state.step = idx + 1
+                self.training_state.global_step += 1
+                self.training_state.epoch = epoch
+
+                # Save checkpoint if configured (by step count)
+                if cfg.save_every_n_steps > 0 and self.training_state.global_step % cfg.save_every_n_steps == 0 and not cfg.eval_only:
+                    self.save_checkpoint(f"step_{self.training_state.global_step}")
+
+                # Save "latest" checkpoint if enough time has passed
+                if not cfg.eval_only:
+                    self._maybe_save_latest()
+
+                # Print progress with ETA
+                completed_steps = epoch * len(subset) + idx + 1
+                elapsed = time.time() - training_start_time
+                steps_done_this_session = completed_steps - (start_epoch * len(subset) + start_step)
+                if steps_done_this_session > 0:
+                    avg_time_per_step = elapsed / steps_done_this_session
+                    remaining_steps = total_steps - completed_steps
+                    eta_seconds = remaining_steps * avg_time_per_step
+                    eta_str = f"{int(eta_seconds // 3600)}h {int((eta_seconds % 3600) // 60)}m" if eta_seconds >= 3600 else f"{int(eta_seconds // 60)}m {int(eta_seconds % 60)}s"
+                    self.logger.info(f"  Progress: {completed_steps}/{total_steps} ({100*completed_steps/total_steps:.1f}%) | ETA: {eta_str}")
+
+            # Reset step counter for next epoch
+            self.training_state.step = 0
 
             avg_reward = sum(epoch_rewards) / len(epoch_rewards) if epoch_rewards else 0
             self.metrics.log_epoch(avg_reward)

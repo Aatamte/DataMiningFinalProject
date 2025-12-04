@@ -1,4 +1,4 @@
-"""Judge prompt for evaluating answers."""
+"""Judge prompt for evaluating answers and approach quality."""
 
 import json
 
@@ -9,33 +9,65 @@ JUDGE_SCHEMA = {
         "correct": {
             "type": "boolean",
             "description": "Whether the response correctly answers the question"
+        },
+        "approach_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Quality of the search approach (0-100)"
         }
     },
-    "required": ["correct"]
+    "required": ["correct", "approach_score"]
 }
 
-JUDGE_PROMPT_TEMPLATE = """Does the response contain the ground truth answer?
+JUDGE_PROMPT_TEMPLATE = """Evaluate the agent's answer AND search approach.
 
 Question: {question}
-Ground truth: {answer}
-Response: {response}
+Ground truth answer: {answer}
+Agent's final answer: {response}
 
-STRICT RULES:
-- "correct": true ONLY if the response contains "{answer}" or equivalent
-- "correct": false if response is code, "not found", "no information", or missing the answer
+Agent's full trajectory:
+{trajectory}
+
+SCORING:
+
+1. "correct" (true/false):
+   - true ONLY if final answer contains "{answer}" or semantic equivalent
+   - false if answer is wrong, missing, "not found", or just code
+
+2. "approach_score" (0-100):
+   - 0-25: Relevant search queries (targeted vs generic)
+   - 0-25: Efficiency (minimal wasted turns, no repeated failures)
+   - 0-25: Found and read appropriate sources
+   - 0-25: Clear reasoning, answer derived from evidence
+
+   Examples:
+   - 90-100: Targeted search, found info quickly, clear reasoning
+   - 60-80: Good search but some wasted turns
+   - 30-50: Eventually found answer but inefficient
+   - 0-20: Random searching, no clear strategy, or hallucinated
+
+IMPORTANT: Think briefly (under 100 words), then output JSON immediately.
 
 {schema}
 
-JSON only:"""
+JSON:"""
 
 
-def build_judge_prompt(question: str, answer: str, response: str, schema: dict | None = None) -> str:
+def build_judge_prompt(
+    question: str,
+    answer: str,
+    response: str,
+    trajectory: str = "",
+    schema: dict | None = None
+) -> str:
     """Build the judge prompt with filled values.
 
     Args:
         question: The question being answered
         answer: Ground truth answer
-        response: Model's response to evaluate
+        response: Model's final answer to evaluate
+        trajectory: Full conversation trajectory (code, outputs, reasoning)
         schema: JSON schema for response format (uses JUDGE_SCHEMA if None)
 
     Returns:
@@ -48,6 +80,7 @@ def build_judge_prompt(question: str, answer: str, response: str, schema: dict |
         question=question,
         answer=answer,
         response=response,
+        trajectory=trajectory or "(no trajectory provided)",
         schema=json.dumps(schema, indent=2)
     )
 

@@ -29,6 +29,7 @@ class AgentConfig:
         use_api: Use OpenAI-compatible API instead of local model
         api_url: Base URL for API (when use_api=True)
         api_model: Model name for API (when use_api=True)
+        debug: Print full agent traces (prompts, generations, execution)
     """
 
     max_turns: int = 3
@@ -39,6 +40,7 @@ class AgentConfig:
     use_api: bool = os.environ.get("EVAL_USE_API", "false").lower() == "true"
     api_url: str = os.environ.get("EVAL_API_URL", "http://localhost:1234/v1")
     api_model: str = os.environ.get("EVAL_MODEL", "")
+    debug: bool = os.environ.get("AGENT_DEBUG", "false").lower() == "true"
 
 
 class Agent:
@@ -190,13 +192,36 @@ class Agent:
         response_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
         tokens_generated = outputs.shape[1] - input_length
 
+        # Clean up GPU tensors
+        del inputs, outputs, generated_tokens
+        torch.cuda.empty_cache()
+
         return response_text, latency_ms, tokens_generated
 
-    async def execute_code(self, code: str) -> Message:
+    def _truncate_middle(self, text: str, max_chars: int = 3000) -> str:
+        """Truncate text by removing the middle, keeping beginning and end.
+
+        Args:
+            text: Text to truncate
+            max_chars: Maximum characters to keep
+
+        Returns:
+            Truncated text with middle replaced by indicator
+        """
+        if len(text) <= max_chars:
+            return text
+
+        # Keep 40% at start, 40% at end, leave room for indicator
+        keep_each = int(max_chars * 0.4)
+        removed = len(text) - (keep_each * 2)
+        return f"{text[:keep_each]}\n\n... [{removed} chars truncated] ...\n\n{text[-keep_each:]}"
+
+    async def execute_code(self, code: str, max_output_chars: int = 3000) -> Message:
         """Execute code in the sandbox.
 
         Args:
             code: Python code to execute
+            max_output_chars: Max chars for output (truncates middle if exceeded)
 
         Returns:
             Execution result message
@@ -204,13 +229,22 @@ class Agent:
         try:
             result = await self.sandbox.execute(code)
             if result.get("error"):
-                content = f"<python_output>\nError: {result['error']}\n</python_output>"
+                output = f"Error: {result['error']}"
             else:
-                content = f"<python_output>\n{result['output']}\n</python_output>"
+                output = result['output']
+
+            # Truncate long outputs (keep beginning and end)
+            output = self._truncate_middle(output, max_output_chars)
+            content = f"<python_output>\n{output}\n</python_output>"
         except Exception as e:
             content = f"Execution error: {str(e)}"
 
         return Message(Role.EXECUTION, content)
+
+    def _debug(self, *args, **kwargs):
+        """Print debug info if debug mode is enabled."""
+        if self.config.debug:
+            print(*args, **kwargs)
 
     async def run(self, question: str) -> EpisodeResult:
         """Run a full episode to answer a question.
@@ -224,15 +258,33 @@ class Agent:
         conversation = self._create_conversation(question)
         num_turns = 0
 
+        self._debug(f"\n{'='*60}")
+        self._debug(f"[AGENT] Starting episode: {question[:80]}...")
+        self._debug(f"{'='*60}")
+
         for turn in range(self.config.max_turns):
+            self._debug(f"\n--- Turn {turn + 1}/{self.config.max_turns} ---")
+
+            # Show what we're sending to model
+            if self.config.debug:
+                msgs = conversation.to_messages()
+                self._debug(f"[PROMPT] {len(msgs)} messages:")
+                for m in msgs:
+                    role = m['role'].upper()
+                    self._debug(f"  [{role}]:\n{m['content']}\n")
+
             # Generate response
             response = await self.step(conversation)
             conversation.add_message(response)
             num_turns += 1
 
+            self._debug(f"\n[MODEL RESPONSE] ({len(response.content)} chars):")
+            self._debug(response.content)
+
             # Check for final answer
             final_answer = parse_answer(response.content)
             if final_answer is not None:
+                self._debug(f"\n[ANSWER FOUND]: {final_answer}")
                 return EpisodeResult(
                     question=question,
                     conversation=conversation,
@@ -243,11 +295,16 @@ class Agent:
             # Check for code to execute
             code = parse_python_code(response.content)
             if code:
+                self._debug(f"\n[CODE EXTRACTED]:\n{code}")
                 execution_result = await self.execute_code(code)
                 conversation.add_message(execution_result)
+                self._debug(f"\n[EXECUTION RESULT]:\n{execution_result.content}")
+            else:
+                self._debug("[NO CODE FOUND in response]")
             # If no code and no answer, continue to next turn (or hit max turns)
 
         # Max turns reached without <answer> tag - no answer
+        self._debug(f"\n[MAX TURNS REACHED] No answer found after {num_turns} turns")
         return EpisodeResult(
             question=question,
             conversation=conversation,

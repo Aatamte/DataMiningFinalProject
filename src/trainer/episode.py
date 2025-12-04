@@ -18,6 +18,7 @@ class JudgeResult:
     """Result from judge evaluation."""
     reward: float
     correct: bool
+    approach_score: int = 0  # 0-100 score for approach quality
     raw_response: str | None = None
     error: str | None = None
 
@@ -27,21 +28,28 @@ async def get_judge_reward(
     judge_model: str,
     question: str,
     answer: str,
-    response: str
+    response: str,
+    trajectory: str = ""
 ) -> JudgeResult:
     """Get reward from judge model.
+
+    Reward formula: 0.5 * correct + 0.5 * (approach_score / 100)
+    - Correct answer contributes up to 0.5
+    - Good approach contributes up to 0.5
+    - Total range: 0.0 to 1.0
 
     Args:
         judge_client: OpenAI-compatible async client for judge
         judge_model: Model name to use for judging
         question: The original question
         answer: Ground truth answer
-        response: Model's response to evaluate
+        response: Model's final answer to evaluate
+        trajectory: Full conversation trajectory for approach evaluation
 
     Returns:
-        JudgeResult with reward, correctness, and raw response
+        JudgeResult with reward, correctness, approach_score, and raw response
     """
-    prompt = build_judge_prompt(question, answer, response)
+    prompt = build_judge_prompt(question, answer, response, trajectory=trajectory)
     messages = [{"role": "user", "content": prompt}]
 
     try:
@@ -49,7 +57,7 @@ async def get_judge_reward(
         completion = await judge_client.chat.completions.create(
             model=judge_model,
             messages=messages,
-            max_tokens=2048,  # R1 models need room for <think> block + JSON
+            max_tokens=4096,  # R1 models need room for <think> block + JSON
             temperature=0,
         )
         latency_ms = (time.perf_counter() - start_time) * 1000
@@ -57,7 +65,13 @@ async def get_judge_reward(
         judge_response = completion.choices[0].message.content
         result = parse_judge_response(judge_response)
         correct = result.get("correct", False)
-        reward = 1.0 if correct else 0.0
+        approach_score = result.get("approach_score", 0)
+
+        # Clamp approach_score to 0-100
+        approach_score = max(0, min(100, approach_score))
+
+        # Reward = 0.5 * correct + 0.5 * (approach_score / 100)
+        reward = 0.5 * (1.0 if correct else 0.0) + 0.5 * (approach_score / 100.0)
 
         # Log judge call
         llm_logger = get_llm_logger()
@@ -72,7 +86,7 @@ async def get_judge_reward(
                 model=judge_model,
                 messages=messages,
                 response_content=judge_response,
-                max_tokens=2048,
+                max_tokens=4096,
                 temperature=0,
                 latency_ms=latency_ms,
                 parsed_result=result,
@@ -80,9 +94,9 @@ async def get_judge_reward(
                 metadata={"question": question, "answer": answer, "model_response": response},
             )
 
-        return JudgeResult(reward=reward, correct=correct, raw_response=judge_response)
+        return JudgeResult(reward=reward, correct=correct, approach_score=approach_score, raw_response=judge_response)
     except Exception as e:
-        return JudgeResult(reward=0.0, correct=False, error=str(e))
+        return JudgeResult(reward=0.0, correct=False, approach_score=0, error=str(e))
 
 
 def compute_reinforce_loss(
@@ -122,14 +136,14 @@ def compute_reinforce_loss(
         "total_prompt_tokens": 0,
         "total_response_tokens": 0,
         "total_tokens": 0,
-        "steps": [],
     }
 
     for ep_idx, (episode, reward) in enumerate(zip(episodes, rewards)):
         advantage = reward - baseline
 
         # Get trajectory in (prompt, response) format
-        trajectory = episode.trajectory()
+        # Pass tokenizer to use chat template (matches generation format)
+        trajectory = episode.trajectory(tokenizer)
 
         if debug:
             print(f"  [DIAG] Episode {ep_idx}: reward={reward}, advantage={advantage:+.2f}, turns={len(trajectory)}")
@@ -153,14 +167,26 @@ def compute_reinforce_loss(
             response_len = response_tokens.shape[1]
             total_len = inputs["input_ids"].shape[1]
 
-            # Track for diagnostics
-            diag_info["total_prompt_tokens"] += prompt_len
-            diag_info["total_response_tokens"] += response_len
+            # Handle truncation: if prompt+response was truncated, adjust prompt_len
+            # Ensure at least 1 response token is unmasked
+            effective_prompt_len = min(prompt_len, total_len - 1)
+            effective_response_len = total_len - effective_prompt_len
+
+            # Track for diagnostics (use effective lengths)
+            diag_info["total_prompt_tokens"] += effective_prompt_len
+            diag_info["total_response_tokens"] += effective_response_len
             diag_info["total_tokens"] += total_len
+
+            # Skip if truncation left no response tokens
+            if effective_response_len <= 0:
+                if debug:
+                    print(f"    [DIAG] Turn {turn_idx}: SKIPPED - truncation left no response tokens")
+                del inputs, prompt_tokens, response_tokens
+                continue
 
             # Create labels with -100 for prompt tokens (only compute loss on response)
             labels = inputs["input_ids"].clone()
-            labels[0, :prompt_len] = -100  # Mask prompt tokens
+            labels[0, :effective_prompt_len] = -100  # Mask prompt tokens
 
             # Get log probabilities (loss only on response tokens now)
             outputs = model(**inputs, labels=labels)
@@ -171,28 +197,21 @@ def compute_reinforce_loss(
             # negative advantage = reward < baseline = discourage this behavior
             weighted_loss = loss * (-advantage)
 
-            if debug:
-                step_info = {
-                    "episode": ep_idx,
-                    "turn": turn_idx,
-                    "prompt_tokens": prompt_len,
-                    "response_tokens": response_len,
-                    "total_tokens": total_len,
-                    "loss": loss.item(),
-                    "weighted_loss": weighted_loss.item(),
-                    "advantage": advantage,
-                    "prompt_preview": prompt[-100:].replace('\n', '\\n'),
-                    "response_preview": response[:100].replace('\n', '\\n'),
-                }
-                diag_info["steps"].append(step_info)
+            # NaN detection - skip this step if loss is invalid
+            if torch.isnan(loss) or torch.isinf(loss):
+                print(f"    [WARN] Turn {turn_idx}: NaN/Inf loss detected, skipping backward()")
+                del inputs, outputs, loss, weighted_loss, prompt_tokens, response_tokens, labels
+                torch.cuda.empty_cache()
+                continue
 
+            if debug:
                 print(f"    [DIAG] Turn {turn_idx}: "
-                      f"prompt={prompt_len} tok, response={response_len} tok, total={total_len} tok | "
+                      f"prompt={effective_prompt_len} tok, response={effective_response_len} tok, total={total_len} tok | "
                       f"loss={loss.item():.4f}, weighted={weighted_loss.item():.4f}")
 
                 # Show token breakdown (prompt tokens now masked with -100)
-                pct_response = (response_len / total_len) * 100 if total_len > 0 else 0
-                print(f"    [DIAG] Loss computed on {response_len} response tokens ({pct_response:.1f}% of sequence)")
+                pct_response = (effective_response_len / total_len) * 100 if total_len > 0 else 0
+                print(f"    [DIAG] Loss computed on {effective_response_len} response tokens ({pct_response:.1f}% of sequence)")
 
             # Accumulate gradients immediately (avoids building giant graph)
             # Scale by 1/n_steps will be applied after we know total steps

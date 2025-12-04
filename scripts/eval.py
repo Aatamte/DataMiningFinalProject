@@ -128,18 +128,19 @@ def load_model(model_path: str, base_model: str | None = None, device: str = "cu
     return model, tokenizer
 
 
-def load_questions(q_percentage: float) -> list[dict]:
+def load_questions_for_eval(subset: str, q_percentage: float) -> tuple[list[dict], int]:
     """Load evaluation questions from dataset.
 
     Args:
-        q_percentage: Percentage of total questions to load (0-100)
+        subset: Which subset to load - "train", "test", or "all"
+        q_percentage: Percentage of subset to load (0-100)
 
     Returns:
-        List of {question, answer} dicts
+        Tuple of (list of {question, answer} dicts, subset total size)
     """
-    from datasets import load_dataset
+    from src.environment.core import load_questions
 
-    ds = load_dataset("willcb/wiki-trivia-questions-v4", split="train")
+    ds = load_questions(subset=subset)
     total = len(ds)
     num_samples = max(1, int(total * q_percentage / 100))
 
@@ -162,8 +163,10 @@ def parse_args() -> argparse.Namespace:
                         help="Model to evaluate (HF name or LoRA checkpoint path)")
     parser.add_argument("--base_model", type=str, default=None,
                         help="Base model for LoRA checkpoints (required if --model is LoRA)")
-    parser.add_argument("--q_percentage", type=float, default=1.0,
-                        help="Percentage of questions to eval (default: 1.0 = 1%%)")
+    parser.add_argument("--subset", type=str, default="all", choices=["train", "test", "all"],
+                        help="Which data subset to evaluate: train (80%%), test (20%%), or all (default: all)")
+    parser.add_argument("--q_percentage", type=float, default=100.0,
+                        help="Percentage of subset to eval (default: 100.0 = 100%%)")
     parser.add_argument("--n_per_q", type=int, default=1,
                         help="Number of eval runs per question (default: 1)")
     parser.add_argument("--max_turns", type=int, default=3,
@@ -172,8 +175,111 @@ def parse_args() -> argparse.Namespace:
                         help="Max tokens per generation (default: 1024)")
     parser.add_argument("--judge_model", type=str, default=DEFAULT_JUDGE_MODEL,
                         help="Judge model (default: JUDGE_MODEL env var)")
+    parser.add_argument("--full_report", action="store_true",
+                        help="Evaluate on train, test, and all subsets (overrides --subset)")
 
     return parser.parse_args()
+
+
+async def eval_subset(
+    subset: str,
+    questions: list[dict],
+    agent: Agent,
+    judge_client,
+    judge_model: str,
+    n_per_q: int,
+) -> dict:
+    """Evaluate on a single subset.
+
+    Returns:
+        Dict with results for this subset
+    """
+    from src.trainer.episode import JudgeResult
+
+    results = []
+    total_correct = 0
+    total_runs = 0
+    total_turns = 0
+
+    for i, q in enumerate(questions):
+        question = q["question"]
+        expected = q["answer"]
+
+        print(f"\n  Q{i+1}/{len(questions)}: {question[:55]}...")
+        print(f"     Expected: {expected[:40]}...")
+
+        q_correct = 0
+        q_runs = []
+
+        for run_idx in range(n_per_q):
+            # Run episode
+            episode = await agent.run(question)
+            answer = episode.final_answer
+
+            # Get judge result (skip if no answer)
+            if answer is None:
+                judge_result = JudgeResult(reward=0.0, correct=False, approach_score=0)
+            else:
+                trajectory = episode.format_for_judge()
+                judge_result = await get_judge_reward(
+                    judge_client, judge_model,
+                    question, expected, answer,
+                    trajectory=trajectory
+                )
+
+            # Record run
+            run_result = {
+                "run": run_idx + 1,
+                "answer": answer or "(no answer)",
+                "correct": judge_result.correct,
+                "approach_score": judge_result.approach_score,
+                "reward": judge_result.reward,
+                "num_turns": episode.num_turns,
+            }
+            q_runs.append(run_result)
+
+            if judge_result.correct:
+                q_correct += 1
+                total_correct += 1
+            total_runs += 1
+            total_turns += episode.num_turns
+
+            # Print run result
+            if n_per_q > 1:
+                status = "[OK]" if judge_result.correct else "[FAIL]"
+                print(f"     Run {run_idx + 1}: {status} | Approach: {judge_result.approach_score}/100")
+
+        # Record question result
+        result = {
+            "question": question,
+            "expected": expected,
+            "runs": q_runs,
+            "accuracy": q_correct / n_per_q * 100,
+        }
+        results.append(result)
+
+        # Print question summary
+        if n_per_q == 1:
+            run = q_runs[0]
+            display_answer = run["answer"]
+            print(f"     Answer: {display_answer[:55]}{'...' if len(display_answer) > 55 else ''}")
+            status = "CORRECT" if run["correct"] else "INCORRECT"
+            print(f"     Judge: {status} | Approach: {run['approach_score']}/100 | Reward: {run['reward']:.2f}")
+        else:
+            print(f"     Question accuracy: {q_correct}/{n_per_q} ({result['accuracy']:.0f}%)")
+
+    accuracy = total_correct / total_runs * 100 if total_runs > 0 else 0
+    avg_turns = total_turns / total_runs if total_runs > 0 else 0
+
+    return {
+        "subset": subset,
+        "num_questions": len(questions),
+        "total_runs": total_runs,
+        "total_correct": total_correct,
+        "accuracy": accuracy,
+        "avg_turns": avg_turns,
+        "results": results,
+    }
 
 
 async def main_async() -> None:
@@ -189,16 +295,19 @@ async def main_async() -> None:
     # Setup eval directory
     eval_dir = setup_eval_dir(EVAL_MODEL if USE_API else args.model)
 
-    # Load questions first to get total count
-    print(f"Loading questions ({args.q_percentage}% of dataset)...")
-    questions, total_questions = load_questions(args.q_percentage)
+    # Determine which subsets to evaluate
+    if args.full_report:
+        subsets_to_eval = ["train", "test", "all"]
+    else:
+        subsets_to_eval = [args.subset]
 
     print("=" * 60)
     print("SLM-RL EVALUATION")
     print("=" * 60)
     print(f"Model: {model_display}")
     print(f"Mode: {'API' if USE_API else 'Local'}")
-    print(f"Questions: {len(questions)} / {total_questions} ({args.q_percentage}%)")
+    print(f"Subsets: {', '.join(subsets_to_eval)}")
+    print(f"Sample %: {args.q_percentage}%")
     print(f"Runs per question: {args.n_per_q}")
     print(f"Max turns: {args.max_turns}")
     print(f"Judge: {args.judge_model}")
@@ -218,15 +327,8 @@ async def main_async() -> None:
     # Setup sandbox
     sandbox = SandboxClient()
 
-    # Results storage
-    results = []
-    total_correct = 0
-    total_runs = 0
-    total_turns = 0
-
-    print("\n" + "=" * 60)
-    print("EVALUATION")
-    print("=" * 60)
+    # Evaluate each subset
+    all_results = {}
 
     async with sandbox:
         agent_config = AgentConfig(
@@ -235,78 +337,36 @@ async def main_async() -> None:
         )
         agent = Agent(model, tokenizer, sandbox, agent_config)
 
-        for i, q in enumerate(questions):
-            question = q["question"]
-            expected = q["answer"]
+        for subset in subsets_to_eval:
+            print(f"\n{'=' * 60}")
+            print(f"EVALUATING: {subset.upper()} SET")
+            print("=" * 60)
 
-            print(f"\nQ{i+1}/{len(questions)}: {question[:60]}...")
-            print(f"   Expected: {expected}")
+            questions, total_in_subset = load_questions_for_eval(subset, args.q_percentage)
+            print(f"Questions: {len(questions)} / {total_in_subset} ({args.q_percentage}%)")
 
-            q_correct = 0
-            q_runs = []
+            subset_results = await eval_subset(
+                subset=subset,
+                questions=questions,
+                agent=agent,
+                judge_client=judge_client,
+                judge_model=args.judge_model,
+                n_per_q=args.n_per_q,
+            )
+            subset_results["total_in_subset"] = total_in_subset
+            all_results[subset] = subset_results
 
-            for run_idx in range(args.n_per_q):
-                # Run episode
-                episode = await agent.run(question)
-                answer = episode.final_answer
+            print(f"\n  {subset.upper()} Accuracy: {subset_results['total_correct']}/{subset_results['total_runs']} ({subset_results['accuracy']:.1f}%)")
 
-                # Get judge result (skip if no answer)
-                if answer is None:
-                    from src.trainer.episode import JudgeResult
-                    judge_result = JudgeResult(reward=0.0, correct=False)
-                else:
-                    judge_result = await get_judge_reward(
-                        judge_client, args.judge_model,
-                        question, expected, answer
-                    )
-
-                # Record run
-                run_result = {
-                    "run": run_idx + 1,
-                    "answer": answer or "(no answer)",
-                    "correct": judge_result.correct,
-                    "num_turns": episode.num_turns,
-                }
-                q_runs.append(run_result)
-
-                if judge_result.correct:
-                    q_correct += 1
-                    total_correct += 1
-                total_runs += 1
-                total_turns += episode.num_turns
-
-                # Print run result
-                if args.n_per_q > 1:
-                    status = "✓" if judge_result.correct else "✗"
-                    print(f"   Run {run_idx + 1}: {status}")
-
-            # Record question result
-            result = {
-                "question": question,
-                "expected": expected,
-                "runs": q_runs,
-                "accuracy": q_correct / args.n_per_q * 100,
-            }
-            results.append(result)
-
-            # Print question summary
-            if args.n_per_q == 1:
-                display_answer = q_runs[0]["answer"]
-                print(f"   Answer: {display_answer[:60]}{'...' if len(display_answer) > 60 else ''}")
-                print(f"   Judge: {'CORRECT' if q_runs[0]['correct'] else 'INCORRECT'}")
-            else:
-                print(f"   Question accuracy: {q_correct}/{args.n_per_q} ({result['accuracy']:.0f}%)")
-
-    # Summary
-    accuracy = total_correct / total_runs * 100 if total_runs > 0 else 0
-    avg_turns = total_turns / total_runs if total_runs > 0 else 0
-
+    # Final Summary
     print("\n" + "=" * 60)
-    print("RESULTS")
+    print("FINAL RESULTS")
     print("=" * 60)
-    print(f"Total runs: {total_runs} ({len(questions)} questions × {args.n_per_q} runs)")
-    print(f"Accuracy: {total_correct}/{total_runs} ({accuracy:.1f}%)")
-    print(f"Avg turns: {avg_turns:.1f}")
+
+    for subset in subsets_to_eval:
+        r = all_results[subset]
+        print(f"  {subset.upper():6} : {r['total_correct']:3}/{r['total_runs']:3} ({r['accuracy']:5.1f}%) - {r['num_questions']} questions, avg {r['avg_turns']:.1f} turns")
+
     print("=" * 60)
 
     # Save results
@@ -315,12 +375,7 @@ async def main_async() -> None:
         "mode": "api" if USE_API else "local",
         "q_percentage": args.q_percentage,
         "n_per_q": args.n_per_q,
-        "total_questions": total_questions,
-        "num_questions": len(questions),
-        "total_runs": total_runs,
-        "accuracy": accuracy,
-        "avg_turns": avg_turns,
-        "results": results,
+        "subsets": all_results,
     }
 
     results_file = eval_dir / "results.json"
@@ -331,7 +386,14 @@ async def main_async() -> None:
 
 def main() -> None:
     """Main entry point."""
-    asyncio.run(main_async())
+    try:
+        asyncio.run(main_async())
+    except KeyboardInterrupt:
+        print("\n\nEvaluation interrupted by user. Cleaning up...")
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print("Done.")
 
 
 if __name__ == "__main__":

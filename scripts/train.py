@@ -115,7 +115,15 @@ async def main_async() -> None:
 
 def main() -> None:
     """Main entry point."""
-    asyncio.run(main_async())
+    try:
+        asyncio.run(main_async())
+    except KeyboardInterrupt:
+        print("\n\nTraining interrupted by user. Cleaning up...")
+        # Force cleanup of any lingering GPU memory
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print("Done.")
 
 
 if __name__ == "__main__":

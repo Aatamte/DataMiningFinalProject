@@ -1,13 +1,13 @@
-# Small training run - good for testing/validation
+# Full training run - production settings
 
 model:
   name: "Qwen/Qwen3-4B-Instruct-2507"
   max_context: 2048
 
 training:
-  num_samples: 10
-  num_epochs: 2
-  num_rollouts: 3
+  num_samples: 100
+  num_epochs: 3
+  num_rollouts: 4
   max_turns: 3
   learning_rate: 1.0e-5
   max_new_tokens: 512
