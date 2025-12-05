@@ -235,6 +235,7 @@ async def eval_subset(
                 "approach_score": judge_result.approach_score,
                 "reward": judge_result.reward,
                 "num_turns": episode.num_turns,
+                "messages": episode.conversation.to_messages(),
             }
             q_runs.append(run_result)
 
