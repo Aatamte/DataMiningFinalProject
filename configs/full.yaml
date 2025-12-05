@@ -5,32 +5,41 @@ model:
   max_context: 2048
 
 training:
-  num_samples: 100
+  num_samples: 50
   num_epochs: 3
-  num_rollouts: 4
+  num_rollouts: 6
   max_turns: 3
   learning_rate: 1.0e-5
   max_new_tokens: 512
   temperature: 0.7
+  temperature_min: 0.7  # Min temp for rollout diversity
+  temperature_max: 1.15  # Max temp for rollout diversity
+  gamma: 0.99  # Discount factor for earlier turns (final turn gets full signal)
+  correctness_weight: 0.75  # 75% correct answer, 25% approach quality
+  lr_scheduler: "linear"  # "none" or "linear"
+  lr_end: 0.0  # Final LR for linear decay
+  rl_algo: "grpo"  # "reinforce" (fixed baseline) or "grpo" (group relative)
+  max_grad_norm: 1.0  # Gradient clipping threshold
+  shuffle: true  # Shuffle training samples each epoch
 
 lora:
   enabled: true
-  r: 16
-  alpha: 32
-  dropout: 0.05
+  r: 4
+  alpha: 8
+  dropout: 0.1
   target_modules:
     - "q_proj"
     - "k_proj"
     - "v_proj"
     - "o_proj"
+  gradient_checkpointing: true  # ~40% less VRAM, ~20% slower
 
 checkpoint:
   save_final: true
   save_every_epoch: false
-  resume_from: "slm_training_v1"
 
 judge:
-  model: "deepseek/deepseek-r1-0528-qwen3-8b"
+  model: "qwen3-8b"
   base_url: "http://localhost:1234/v1"
 
 environment:

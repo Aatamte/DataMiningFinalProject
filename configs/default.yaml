@@ -12,6 +12,11 @@ training:
   learning_rate: 1.0e-5
   max_new_tokens: 1024
   temperature: 0.7
+  gamma: 0.99  # Discount factor for earlier turns
+  correctness_weight: 0.75  # 75% correct answer, 25% approach quality
+  lr_scheduler: "linear"  # "none" or "linear"
+  lr_end: 0.0  # Final LR for linear decay
+  rl_algo: "grpo"  # "reinforce" (fixed baseline) or "grpo" (group relative)
 
 lora:
   enabled: true

@@ -105,7 +105,10 @@ def parse_judge_response(response: str, schema: dict | None = None) -> dict:
 
     original_response = response  # Keep for error reporting
 
-    # Just find the JSON object, ignore everything else (thinking tags, markdown, etc.)
+    # Strip <think>...</think> tags first (deepseek-r1 models use these)
+    response = re.sub(r"<think>.*?</think>", "", response, flags=re.DOTALL)
+
+    # Just find the JSON object, ignore everything else (markdown, etc.)
     match = re.search(r"\{[^{}]*\}", response)
     if match:
         response = match.group(0)

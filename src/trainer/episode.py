@@ -29,14 +29,13 @@ async def get_judge_reward(
     question: str,
     answer: str,
     response: str,
-    trajectory: str = ""
+    trajectory: str = "",
+    correctness_weight: float = 0.75
 ) -> JudgeResult:
     """Get reward from judge model.
 
-    Reward formula: 0.5 * correct + 0.5 * (approach_score / 100)
-    - Correct answer contributes up to 0.5
-    - Good approach contributes up to 0.5
-    - Total range: 0.0 to 1.0
+    Reward formula: w * correct + (1-w) * (approach_score / 100)
+    where w = correctness_weight
 
     Args:
         judge_client: OpenAI-compatible async client for judge
@@ -45,6 +44,8 @@ async def get_judge_reward(
         answer: Ground truth answer
         response: Model's final answer to evaluate
         trajectory: Full conversation trajectory for approach evaluation
+        correctness_weight: Weight for correctness vs approach (0-1). Default 0.75
+                           means 75% weight on correct answer, 25% on approach.
 
     Returns:
         JudgeResult with reward, correctness, approach_score, and raw response
@@ -70,8 +71,9 @@ async def get_judge_reward(
         # Clamp approach_score to 0-100
         approach_score = max(0, min(100, approach_score))
 
-        # Reward = 0.5 * correct + 0.5 * (approach_score / 100)
-        reward = 0.5 * (1.0 if correct else 0.0) + 0.5 * (approach_score / 100.0)
+        # Reward = w * correct + (1-w) * (approach_score / 100)
+        approach_weight = 1.0 - correctness_weight
+        reward = correctness_weight * (1.0 if correct else 0.0) + approach_weight * (approach_score / 100.0)
 
         # Log judge call
         llm_logger = get_llm_logger()
@@ -106,15 +108,21 @@ def compute_reinforce_loss(
     rewards: list[float],
     device: str,
     baseline: float = 0.5,
+    gamma: float = 0.99,
+    rl_algo: str = "grpo",
     debug: bool = True
 ) -> torch.Tensor:
-    """Compute REINFORCE loss for policy gradient update.
+    """Compute policy gradient loss for RL training.
 
-    Uses fixed baseline of 0.5 (midpoint for binary rewards) to ensure
-    gradients even when all rewards are the same.
+    Supports two algorithms:
+    - "reinforce": Fixed baseline (0.5), simple policy gradient
+    - "grpo": Group Relative Policy Optimization, uses group mean/std as baseline
 
     Uses gradient accumulation to avoid OOM - each step's gradients are
     accumulated separately rather than building one giant computation graph.
+
+    Applies temporal discounting with gamma - earlier turns in the trajectory
+    receive a discounted advantage signal, while the final turn gets full signal.
 
     Args:
         model: The language model
@@ -122,7 +130,10 @@ def compute_reinforce_loss(
         episodes: List of EpisodeResult from agent runs
         rewards: List of rewards corresponding to each episode
         device: Device to compute on
-        baseline: Fixed baseline for advantage computation
+        baseline: Fixed baseline for REINFORCE algorithm (ignored for GRPO)
+        gamma: Discount factor for earlier turns (0-1). Final turn gets full
+               advantage, earlier turns get gamma^(distance_to_end) discount.
+        rl_algo: RL algorithm - "reinforce" (fixed baseline) or "grpo" (group relative)
         debug: If True, log detailed diagnostic information
 
     Returns:
@@ -138,23 +149,54 @@ def compute_reinforce_loss(
         "total_tokens": 0,
     }
 
-    for ep_idx, (episode, reward) in enumerate(zip(episodes, rewards)):
-        advantage = reward - baseline
+    # Compute advantages based on RL algorithm
+    if rl_algo == "grpo":
+        # GRPO: Group Relative Policy Optimization
+        # Use group mean as baseline, normalize by std
+        group_mean = sum(rewards) / len(rewards)
+        group_var = sum((r - group_mean) ** 2 for r in rewards) / len(rewards)
+        group_std = group_var ** 0.5
+
+        # Skip only if no variance AND low reward (all failures = no signal)
+        # When all succeed (high reward, no variance), use REINFORCE to still reinforce good behavior
+        if group_std < 0.01:
+            if group_mean < 0.1:
+                # All failures - skip
+                if debug:
+                    print(f"  [DIAG] GRPO: group_std={group_std:.3f}, mean={group_mean:.3f} (all failures), skipping")
+                return torch.tensor(0.0, device=device)
+            else:
+                # All successes - fall back to REINFORCE to reinforce good behavior
+                advantages = [r - baseline for r in rewards]
+                if debug:
+                    print(f"  [DIAG] GRPO: group_std={group_std:.3f}, mean={group_mean:.3f} (all similar), using REINFORCE baseline={baseline}")
+        else:
+            advantages = [(r - group_mean) / (group_std + 1e-8) for r in rewards]
+            if debug:
+                print(f"  [DIAG] GRPO: group_mean={group_mean:.3f}, group_std={group_std:.3f}")
+    else:
+        # REINFORCE: Fixed baseline
+        advantages = [r - baseline for r in rewards]
+        if debug:
+            print(f"  [DIAG] REINFORCE: baseline={baseline}")
+
+    for ep_idx, (episode, advantage) in enumerate(zip(episodes, advantages)):
+        reward = rewards[ep_idx]  # Keep for logging
 
         # Get trajectory in (prompt, response) format
         # Pass tokenizer to use chat template (matches generation format)
         trajectory = episode.trajectory(tokenizer)
 
+        num_turns = len(trajectory)
         if debug:
-            print(f"  [DIAG] Episode {ep_idx}: reward={reward}, advantage={advantage:+.2f}, turns={len(trajectory)}")
+            print(f"  [DIAG] Episode {ep_idx}: reward={reward}, advantage={advantage:+.2f}, turns={num_turns}, gamma={gamma}")
 
         # For each turn in the trajectory, compute loss
         for turn_idx, (prompt, response) in enumerate(trajectory):
             full_text = prompt + response
 
-            # Tokenize separately to measure lengths
-            prompt_tokens = tokenizer(prompt, return_tensors="pt", add_special_tokens=False)["input_ids"]
-            response_tokens = tokenizer(response, return_tensors="pt", add_special_tokens=False)["input_ids"]
+            # Tokenize once, measure prompt length by tokenizing prompt separately (no GPU)
+            prompt_len = len(tokenizer.encode(prompt, add_special_tokens=False))
 
             inputs = tokenizer(
                 full_text,
@@ -163,9 +205,8 @@ def compute_reinforce_loss(
                 max_length=2048
             ).to(device)
 
-            prompt_len = prompt_tokens.shape[1]
-            response_len = response_tokens.shape[1]
             total_len = inputs["input_ids"].shape[1]
+            response_len = total_len - min(prompt_len, total_len - 1)
 
             # Handle truncation: if prompt+response was truncated, adjust prompt_len
             # Ensure at least 1 response token is unmasked
@@ -181,7 +222,7 @@ def compute_reinforce_loss(
             if effective_response_len <= 0:
                 if debug:
                     print(f"    [DIAG] Turn {turn_idx}: SKIPPED - truncation left no response tokens")
-                del inputs, prompt_tokens, response_tokens
+                del inputs
                 continue
 
             # Create labels with -100 for prompt tokens (only compute loss on response)
@@ -192,22 +233,24 @@ def compute_reinforce_loss(
             outputs = model(**inputs, labels=labels)
             loss = outputs.loss
 
-            # Weight by advantage (REINFORCE)
+            # Weight by advantage (REINFORCE) with temporal discounting
             # positive advantage = reward > baseline = reinforce this behavior
             # negative advantage = reward < baseline = discourage this behavior
-            weighted_loss = loss * (-advantage)
+            # Earlier turns get discounted (gamma^distance_to_end), final turn gets full signal
+            discount = gamma ** (num_turns - turn_idx - 1)
+            discounted_advantage = advantage * discount
+            weighted_loss = loss * (-discounted_advantage)
 
             # NaN detection - skip this step if loss is invalid
             if torch.isnan(loss) or torch.isinf(loss):
                 print(f"    [WARN] Turn {turn_idx}: NaN/Inf loss detected, skipping backward()")
-                del inputs, outputs, loss, weighted_loss, prompt_tokens, response_tokens, labels
-                torch.cuda.empty_cache()
+                del inputs, outputs, loss, weighted_loss, labels
                 continue
 
             if debug:
                 print(f"    [DIAG] Turn {turn_idx}: "
                       f"prompt={effective_prompt_len} tok, response={effective_response_len} tok, total={total_len} tok | "
-                      f"loss={loss.item():.4f}, weighted={weighted_loss.item():.4f}")
+                      f"loss={loss.item():.4f}, discount={discount:.3f}, weighted={weighted_loss.item():.4f}")
 
                 # Show token breakdown (prompt tokens now masked with -100)
                 pct_response = (effective_response_len / total_len) * 100 if total_len > 0 else 0
@@ -221,8 +264,10 @@ def compute_reinforce_loss(
             n_steps += 1
 
             # Free memory
-            del inputs, outputs, loss, weighted_loss, prompt_tokens, response_tokens, labels
-            torch.cuda.empty_cache()
+            del inputs, outputs, loss, weighted_loss, labels
+
+    # Clear cache once at end (not per-turn - that fragments memory)
+    torch.cuda.empty_cache()
 
     # Scale gradients by 1/n_steps (average instead of sum)
     if n_steps > 0:

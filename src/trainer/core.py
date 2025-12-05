@@ -66,8 +66,16 @@ class TrainerConfig:
     max_turns: int = 3
     lr: float = 1e-5
     max_new_tokens: int = 1024
-    temperature: float = 0.7
+    temperature: float = 0.7  # Base temperature (used when min/max not set)
+    temperature_min: float = 0.7  # Min temp for rollout sampling
+    temperature_max: float = 1.15  # Max temp for rollout sampling
     max_grad_norm: float = 1.0  # Gradient clipping for stability
+    gamma: float = 0.99  # Discount factor for earlier turns in trajectory
+    correctness_weight: float = 0.75  # Weight for correct answer vs approach (0-1)
+    lr_scheduler: str = "linear"  # LR scheduler: "none", "linear"
+    lr_end: float = 0.0  # Final LR for linear decay (default: decay to 0)
+    rl_algo: str = "grpo"  # RL algorithm: "reinforce" (fixed baseline) or "grpo" (group relative)
+    shuffle: bool = True  # Shuffle training samples
 
     # LoRA settings
     use_lora: bool = True
@@ -75,6 +83,7 @@ class TrainerConfig:
     lora_alpha: int = 32
     lora_dropout: float = 0.05
     lora_target_modules: list[str] = field(default_factory=lambda: ["q_proj", "v_proj", "k_proj", "o_proj"])
+    gradient_checkpointing: bool = False  # Trade compute for memory (~40% less VRAM, ~20% slower)
 
     # Checkpoint settings
     save_final: bool = True
@@ -118,13 +127,22 @@ class TrainerConfig:
             lr=get("training", "learning_rate", cls.lr),
             max_new_tokens=get("training", "max_new_tokens", cls.max_new_tokens),
             temperature=get("training", "temperature", cls.temperature),
+            temperature_min=get("training", "temperature_min", cls.temperature_min),
+            temperature_max=get("training", "temperature_max", cls.temperature_max),
             max_grad_norm=get("training", "max_grad_norm", cls.max_grad_norm),
+            gamma=get("training", "gamma", cls.gamma),
+            correctness_weight=get("training", "correctness_weight", cls.correctness_weight),
+            lr_scheduler=get("training", "lr_scheduler", cls.lr_scheduler),
+            lr_end=get("training", "lr_end", cls.lr_end),
+            rl_algo=get("training", "rl_algo", cls.rl_algo),
+            shuffle=get("training", "shuffle", cls.shuffle),
             # LoRA
             use_lora=get("lora", "enabled", cls.use_lora),
             lora_r=get("lora", "r", cls.lora_r),
             lora_alpha=get("lora", "alpha", cls.lora_alpha),
             lora_dropout=get("lora", "dropout", cls.lora_dropout),
             lora_target_modules=get("lora", "target_modules", ["q_proj", "v_proj", "k_proj", "o_proj"]),
+            gradient_checkpointing=get("lora", "gradient_checkpointing", cls.gradient_checkpointing),
             # Checkpoint
             save_final=get("checkpoint", "save_final", cls.save_final),
             save_every_epoch=get("checkpoint", "save_every_epoch", cls.save_every_epoch),
@@ -163,6 +181,7 @@ class Trainer:
         self.model = None
         self.tokenizer = None
         self.optimizer = None
+        self.scheduler = None
         self.dataset = None
         self.judge_client = None
         self.logger = None
@@ -173,6 +192,7 @@ class Trainer:
         self.run_name = None
         self.run_dir = None
         self.use_wandb = False
+        self._wandb_last_step = 0  # Last step logged to wandb (for resumption)
         self.training_state = TrainingState()
         self._last_checkpoint_time = 0.0  # For time-based checkpointing
 
@@ -240,6 +260,7 @@ class Trainer:
                 r=cfg.lora_r,
                 lora_alpha=cfg.lora_alpha,
                 lora_dropout=cfg.lora_dropout,
+                bias="none",
                 target_modules=cfg.lora_target_modules,
             )
             self.model = get_peft_model(self.model, lora_config)
@@ -249,6 +270,14 @@ class Trainer:
         else:
             self.logger.info(f"  Parameters: {sum(p.numel() for p in self.model.parameters()):,}")
 
+        # Enable gradient checkpointing for memory savings
+        if cfg.gradient_checkpointing:
+            self.model.gradient_checkpointing_enable()
+            # Required for gradient checkpointing with LoRA/PEFT
+            if cfg.use_lora:
+                self.model.enable_input_require_grads()
+            self.logger.info("  Gradient checkpointing: enabled (~40% less VRAM)")
+
         self.logger.info(f"  Device: {self.device}")
 
         # Setup optimizer (only trainable params)
@@ -257,6 +286,11 @@ class Trainer:
             lr=cfg.lr
         )
 
+        # Setup LR scheduler
+        # Note: total_steps calculated here, but scheduler created after we know num_samples
+        # We'll create it in train() once we know the actual training steps
+        self.scheduler = None  # Created in train()
+
         # Setup judge
         self.logger.info("\n[3/4] Setting up judge...")
         self.judge_client = get_local_judge_client(cfg.judge_base_url)
@@ -264,9 +298,19 @@ class Trainer:
         self.logger.info(f"  Judge model: {cfg.judge_model}")
 
         # Load checkpoint if resuming
+        # Auto-load "latest" checkpoint if run directory exists (RUN_ID set or previous run)
+        latest_checkpoint = self.run_dir / "checkpoints" / "latest"
         if cfg.resume_from:
             self.logger.info(f"\n[3.5/4] Resuming from checkpoint: {cfg.resume_from}")
             self.load_checkpoint(cfg.resume_from)
+        elif latest_checkpoint.exists():
+            self.logger.info(f"\n[3.5/4] Auto-resuming from: {latest_checkpoint}")
+            self.load_checkpoint(str(latest_checkpoint))
+
+        # Use wandb's last step if higher than checkpoint (handles out-of-sync cases)
+        if self._wandb_last_step > self.training_state.global_step:
+            self.logger.info(f"  Syncing global_step to wandb: {self.training_state.global_step} -> {self._wandb_last_step + 1}")
+            self.training_state.global_step = self._wandb_last_step + 1
 
         # Initialize checkpoint timer
         self._last_checkpoint_time = time.time()
@@ -312,7 +356,36 @@ class Trainer:
             config=asdict(self.config),
         )
         self.use_wandb = True
-        self.logger.info(f"wandb enabled: {wandb_project}/{self.run_name} (id={wandb_run_id})")
+
+        # Query wandb for last logged step (to continue from correct position)
+        self._wandb_last_step = self._get_wandb_last_step(wandb_project, wandb_entity, wandb_run_id)
+        if self._wandb_last_step > 0:
+            self.logger.info(f"wandb enabled: {wandb_project}/{self.run_name} (id={wandb_run_id}, last_step={self._wandb_last_step})")
+        else:
+            self.logger.info(f"wandb enabled: {wandb_project}/{self.run_name} (id={wandb_run_id})")
+
+    def _get_wandb_last_step(self, project: str, entity: str | None, run_id: str) -> int:
+        """Query wandb API to get the last logged step for this run.
+
+        Returns 0 if run doesn't exist or has no history.
+        """
+        try:
+            import wandb
+            api = wandb.Api()
+            path = f"{entity}/{project}/{run_id}" if entity else f"{project}/{run_id}"
+            run = api.run(path)
+            # Get the last step from history
+            history = run.history(keys=["global_step"], samples=1)
+            if len(history) > 0 and "global_step" in history.columns:
+                return int(history["global_step"].max())
+            # Fallback: check _step which wandb uses internally
+            history = run.history(keys=["_step"], samples=1)
+            if len(history) > 0:
+                return int(history["_step"].max())
+            return 0
+        except Exception:
+            # Run doesn't exist yet or API error
+            return 0
 
     def _log_wandb(self, metrics: dict, step: int | None = None) -> None:
         """Log metrics to wandb if enabled."""
@@ -390,26 +463,29 @@ class Trainer:
         # Load training state
         state_dict = torch.load(state_path, map_location="cpu", weights_only=False)
 
-        # Restore optimizer state
+        # Restore optimizer state (but reset LR to initial value)
         self.optimizer.load_state_dict(state_dict["optimizer_state"])
+        # Reset LR to initial config value (scheduler will be created fresh in train())
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] = self.config.lr
 
         # Restore training state
+        # Only restore global_step - epoch/step reset to 0 for fresh training loop
+        # This allows continued training with new epochs while preserving wandb step continuity
         ts = state_dict["training_state"]
         self.training_state = TrainingState(
-            epoch=ts["epoch"],
-            step=ts["step"],
-            global_step=ts["global_step"],
+            epoch=0,  # Start fresh epochs
+            step=0,   # Start from first sample
+            global_step=ts["global_step"],  # Continue step counter for wandb
         )
 
         # Restore metrics if available
         if "metrics" in state_dict and self.metrics:
             self.metrics.metrics = state_dict["metrics"]
 
-        # Restore RNG states for reproducibility
-        if "torch_rng_state" in state_dict:
-            torch.set_rng_state(state_dict["torch_rng_state"])
-        if "cuda_rng_state" in state_dict and torch.cuda.is_available():
-            torch.cuda.set_rng_state(state_dict["cuda_rng_state"])
+        # Note: We intentionally do NOT restore RNG states
+        # Since we reset epoch/step to 0 for fresh training, we want new randomness
+        # (shuffle order, temperature sampling, etc.)
 
         # Load model weights
         if self.config.use_lora:
@@ -424,7 +500,7 @@ class Trainer:
             )
             self.logger.info("Loaded full model weights")
 
-        self.logger.info(f"Resumed from epoch={self.training_state.epoch}, step={self.training_state.step}, global_step={self.training_state.global_step}")
+        self.logger.info(f"Resumed: global_step={self.training_state.global_step} (starting fresh epochs with reset LR)")
 
     def _maybe_save_latest(self) -> None:
         """Save 'latest' checkpoint if enough time has passed."""
@@ -462,9 +538,18 @@ class Trainer:
             plot_func = update_plot
             self.logger.info(f"Live plotting enabled: {plot_path}")
 
-        # Create subset
-        subset = self.dataset.select(range(min(cfg.num_samples, len(self.dataset))))
-        self.logger.info(f"  Training samples: {len(subset)}")
+        # Create subset (optionally shuffled)
+        num_samples = min(cfg.num_samples, len(self.dataset))
+        indices = list(range(num_samples))
+        if cfg.shuffle:
+            # Seed with current time to ensure different order each run
+            shuffle_seed = int(time.time() * 1000) % (2**32)
+            random.seed(shuffle_seed)
+            random.shuffle(indices)
+            self.logger.info(f"  Training samples: {num_samples} (shuffled, seed={shuffle_seed})")
+        else:
+            self.logger.info(f"  Training samples: {num_samples} (sequential)")
+        subset = self.dataset.select(indices)
 
         # Get starting point (for resumption)
         start_epoch = self.training_state.epoch
@@ -479,6 +564,28 @@ class Trainer:
         total_steps = cfg.num_epochs * len(subset)
         completed_steps = start_epoch * len(subset) + start_step
         training_start_time = time.time()
+
+        # Setup LR scheduler (now that we know total_steps)
+        # Note: LR scheduler always starts fresh (from initial LR), even when resuming
+        # This allows continued training with fresh LR decay while preserving global_step
+        if cfg.lr_scheduler == "linear" and not cfg.eval_only:
+            from torch.optim.lr_scheduler import LambdaLR
+            # Calculate remaining steps from current position
+            remaining_steps = total_steps - completed_steps
+            # Linear decay from lr to lr_end over remaining_steps
+            def lr_lambda(current_step):
+                if remaining_steps == 0:
+                    return 1.0
+                progress = current_step / remaining_steps
+                # Linear interpolation: lr * (1 - progress) + lr_end * progress
+                # Simplified: lr_lambda returns multiplier, so we compute the ratio
+                return (1 - progress) + (cfg.lr_end / cfg.lr) * progress
+            self.scheduler = LambdaLR(self.optimizer, lr_lambda, last_epoch=-1)  # Always start fresh
+            self.logger.info(f"  LR scheduler: linear decay {cfg.lr} -> {cfg.lr_end} over {remaining_steps} remaining steps")
+        else:
+            self.scheduler = None
+            if not cfg.eval_only:
+                self.logger.info(f"  LR scheduler: none (constant lr={cfg.lr})")
 
         for epoch in range(start_epoch, cfg.num_epochs):
             self.logger.info(f"\n--- Epoch {epoch + 1}/{cfg.num_epochs} ---")
@@ -502,12 +609,17 @@ class Trainer:
                 episodes = []
                 rewards = []
 
+                # Set model to eval mode for generation (disable grad checkpointing for speed)
+                self.model.eval()
+                if cfg.gradient_checkpointing:
+                    self.model.gradient_checkpointing_disable()
+
                 async with SandboxClient() as sandbox:
                     # Create agent for this sandbox session
                     agent_config = AgentConfig(
                         max_turns=cfg.max_turns,
                         max_new_tokens=cfg.max_new_tokens,
-                        temperature=cfg.temperature,
+                        temperature=cfg.temperature,  # Base temp (can be overridden per rollout)
                         max_context=cfg.max_context,
                         use_api=False,  # Training always uses local model
                     )
@@ -515,9 +627,11 @@ class Trainer:
 
                     # Phase 1: Collect all rollouts (sequential - same sandbox)
                     for r in range(cfg.num_rollouts):
-                        episode = await agent.run(question)
+                        # Random temperature per rollout for diversity
+                        temp = random.uniform(cfg.temperature_min, cfg.temperature_max)
+                        episode = await agent.run(question, temperature=temp)
                         episodes.append(episode)
-                        self.logger.info(f"    Rollout {r + 1}: Answer = {episode.final_answer or '(none)'}")
+                        self.logger.info(f"    Rollout {r + 1} (temp={temp:.2f}): Answer = {episode.final_answer or '(none)'}")
 
                     # Phase 2: Judge all rollouts in parallel
                     async def judge_episode(ep):
@@ -528,7 +642,8 @@ class Trainer:
                         return await get_judge_reward(
                             self.judge_client, cfg.judge_model,
                             question, answer, ep.final_answer,
-                            trajectory=trajectory
+                            trajectory=trajectory,
+                            correctness_weight=cfg.correctness_weight
                         )
 
                     self.logger.info("    Judging rollouts in parallel...")
@@ -576,11 +691,15 @@ class Trainer:
                 loss_val = 0.0
                 if not cfg.eval_only:
                     self.model.train()
+                    if cfg.gradient_checkpointing:
+                        self.model.gradient_checkpointing_enable()
                     self.optimizer.zero_grad()
 
                     # compute_reinforce_loss accumulates gradients internally via backward()
                     loss = compute_reinforce_loss(
-                        self.model, self.tokenizer, episodes, rewards, self.device
+                        self.model, self.tokenizer, episodes, rewards, self.device,
+                        gamma=cfg.gamma,
+                        rl_algo=cfg.rl_algo
                     )
                     # No loss.backward() needed - already done inside compute_reinforce_loss
 
@@ -590,14 +709,18 @@ class Trainer:
                     )
 
                     self.optimizer.step()
+                    if self.scheduler is not None:
+                        self.scheduler.step()
                     loss_val = loss.item()
-                    self.logger.info(f"    Loss: {loss_val:.4f} | Grad norm: {grad_norm:.4f}")
+                    current_lr = self.optimizer.param_groups[0]['lr']
+                    self.logger.info(f"    Loss: {loss_val:.4f} | Grad norm: {grad_norm:.4f} | LR: {current_lr:.2e}")
                 else:
                     self.logger.info("    [eval-only] Skipping training step")
 
                 # Track metrics
                 self.metrics.log_step(loss_val, rewards)
                 n_rollouts = len(rewards)
+                current_lr = self.optimizer.param_groups[0]['lr']
                 wandb_metrics = {
                     # Rewards
                     "reward_mean": sum(rewards) / n_rollouts,
@@ -611,7 +734,7 @@ class Trainer:
                     "avg_turns": total_turns / n_rollouts,
                     # Training
                     "loss": loss_val,
-                    "learning_rate": cfg.lr,
+                    "learning_rate": current_lr,
                     "global_step": self.training_state.global_step,
                 }
                 if not cfg.eval_only:

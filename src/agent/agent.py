@@ -96,22 +96,24 @@ class Agent:
         conv.add(Role.USER, f"Question: {question}")
         return conv
 
-    async def step(self, conversation: Conversation) -> Message:
+    async def step(self, conversation: Conversation, temperature: float | None = None) -> Message:
         """Generate a single response from the model.
 
         Args:
             conversation: Current conversation state
+            temperature: Override temperature (uses config default if None)
 
         Returns:
             The generated assistant message
         """
+        temp = temperature if temperature is not None else self.config.temperature
         messages = conversation.to_messages()
 
         if self.config.use_api:
-            response_text, latency_ms, tokens_generated = await self._step_api(messages)
+            response_text, latency_ms, tokens_generated = await self._step_api(messages, temp)
             model_name = self.config.api_model
         else:
-            response_text, latency_ms, tokens_generated = await self._step_local(messages)
+            response_text, latency_ms, tokens_generated = await self._step_local(messages, temp)
             model_name = self.model.config.name_or_path
 
         # Truncate after </python> to prevent hallucinated outputs
@@ -128,14 +130,14 @@ class Agent:
                 messages=messages,
                 response=response_text,
                 max_new_tokens=self.config.max_new_tokens,
-                temperature=self.config.temperature,
+                temperature=temp,
                 latency_ms=latency_ms,
                 tokens_generated=tokens_generated,
             )
 
         return Message(Role.ASSISTANT, response_text)
 
-    async def _step_api(self, messages: list[dict]) -> tuple[str, float, int]:
+    async def _step_api(self, messages: list[dict], temperature: float) -> tuple[str, float, int]:
         """Generate via OpenAI-compatible API."""
         start_time = time.perf_counter()
 
@@ -145,7 +147,7 @@ class Agent:
                 "model": self.config.api_model,
                 "messages": messages,
                 "max_tokens": self.config.max_new_tokens,
-                "temperature": self.config.temperature,
+                "temperature": temperature,
             },
         )
         response.raise_for_status()
@@ -157,7 +159,7 @@ class Agent:
 
         return response_text, latency_ms, tokens_generated
 
-    async def _step_local(self, messages: list[dict]) -> tuple[str, float, int]:
+    async def _step_local(self, messages: list[dict], temperature: float) -> tuple[str, float, int]:
         """Generate via local model."""
         import torch
 
@@ -183,7 +185,7 @@ class Agent:
                 **inputs,
                 max_new_tokens=self.config.max_new_tokens,
                 do_sample=True,
-                temperature=self.config.temperature,
+                temperature=temperature,
                 pad_token_id=self.tokenizer.eos_token_id,
             )
         latency_ms = (time.perf_counter() - start_time) * 1000
@@ -198,7 +200,7 @@ class Agent:
 
         return response_text, latency_ms, tokens_generated
 
-    def _truncate_middle(self, text: str, max_chars: int = 3000) -> str:
+    def _truncate_middle(self, text: str, max_chars: int = 6000) -> str:
         """Truncate text by removing the middle, keeping beginning and end.
 
         Args:
@@ -216,7 +218,7 @@ class Agent:
         removed = len(text) - (keep_each * 2)
         return f"{text[:keep_each]}\n\n... [{removed} chars truncated] ...\n\n{text[-keep_each:]}"
 
-    async def execute_code(self, code: str, max_output_chars: int = 3000) -> Message:
+    async def execute_code(self, code: str, max_output_chars: int = 6000) -> Message:
         """Execute code in the sandbox.
 
         Args:
@@ -246,11 +248,12 @@ class Agent:
         if self.config.debug:
             print(*args, **kwargs)
 
-    async def run(self, question: str) -> EpisodeResult:
+    async def run(self, question: str, temperature: float | None = None) -> EpisodeResult:
         """Run a full episode to answer a question.
 
         Args:
             question: The question to answer
+            temperature: Override temperature (uses config default if None)
 
         Returns:
             EpisodeResult with conversation history and answer
@@ -274,7 +277,7 @@ class Agent:
                     self._debug(f"  [{role}]:\n{m['content']}\n")
 
             # Generate response
-            response = await self.step(conversation)
+            response = await self.step(conversation, temperature=temperature)
             conversation.add_message(response)
             num_turns += 1
 
