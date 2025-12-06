@@ -99,6 +99,10 @@ class EpisodeResult:
                 turn += 1
                 parts.append(f"[TURN {turn} - AGENT]:\n{msg.content}")
             elif msg.role == Role.EXECUTION:
-                parts.append(f"[EXECUTION RESULT]:\n{msg.content}")
+                # Check if this is a system reminder (not actual code output)
+                if msg.content.startswith("[FINAL TURN]"):
+                    parts.append(f"[SYSTEM REMINDER]:\n{msg.content}")
+                else:
+                    parts.append(f"[EXECUTION RESULT]:\n{msg.content}")
 
         return "\n\n".join(parts)

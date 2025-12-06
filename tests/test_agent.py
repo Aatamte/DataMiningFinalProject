@@ -3,7 +3,7 @@
 import pytest
 
 from src.agent import Message, Role, Conversation, EpisodeResult
-from src.prompts import SYSTEM_PROMPT
+from src.prompts import get_system_prompt
 
 
 class TestMessage:
@@ -137,7 +137,7 @@ class TestEpisodeResult:
     def test_create_episode_result(self):
         """Test creating an episode result."""
         conv = Conversation()
-        conv.add(Role.SYSTEM, SYSTEM_PROMPT)
+        conv.add(Role.SYSTEM, get_system_prompt())
         conv.add(Role.USER, "Question: What is 2+2?")
         conv.add(Role.ASSISTANT, "<answer>4</answer>")
 
@@ -211,7 +211,7 @@ class TestConversationFlow:
         """Test a complete episode conversation flow."""
         # Initialize with system prompt and question
         conv = Conversation()
-        conv.add(Role.SYSTEM, SYSTEM_PROMPT)
+        conv.add(Role.SYSTEM, get_system_prompt())
         conv.add(Role.USER, "Question: What year was Python created?")
 
         # Verify initial render

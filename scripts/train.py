@@ -21,7 +21,22 @@ from src.config import load_config, get_config_value
 from src.trainer import Trainer, TrainerConfig
 
 
-def validate_environment(config: dict) -> bool:
+async def check_sandbox() -> tuple[bool, str]:
+    """Test sandbox execution with a simple code snippet."""
+    from src.environment import SandboxClient
+    try:
+        async with SandboxClient() as sandbox:
+            result = await sandbox.execute("print(2 + 2)")
+            if result.get("error"):
+                return False, f"Execution error: {result['error']}"
+            if "4" in result.get("output", ""):
+                return True, "Sandbox executed test code successfully"
+            return False, f"Unexpected output: {result.get('output', '')}"
+    except Exception as e:
+        return False, str(e)
+
+
+async def validate_environment(config: dict) -> bool:
     """Validate that required services are reachable.
 
     Returns True if all checks pass, False otherwise.
@@ -37,7 +52,7 @@ def validate_environment(config: dict) -> bool:
     all_ok = True
 
     # Check judge API is reachable
-    print(f"\n[1/2] Checking judge API: {judge_url}")
+    print(f"\n[1/3] Checking judge API: {judge_url}")
     try:
         resp = httpx.get(f"{judge_url}/models", timeout=5.0)
         if resp.status_code == 200:
@@ -64,11 +79,25 @@ def validate_environment(config: dict) -> bool:
         all_ok = False
 
     # Check training model exists on HuggingFace (just validate format)
-    print(f"\n[2/2] Checking training model: {model_name}")
+    print(f"\n[2/3] Checking training model: {model_name}")
     if "/" in model_name:
         print("  [OK] Model name format valid (will download if needed)")
     else:
         print(f"  ! Warning: Model name '{model_name}' may be local path")
+
+    # Check sandbox execution
+    print(f"\n[3/3] Checking sandbox execution...")
+    try:
+        sandbox_ok, sandbox_msg = await check_sandbox()
+        if sandbox_ok:
+            print(f"  [OK] {sandbox_msg}")
+        else:
+            print(f"  [FAIL] {sandbox_msg}")
+            print("    Is the Docker sandbox running? Try: uv run python scripts/run_environment.py")
+            all_ok = False
+    except Exception as e:
+        print(f"  [FAIL] Error: {e}")
+        all_ok = False
 
     print("\n" + "=" * 60)
     if all_ok:
@@ -101,7 +130,7 @@ async def main_async() -> None:
     config = load_config()
 
     # Validate environment before starting
-    if not validate_environment(config):
+    if not await validate_environment(config):
         sys.exit(1)
 
     # Build TrainerConfig from YAML

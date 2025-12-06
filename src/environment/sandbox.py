@@ -23,7 +23,7 @@ class SandboxClient:
     def __init__(
         self,
         base_url: str = "http://localhost:8080",
-        timeout: float = 30.0,
+        timeout: float = 10.0,
     ):
         """Initialize the sandbox client.
 
@@ -163,7 +163,7 @@ def is_server_running(base_url: str = "http://localhost:8080") -> bool:
 # Convenience function for simple usage
 async def execute_code(
     code: str,
-    timeout: float = 30.0,
+    timeout: float = 10.0,
     base_url: str = "http://localhost:8080",
 ) -> dict[str, Any]:
     """Execute code in the sandbox (convenience function).

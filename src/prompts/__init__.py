@@ -1,6 +1,6 @@
 """Prompt templates for SLM-RL Search."""
 
-from .system import SYSTEM_PROMPT
+from .system import get_system_prompt
 from .judge import (
     JUDGE_PROMPT,
     JUDGE_SCHEMA,
@@ -9,7 +9,7 @@ from .judge import (
 )
 
 __all__ = [
-    "SYSTEM_PROMPT",
+    "get_system_prompt",
     "JUDGE_PROMPT",
     "JUDGE_SCHEMA",
     "build_judge_prompt",

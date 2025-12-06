@@ -39,14 +39,17 @@ def setup_logging(run_dir: Path) -> tuple[logging.Logger, Path]:
     # Clear existing handlers
     logger.handlers = []
 
-    # Console handler
-    console_handler = logging.StreamHandler()
+    # Console handler (UTF-8 for Windows compatibility)
+    import sys
+    console_handler = logging.StreamHandler(stream=sys.stdout)
     console_handler.setLevel(logging.INFO)
     console_format = logging.Formatter('%(message)s')
     console_handler.setFormatter(console_format)
+    if hasattr(console_handler.stream, 'reconfigure'):
+        console_handler.stream.reconfigure(encoding='utf-8', errors='replace')
 
     # File handler (more detailed)
-    file_handler = logging.FileHandler(log_file, mode='w')
+    file_handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
     file_format = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
     file_handler.setFormatter(file_format)
