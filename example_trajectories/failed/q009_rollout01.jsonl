@@ -1,0 +1,4 @@
+{"type": "question", "question": "Which American grocery chain does Aldi Nord own?", "expected": "Trader Joe's"}
+{"type": "user", "content": "Question: Which American grocery chain does Aldi Nord own?"}
+{"type": "assistant", "turn": 1, "content": "<answer>Answer not found</answer>"}
+{"type": "result", "final_answer": "Answer not found", "reward": 0.025, "num_turns": 1}

@@ -1,0 +1,4 @@
+{"type": "question", "question": "Which alien species takes over Earth in the film 'Landscape with Invisible Hand'?", "expected": "Vuvv"}
+{"type": "user", "content": "Question: Which alien species takes over Earth in the film 'Landscape with Invisible Hand'?"}
+{"type": "assistant", "turn": 1, "content": "<answer>Answer not found</answer>"}
+{"type": "result", "final_answer": "Answer not found", "reward": 0.0375, "num_turns": 1}
