@@ -5,37 +5,9 @@ description = "Efficient programmatic search using Small Language Models with Re
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 dependencies = [
-    # Core ML - let vllm drive torch version
-    "vllm>=0.12.0",
-    "transformers>=4.40.0",
-    "accelerate>=0.30.0",
-    "peft>=0.11.0",
-    "trl>=0.9.0",
-
-    # Vector DB & Embeddings
-    "chromadb>=0.5.0",
-    "sentence-transformers>=3.0.0",
-
-    # Data
-    "datasets>=2.19.0",
-
-    # LLM clients
-    "openai>=1.40.0",
-
-    # Utilities
+    # Minimal base - use requirements-*.txt for full installs
     "python-dotenv>=1.0.0",
-    "matplotlib>=3.8.0",
     "pyyaml>=6.0.0",
-    "requests>=2.31.0",
-    "aiohttp>=3.9.0",
-    "httpx>=0.27.0",
-
-    # Experiment tracking
-    "wandb>=0.17.0",
-
-    # Misc
-    "numpy>=1.26.0,<2.0",
-    "scikit-learn>=1.5.0",
 ]
 
 [project.optional-dependencies]
@@ -43,22 +15,6 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
 ]
-flash = [
-    "flash-attn>=2.5.0",
-]
-
-# PyTorch CUDA 12.1 index
-[[tool.uv.index]]
-name = "pytorch-cu121"
-url = "https://download.pytorch.org/whl/cu121"
-explicit = true
-
-[tool.uv.sources]
-torch = { index = "pytorch-cu121" }
-
-[tool.uv]
-# Packages that need CUDA access during build (skip PEP 517 isolation)
-no-build-isolation-package = ["flash-attn"]
 
 [tool.setuptools.packages.find]
 where = ["."]

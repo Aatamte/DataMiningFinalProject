@@ -1,40 +1,165 @@
 """CLI entrypoint for evaluation.
 
 Evaluate a model on the wiki-search task without training.
+Config loaded from configs/eval.yaml (no CLI flags).
+
+Both the eval model and judge model are accessed via API endpoints.
 
 Usage:
     uv run python scripts/eval.py
-    uv run python scripts/eval.py --model Qwen/Qwen3-4B --q_percentage 10
-    uv run python scripts/eval.py --model runs/train_.../checkpoints/final --base_model Qwen/Qwen3-4B-Instruct-2507
 """
 
-import argparse
 import asyncio
 import json
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
 
 import httpx
-import torch
+import yaml
 from dotenv import load_dotenv
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel
 
 load_dotenv()
 
+# Load config
+CONFIG_PATH = Path("configs/eval.yaml")
+if not CONFIG_PATH.exists():
+    print(f"ERROR: Config file not found: {CONFIG_PATH}")
+    sys.exit(1)
+
+with open(CONFIG_PATH) as f:
+    CONFIG = yaml.safe_load(f)
+
 from src.environment import SandboxClient
+
+
+async def check_sandbox() -> tuple[bool, str]:
+    """Test sandbox execution with a simple code snippet."""
+    try:
+        async with SandboxClient() as sandbox:
+            result = await sandbox.execute("print(2 + 2)")
+            if result.get("error"):
+                return False, f"Execution error: {result['error']}"
+            if "4" in result.get("output", ""):
+                return True, "Sandbox executed test code successfully"
+            return False, f"Unexpected output: {result.get('output', '')}"
+    except Exception as e:
+        return False, str(e)
+
+
+def check_api_model(base_url: str, model_name: str, label: str) -> tuple[bool, list[str]]:
+    """Check if a model is available at an OpenAI-compatible API endpoint.
+
+    Args:
+        base_url: API base URL (e.g., "http://localhost:1234/v1")
+        model_name: Expected model name/id
+        label: Human-readable label for logging (e.g., "Eval model", "Judge")
+
+    Returns:
+        Tuple of (success, list of available model ids)
+    """
+    try:
+        resp = httpx.get(f"{base_url}/models", timeout=30.0)
+        if resp.status_code == 200:
+            models = resp.json()
+            model_ids = [m.get("id", "") for m in models.get("data", [])]
+            return True, model_ids
+        else:
+            print(f"  [FAIL] {label} API returned status {resp.status_code}")
+            return False, []
+    except httpx.ConnectError:
+        print(f"  [FAIL] Cannot connect to {base_url}")
+        return False, []
+    except Exception as e:
+        print(f"  [FAIL] Error: {e}")
+        return False, []
+
+
+async def validate_environment() -> bool:
+    """Validate that required services are reachable.
+
+    Returns True if all checks pass, False otherwise.
+    """
+    model_cfg = CONFIG["model"]
+    model_url = model_cfg["base_url"]
+    model_name = model_cfg["name"]
+
+    judge_cfg = CONFIG["judge"]
+    judge_url = judge_cfg["base_url"]
+    judge_model = judge_cfg["model"]
+
+    print("=" * 60)
+    print("VALIDATING ENVIRONMENT")
+    print("=" * 60)
+
+    all_ok = True
+
+    # Check eval model API
+    print(f"\n[1/3] Checking eval model API: {model_url}")
+    ok, model_ids = check_api_model(model_url, model_name, "Eval model")
+    if ok:
+        print(f"  [OK] API reachable, available models: {model_ids}")
+        # Check if eval model is available
+        if model_name in model_ids or any(model_name in m for m in model_ids):
+            print(f"  [OK] Eval model '{model_name}' available")
+        else:
+            print(f"  [FAIL] Eval model '{model_name}' not found in available models")
+            print(f"    Available: {model_ids}")
+            all_ok = False
+    else:
+        all_ok = False
+
+    # Check judge API (may be same endpoint)
+    print(f"\n[2/3] Checking judge API: {judge_url}")
+    if judge_url == model_url:
+        # Same endpoint, reuse model list
+        print(f"  [OK] Same endpoint as eval model")
+        if judge_model in model_ids or any(judge_model in m for m in model_ids):
+            print(f"  [OK] Judge model '{judge_model}' available")
+        else:
+            print(f"  [FAIL] Judge model '{judge_model}' not found in available models")
+            print(f"    Available: {model_ids}")
+            all_ok = False
+    else:
+        ok, judge_model_ids = check_api_model(judge_url, judge_model, "Judge")
+        if ok:
+            print(f"  [OK] API reachable, available models: {judge_model_ids}")
+            if judge_model in judge_model_ids or any(judge_model in m for m in judge_model_ids):
+                print(f"  [OK] Judge model '{judge_model}' available")
+            else:
+                print(f"  [FAIL] Judge model '{judge_model}' not found in available models")
+                print(f"    Available: {judge_model_ids}")
+                all_ok = False
+        else:
+            all_ok = False
+
+    # Check sandbox execution
+    print(f"\n[3/3] Checking sandbox execution...")
+    try:
+        sandbox_ok, sandbox_msg = await check_sandbox()
+        if sandbox_ok:
+            print(f"  [OK] {sandbox_msg}")
+        else:
+            print(f"  [FAIL] {sandbox_msg}")
+            print("    Is the Docker sandbox running? Try: uv run python scripts/run_environment.py")
+            all_ok = False
+    except Exception as e:
+        print(f"  [FAIL] Error: {e}")
+        all_ok = False
+
+    print("\n" + "=" * 60)
+    if all_ok:
+        print("ALL CHECKS PASSED")
+    else:
+        print("SOME CHECKS FAILED - please fix before evaluating")
+    print("=" * 60 + "\n")
+
+    return all_ok
+
+
 from src.judge import get_local_judge_client
 from src.trainer.episode import get_judge_reward
 from src.agent import Agent, AgentConfig
-
-# Defaults from env vars
-DEFAULT_JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "deepseek/deepseek-r1-0528-qwen3-8b")
-DEFAULT_JUDGE_URL = os.environ.get("JUDGE_BASE_URL", "http://localhost:1234/v1")
-DEFAULT_TRAIN_MODEL = os.environ.get("TRAIN_MODEL", "Qwen/Qwen3-4B")
-USE_API = os.environ.get("EVAL_USE_API", "false").lower() == "true"
-EVAL_MODEL = os.environ.get("EVAL_MODEL", "")
 
 
 def setup_eval_dir(model_name: str) -> Path:
@@ -54,131 +179,21 @@ def setup_eval_dir(model_name: str) -> Path:
     return eval_dir
 
 
-def is_lora_checkpoint(path: str) -> bool:
-    """Check if path is a LoRA adapter checkpoint.
-
-    Args:
-        path: Path to check
-
-    Returns:
-        True if path contains adapter_config.json
-    """
-    adapter_config = Path(path) / "adapter_config.json"
-    return adapter_config.exists()
-
-
-def load_model(model_path: str, base_model: str | None = None, device: str = "cuda"):
-    """Load model from HuggingFace or local checkpoint.
-
-    Args:
-        model_path: HuggingFace model name or path to local checkpoint
-        base_model: Base model for LoRA checkpoints (required if model_path is LoRA)
-        device: Device to load model on
-
-    Returns:
-        Tuple of (model, tokenizer)
-    """
-    print(f"Loading model: {model_path}")
-
-    # Check if this is a LoRA checkpoint
-    if is_lora_checkpoint(model_path):
-        if base_model is None:
-            print("ERROR: --base_model required for LoRA checkpoints")
-            print(f"  Detected LoRA adapter at: {model_path}")
-            print("  Specify the base model that was fine-tuned")
-            sys.exit(1)
-
-        print(f"  LoRA adapter detected, loading base model: {base_model}")
-
-        # Load tokenizer from base model
-        tokenizer = AutoTokenizer.from_pretrained(base_model)
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-
-        # Load base model
-        model = AutoModelForCausalLM.from_pretrained(
-            base_model,
-            torch_dtype=torch.bfloat16,
-            device_map=device,
-        )
-
-        # Apply LoRA adapter
-        print(f"  Applying LoRA adapter: {model_path}")
-        model = PeftModel.from_pretrained(model, model_path)
-        model = model.merge_and_unload()  # Merge for faster inference
-        print("  LoRA merged into base model")
-    else:
-        # Regular model loading
-        tokenizer = AutoTokenizer.from_pretrained(model_path)
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-
-        model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-            torch_dtype=torch.bfloat16,
-            device_map=device,
-        )
-
-    model.eval()
-
-    param_count = sum(p.numel() for p in model.parameters())
-    print(f"  Parameters: {param_count:,}")
-    print(f"  Device: {device}")
-
-    return model, tokenizer
-
-
-def load_questions_for_eval(subset: str, q_percentage: float) -> tuple[list[dict], int]:
+def load_questions_for_eval(subset: str) -> list[dict]:
     """Load evaluation questions from dataset.
 
     Args:
         subset: Which subset to load - "train", "test", or "all"
-        q_percentage: Percentage of subset to load (0-100)
 
     Returns:
-        Tuple of (list of {question, answer} dicts, subset total size)
+        List of {question, answer} dicts
     """
     from src.environment.core import load_questions
 
     ds = load_questions(subset=subset)
-    total = len(ds)
-    num_samples = max(1, int(total * q_percentage / 100))
-
-    samples = []
-    for i, row in enumerate(ds):
-        if i >= num_samples:
-            break
-        samples.append({
-            "question": row["question"],
-            "answer": row["answer"],
-        })
-    return samples, total
+    return [{"question": row["question"], "answer": row["answer"]} for row in ds]
 
 
-def parse_args() -> argparse.Namespace:
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Evaluate SLM on wiki-search")
-
-    parser.add_argument("--model", type=str, default=DEFAULT_TRAIN_MODEL,
-                        help="Model to evaluate (HF name or LoRA checkpoint path)")
-    parser.add_argument("--base_model", type=str, default=None,
-                        help="Base model for LoRA checkpoints (required if --model is LoRA)")
-    parser.add_argument("--subset", type=str, default="all", choices=["train", "test", "all"],
-                        help="Which data subset to evaluate: train (80%%), test (20%%), or all (default: all)")
-    parser.add_argument("--q_percentage", type=float, default=100.0,
-                        help="Percentage of subset to eval (default: 100.0 = 100%%)")
-    parser.add_argument("--n_per_q", type=int, default=1,
-                        help="Number of eval runs per question (default: 1)")
-    parser.add_argument("--max_turns", type=int, default=3,
-                        help="Max turns per question (default: 3)")
-    parser.add_argument("--max_new_tokens", type=int, default=1024,
-                        help="Max tokens per generation (default: 1024)")
-    parser.add_argument("--judge_model", type=str, default=DEFAULT_JUDGE_MODEL,
-                        help="Judge model (default: JUDGE_MODEL env var)")
-    parser.add_argument("--full_report", action="store_true",
-                        help="Evaluate on train, test, and all subsets (overrides --subset)")
-
-    return parser.parse_args()
 
 
 async def eval_subset(
@@ -188,8 +203,12 @@ async def eval_subset(
     judge_client,
     judge_model: str,
     n_per_q: int,
+    results_dir: Path,
+    start_from: int = 0,
 ) -> dict:
     """Evaluate on a single subset.
+
+    Writes one JSON file per question to results_dir.
 
     Returns:
         Dict with results for this subset
@@ -202,11 +221,14 @@ async def eval_subset(
     total_turns = 0
 
     for i, q in enumerate(questions):
+        if i < start_from:
+            continue
+
         question = q["question"]
         expected = q["answer"]
 
-        print(f"\n  Q{i+1}/{len(questions)}: {question[:55]}...")
-        print(f"     Expected: {expected[:40]}...")
+        print(f"\n  Q{i+1}/{len(questions)}: {question}")
+        print(f"     Expected: {expected}")
 
         q_correct = 0
         q_runs = []
@@ -220,12 +242,18 @@ async def eval_subset(
             if answer is None:
                 judge_result = JudgeResult(reward=0.0, correct=False, approach_score=0)
             else:
-                trajectory = episode.format_for_judge()
-                judge_result = await get_judge_reward(
-                    judge_client, judge_model,
-                    question, expected, answer,
-                    trajectory=trajectory
-                )
+                # Exact match shortcut - bypass judge if answer matches exactly
+                answer_clean = answer.strip().lower()
+                expected_clean = expected.strip().lower()
+                if answer_clean == expected_clean:
+                    judge_result = JudgeResult(reward=1.0, correct=True, approach_score=100)
+                else:
+                    trajectory = episode.format_for_judge()
+                    judge_result = await get_judge_reward(
+                        judge_client, judge_model,
+                        question, expected, answer,
+                        trajectory=trajectory
+                    )
 
             # Record run
             run_result = {
@@ -252,6 +280,7 @@ async def eval_subset(
 
         # Record question result
         result = {
+            "index": i,
             "question": question,
             "expected": expected,
             "runs": q_runs,
@@ -259,11 +288,16 @@ async def eval_subset(
         }
         results.append(result)
 
+        # Save to individual file
+        q_file = results_dir / f"q_{i:04d}.json"
+        with open(q_file, "w") as f:
+            json.dump(result, f, indent=2)
+
         # Print question summary
         if n_per_q == 1:
             run = q_runs[0]
             display_answer = run["answer"]
-            print(f"     Answer: {display_answer[:55]}{'...' if len(display_answer) > 55 else ''}")
+            print(f"     Answer: {display_answer}")
             status = "CORRECT" if run["correct"] else "INCORRECT"
             print(f"     Judge: {status} | Approach: {run['approach_score']}/100 | Reward: {run['reward']:.2f}")
         else:
@@ -285,104 +319,115 @@ async def eval_subset(
 
 async def main_async() -> None:
     """Async main function."""
-    args = parse_args()
+    # Validate environment before starting
+    if not await validate_environment():
+        sys.exit(1)
 
-    # Determine model name for display/logging
-    if USE_API:
-        model_display = f"{EVAL_MODEL} (via API)"
-    else:
-        model_display = args.model
+    # Extract config values
+    model_cfg = CONFIG["model"]
+    model_name = model_cfg["name"]
+    model_url = model_cfg["base_url"]
 
-    # Setup eval directory
-    eval_dir = setup_eval_dir(EVAL_MODEL if USE_API else args.model)
+    eval_cfg = CONFIG["eval"]
+    subset = eval_cfg["subset"]
+    n_samples = eval_cfg["n_samples"]
+    start_from = eval_cfg.get("start_from_question", 0)
+    max_turns = eval_cfg["max_turns"]
+    max_new_tokens = eval_cfg["max_new_tokens"]
+    temperature = eval_cfg.get("temperature", 0.7)
 
-    # Determine which subsets to evaluate
-    if args.full_report:
-        subsets_to_eval = ["train", "test", "all"]
-    else:
-        subsets_to_eval = [args.subset]
+    judge_cfg = CONFIG["judge"]
+    judge_model = judge_cfg["model"]
+    judge_url = judge_cfg["base_url"]
+
+    output_dir = CONFIG["logging"]["output_dir"]
+
+    # Setup eval directory and results subdirectory
+    eval_dir = setup_eval_dir(model_name)
+    results_dir = eval_dir / "results"
+    results_dir.mkdir(exist_ok=True)
 
     print("=" * 60)
-    print("SLM-RL EVALUATION")
+    print("SLM-RL EVALUATION (API Mode)")
     print("=" * 60)
-    print(f"Model: {model_display}")
-    print(f"Mode: {'API' if USE_API else 'Local'}")
-    print(f"Subsets: {', '.join(subsets_to_eval)}")
-    print(f"Sample %: {args.q_percentage}%")
-    print(f"Runs per question: {args.n_per_q}")
-    print(f"Max turns: {args.max_turns}")
-    print(f"Judge: {args.judge_model}")
+    print(f"Config: {CONFIG_PATH}")
+    print(f"Model: {model_name}")
+    print(f"Model endpoint: {model_url}")
+    print(f"Subset: {subset}")
+    print(f"Start from question: {start_from}")
+    print(f"Runs per question: {n_samples}")
+    print(f"Max turns: {max_turns}")
+    print(f"Max new tokens: {max_new_tokens}")
+    print(f"Judge: {judge_model}")
+    print(f"Judge endpoint: {judge_url}")
     print(f"Output dir: {eval_dir}")
     print("=" * 60)
 
-    # Load model (skip if using API)
-    if USE_API:
-        model, tokenizer = None, None
-        print("Using API mode - skipping local model load")
-    else:
-        model, tokenizer = load_model(args.model, base_model=args.base_model)
-
     # Setup judge
-    judge_client = get_local_judge_client(DEFAULT_JUDGE_URL)
+    judge_client = get_local_judge_client(judge_url)
 
     # Setup sandbox
     sandbox = SandboxClient()
 
-    # Evaluate each subset
+    # Evaluate
     all_results = {}
 
     async with sandbox:
+        # API mode - no local model loading
         agent_config = AgentConfig(
-            max_turns=args.max_turns,
-            max_new_tokens=args.max_new_tokens,
+            max_turns=max_turns,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            use_api=True,
+            api_url=model_url,
+            api_model=model_name,
         )
-        agent = Agent(model, tokenizer, sandbox, agent_config)
+        agent = Agent(None, None, sandbox, agent_config)  # No model/tokenizer needed
 
-        for subset in subsets_to_eval:
-            print(f"\n{'=' * 60}")
-            print(f"EVALUATING: {subset.upper()} SET")
-            print("=" * 60)
+        print(f"\n{'=' * 60}")
+        print(f"EVALUATING: {subset.upper()} SET")
+        print("=" * 60)
 
-            questions, total_in_subset = load_questions_for_eval(subset, args.q_percentage)
-            print(f"Questions: {len(questions)} / {total_in_subset} ({args.q_percentage}%)")
+        questions = load_questions_for_eval(subset)
+        print(f"Questions: {len(questions)}")
 
-            subset_results = await eval_subset(
-                subset=subset,
-                questions=questions,
-                agent=agent,
-                judge_client=judge_client,
-                judge_model=args.judge_model,
-                n_per_q=args.n_per_q,
-            )
-            subset_results["total_in_subset"] = total_in_subset
-            all_results[subset] = subset_results
+        subset_results = await eval_subset(
+            subset=subset,
+            questions=questions,
+            agent=agent,
+            judge_client=judge_client,
+            judge_model=judge_model,
+            n_per_q=n_samples,
+            results_dir=results_dir,
+            start_from=start_from,
+        )
+        all_results[subset] = subset_results
 
-            print(f"\n  {subset.upper()} Accuracy: {subset_results['total_correct']}/{subset_results['total_runs']} ({subset_results['accuracy']:.1f}%)")
+        print(f"\n  {subset.upper()} Accuracy: {subset_results['total_correct']}/{subset_results['total_runs']} ({subset_results['accuracy']:.1f}%)")
 
     # Final Summary
     print("\n" + "=" * 60)
     print("FINAL RESULTS")
     print("=" * 60)
 
-    for subset in subsets_to_eval:
-        r = all_results[subset]
-        print(f"  {subset.upper():6} : {r['total_correct']:3}/{r['total_runs']:3} ({r['accuracy']:5.1f}%) - {r['num_questions']} questions, avg {r['avg_turns']:.1f} turns")
+    r = all_results[subset]
+    print(f"  {subset.upper():6} : {r['total_correct']:3}/{r['total_runs']:3} ({r['accuracy']:5.1f}%) - {r['num_questions']} questions, avg {r['avg_turns']:.1f} turns")
 
     print("=" * 60)
 
-    # Save results
-    output_data = {
-        "model": EVAL_MODEL if USE_API else args.model,
-        "mode": "api" if USE_API else "local",
-        "q_percentage": args.q_percentage,
-        "n_per_q": args.n_per_q,
-        "subsets": all_results,
+    # Save summary
+    summary_file = eval_dir / "summary.json"
+    summary = {
+        "config": str(CONFIG_PATH),
+        "model": model_name,
+        "eval": eval_cfg,
+        "judge": judge_cfg,
+        "results": all_results,
     }
-
-    results_file = eval_dir / "results.json"
-    with open(results_file, "w") as f:
-        json.dump(output_data, f, indent=2)
-    print(f"\nResults saved to: {results_file}")
+    with open(summary_file, "w") as f:
+        json.dump(summary, f, indent=2)
+    print(f"\nSummary saved to: {summary_file}")
+    print(f"Individual results in: {results_dir}")
 
 
 def main() -> None:

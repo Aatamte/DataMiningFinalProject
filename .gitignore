@@ -21,6 +21,5 @@ models/
 
 # Training and eval outputs
 runs/
-evals/
 wandb/
 

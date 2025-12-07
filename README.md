@@ -11,73 +11,71 @@ This project explores using SLM-Agents to perform intelligent search over docume
 - [Wiki Trivia Questions v4](https://huggingface.co/datasets/willcb/wiki-trivia-questions-v4)
 - [Rare Wiki Pages](https://huggingface.co/datasets/willcb/rare-wiki-pages)
 
-## Evaluation
-
-The project uses LLM-as-a-judge within [Prime-RL environments](https://app.primeintellect.ai/dashboard/environments/will/wiki-search). Each response receives a binary good/bad score determined by comparing the SLM's predicted answer against a curated ground truth answer.
-
 ## Installation
 
-### 1. Install Python dependencies
+### macOS (Eval only)
 
 ```bash
-uv sync
+uv venv
+uv pip install -r requirements-eval.txt
 ```
 
-### 2. Install Ollama
-
-Download and install from: https://ollama.com/download
-
-Then pull the required models:
+### Linux (Training + Eval)
 
 ```bash
-ollama pull qwen2.5:7b      # Judge model
-ollama pull qwen2.5:0.5b    # Debug SLM
+uv venv
+uv pip install -r requirements-training.txt
 ```
 
-### 3. Index the wiki corpus
+### Index the wiki corpus
 
 ```bash
-uv run python scripts/setup_chroma.py
+uv run python scripts/setup_environment.py
 ```
 
 This downloads the wiki pages dataset and creates local embeddings. First run takes ~5-10 minutes.
 
 ## Usage
 
-### Test the environment
+### Evaluate
+
+Config: `configs/eval.yaml`
 
 ```bash
-uv run python scripts/test_environment.py
+uv run python scripts/eval.py
 ```
 
-### Train the model
+### Train
+
+Config: `configs/full.yaml`
 
 ```bash
 uv run python scripts/train.py
 ```
 
-### Evaluate
+### Start Docker sandbox (for isolated code execution)
 
 ```bash
-uv run python scripts/eval.py
+docker-compose -f docker/docker-compose.yml up -d
 ```
 
 ## Project Structure
 
 ```
 ├── src/
-│   ├── environment.py    # Local wiki-search environment
-│   ├── embeddings.py     # Local embedding functions
-│   ├── judge.py          # Local judge model wrapper
-│   └── training.py       # RL training loop
+│   ├── environment/      # Search environment and tools
+│   ├── trainer/          # RL training loop
+│   └── agent/            # Agent conversation handling
 ├── scripts/
-│   ├── setup_chroma.py   # Index wiki pages
-│   ├── train.py          # Training entrypoint
-│   └── eval.py           # Evaluation entrypoint
+│   ├── setup_environment.py  # Index wiki pages
+│   ├── train.py              # Training entrypoint
+│   └── eval.py               # Evaluation entrypoint
 ├── configs/
-│   └── default.yaml      # Training hyperparameters
-├── data/                  # ChromaDB storage (gitignored)
-└── outputs/               # Checkpoints (gitignored)
+│   ├── full.yaml         # Training hyperparameters
+│   └── eval.yaml         # Evaluation settings
+├── docker/               # Sandbox execution environment
+├── data/                 # ChromaDB storage (gitignored)
+└── runs/                 # Checkpoints and logs (gitignored)
 ```
 
 ## License

@@ -1,0 +1,34 @@
+# Training dependencies (Linux / CUDA)
+# Usage: uv pip install -r requirements-training.txt
+
+# Core ML - CUDA
+torch>=2.0.0
+transformers>=4.40.0
+accelerate>=0.30.0
+peft>=0.11.0
+trl>=0.9.0
+vllm>=0.12.0
+
+# Vector DB & Embeddings
+chromadb>=0.5.0
+sentence-transformers>=3.0.0
+
+# Data
+datasets>=2.19.0
+
+# LLM clients
+openai>=1.40.0
+
+# Utilities
+python-dotenv>=1.0.0
+pyyaml>=6.0.0
+httpx>=0.27.0
+aiohttp>=3.9.0
+matplotlib>=3.8.0
+
+# Experiment tracking
+wandb>=0.17.0
+
+# Misc
+numpy>=1.26.0,<2.0
+scikit-learn>=1.5.0

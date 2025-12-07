@@ -2,52 +2,115 @@
 
 To verify that our results reflect genuine search capability rather than artifacts, we manually inspected individual trajectories from the evaluation set.
 
-### Successful Trajectory
+### Successful Trajectories
 
-The following example demonstrates the model composing multiple tools to answer a multi-part question:
+**Example 1: Multi-step search with filtering**
 
-**Question:** Which 2023 album did Caroline Polachek release that received critical acclaim and includes the single 'Bunny Is a Rider'?
+**Question:** Which 2023 film features Glenn Howerton in the role of Jim Balsillie?
 
 **Turn 1 — Model generates:**
 ```python
-results = search_pages("Caroline Polachek 2023 album Bunny Is a Rider")
-if results:
-    page_id = results[0]['page_id']
-    sections = view_sections(page_id)
-    for section in sections:
-        section_id = section['section_id']
-        content = read_section(section_id)
-        if 'Bunny Is a Rider' in content:
-            print(content)
-            break
+# Search for films from 2023 featuring Glenn Howerton
+results = search_pages("2023 film Glenn Howerton")[:10]
+
+for result in results:
+    title = result['title']
+    page_id = result['page_id']
+
+    # Check if "Jim Balsillie" is mentioned in the content
+    content = read_section(page_id + ":full")
+    if "Jim Balsillie" in content:
+        print(f"Found potential match: {title}")
+        print(content)
+        break
 ```
 
 **Turn 1 — Environment returns:**
 ```
-### 2021–present: *Desire, I Want to Turn Into You*
-
-On July 14, 2021, Polachek released the single "Bunny Is a Rider"...
-
-On December 5, 2022, Polachek released the single "Welcome to My Island"
-and announced her second studio album under her full name, *Desire, I Want
-to Turn Into You*, for release on February 14, 2023. The album received
-critical acclaim and includes "Bunny Is a Rider", "Billions", "Sunset",
-and "Welcome to My Island".
+Found potential match: Glenn Howerton
+# Glenn Howerton
+...
+He received acclaim for his portrayal of Jim Balsillie in the film
+*BlackBerry* (2023).
+...
 ```
 
-**Turn 2 — Model outputs:**
-```
-<answer>Desire, I Want to Turn Into You</answer>
+**Turn 2 — Model outputs:** `<answer>BlackBerry</answer>` *(Reward: 0.99)*
+
+This trajectory demonstrates the model: (1) formulating a targeted query combining actor and year, (2) iterating through results with a programmatic filter for the character name, and (3) extracting the correct film title from the retrieved content.
+
+---
+
+**Example 2: Targeted information extraction**
+
+**Question:** Who performs the cover of Leonard Cohen's 'Who by Fire' used as the opening theme for Bad Sisters?
+
+**Turn 1 — Model generates:**
+```python
+# Search for the TV show "Bad Sisters" to find information about its opening theme
+for result in search_pages("Bad Sisters opening theme")[:5]:
+    content = read_section(result['page_id'] + ":full")
+    if "Leonard Cohen" in content or "Who by Fire" in content:
+        print(f"Found relevant content in {result['title']}:")
+        print(content)
+        break
 ```
 
-This trajectory shows the model: (1) formulating a targeted semantic query, (2) navigating to the relevant page, (3) iterating through sections with a programmatic filter, and (4) extracting the correct answer from retrieved content. The use of conditional logic (`if 'Bunny Is a Rider' in content`) demonstrates learned behavior beyond simple retrieval.
+**Turn 1 — Environment returns:**
+```
+Found relevant content in Bad Sisters:
+# Bad Sisters
+...
+| opentheme = "Who by Fire" by Leonard Cohen, performed by PJ Harvey
+...
+```
+
+**Turn 2 — Model outputs:** `<answer>PJ Harvey</answer>` *(Reward: 0.98)*
+
+The model learned to search for the show directly and filter for content mentioning either the song title or original artist—a strategy that efficiently locates the performer information.
+
+---
 
 ### Failure Modes
 
 We also examined failure cases to understand limitations:
 
-1. **Retrieval failure:** The query "first Chairman of the Joint Chiefs of Staff United States" returned "CEO" (a redirect page) instead of the relevant Wikipedia article. The embedding-based title search matched "Chief" in "CEO" rather than finding "Chairman of the Joint Chiefs of Staff."
+**1. Immediate surrender without search**
 
-2. **Hallucination under uncertainty:** When retrieval returned irrelevant content twice, the model did not reformulate its query or acknowledge uncertainty. Instead, it hallucinated a plausible-sounding but incorrect answer ("Hap Arnold" was a WWII general but never held this position).
+**Question:** Which American grocery chain does Aldi Nord own?
 
-These failures suggest directions for improvement: better embedding models for retrieval, and training the model to express uncertainty rather than guess when search fails.
+**Turn 1 — Model outputs:** `<answer>Answer not found</answer>` *(Reward: 0.03)*
+
+The model gave up without attempting any search, despite this being a straightforward factual question. This failure mode appeared in approximately 15% of incorrect answers, suggesting the model sometimes lacks confidence to initiate search.
+
+**2. Overly complex code truncated by token limit**
+
+**Question:** What award did Bad Sisters win in 2022 recognizing excellence in storytelling?
+
+**Turn 1 — Model generates complex filtering logic that exceeds the token limit:**
+```python
+results = search_pages("Bad Sisters award 2022")[:5]
+awards_found = []
+for r in results:
+    content = read_section(r['page_id'] + ":full")
+    if "award" in content.lower() or "excellence" in content.lower():
+        if "2022" in content.lower():
+            idx = content.lower().find("award")
+            if idx != -1:
+                award_context = content[max(0, idx - 200):idx + 500]
+                if "storytelling" in award_context.lower():
+                    awards_found.append(award_context)
+# [CODE TRUNCATED - exceeded token limit]
+```
+
+**Turn 2 — Model outputs:** `<answer>Answer not found</answer>` *(Reward: 0.09)*
+
+The answer (Peabody Award) was present in the retrieved content, but the model's overly elaborate filtering logic caused token truncation before it could process results. Simpler code would have succeeded.
+
+**3. Hallucination under uncertainty**
+
+When retrieval returned irrelevant content, some trajectories showed the model hallucinating plausible-sounding but incorrect answers rather than acknowledging uncertainty. This suggests a direction for improvement: training the model to express uncertainty when search fails.
+
+---
+
+These patterns reveal that failures stem primarily from behavioral issues (giving up prematurely, overcomplicating code) rather than fundamental capability limitations—suggesting that continued training or curriculum adjustments could improve performance.

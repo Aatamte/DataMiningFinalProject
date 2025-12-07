@@ -115,7 +115,7 @@ def build_chroma_index(corpus: list[dict], data_dir: Path):
     try:
         client.delete_collection(name="wiki_titles")
         print("  Deleted existing collection.")
-    except ValueError:
+    except (ValueError, chromadb.errors.NotFoundError):
         pass  # Collection doesn't exist
 
     # Create fresh collection WITHOUT embedding function
@@ -147,13 +147,22 @@ def build_chroma_index(corpus: list[dict], data_dir: Path):
 
 def build_docker_image():
     """Build the Docker image for the execution environment."""
-    print(f"\nBuilding Docker image via docker-compose...")
+    print(f"\nBuilding Docker image...")
+
+    # Check if Docker is running
+    try:
+        result = subprocess.run(["docker", "info"], capture_output=True)
+        if result.returncode != 0:
+            print("  ERROR: Docker is not running. Please start Docker Desktop and try again.")
+            sys.exit(1)
+    except FileNotFoundError:
+        print("  ERROR: Docker not found. Please install Docker and try again.")
+        sys.exit(1)
 
     compose_file = Path(__file__).parent.parent / "docker" / "docker-compose.yml"
 
-    # Use docker-compose build to ensure consistency with how we run the container
     result = subprocess.run(
-        ["docker-compose", "-f", str(compose_file), "build", "--no-cache"],
+        ["docker", "compose", "-f", str(compose_file), "build", "--no-cache"],
     )
 
     if result.returncode != 0:

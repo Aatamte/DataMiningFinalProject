@@ -1,3 +1,0 @@
-1. **Retrieval failure:** The query "first Chairman of the Joint Chiefs of Staff United States" returned "CEO" (a redirect page) instead of the relevant Wikipedia article. The embedding-based title search matched "Chief" in "CEO" rather than finding "Chairman of the Joint Chiefs of Staff."
-
-2. **Hallucination under uncertainty:** When retrieval returned irrelevant content twice, the model did not reformulate its query or acknowledge uncertainty. Instead, it hallucinated a plausible-sounding but incorrect answer ("Hap Arnold" was a WWII general but never held this position).

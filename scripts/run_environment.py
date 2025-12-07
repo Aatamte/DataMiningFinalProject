@@ -31,7 +31,7 @@ def stop_server():
     """Stop the execution environment."""
     print("Stopping execution environment...")
     subprocess.run(
-        ["docker-compose", "-f", str(DOCKER_COMPOSE), "down"],
+        ["docker", "compose", "-f", str(DOCKER_COMPOSE), "down"],
         capture_output=False,
     )
 
@@ -40,7 +40,7 @@ def start_server():
     """Start the execution environment."""
     print("Starting execution environment...")
     result = subprocess.run(
-        ["docker-compose", "-f", str(DOCKER_COMPOSE), "up", "-d"],
+        ["docker", "compose", "-f", str(DOCKER_COMPOSE), "up", "-d"],
         capture_output=False,
     )
     if result.returncode != 0:

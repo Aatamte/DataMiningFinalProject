@@ -1,16 +1,7 @@
 ## Problem
 
-Given a factoid question and access to a Wikipedia corpus, the task is to generate a correct answer by executing search operations over the corpus. The model receives no direct access to article content; it must issue queries, interpret results, and navigate to relevant sections through code execution.
+Given a factoid question and a Wikipedia corpus, generate the correct answer by writing and executing Python code.
 
-We frame this as a reinforcement learning problem:
+The model has no direct access to article content. It must write code that calls search primitives—`search_pages(query)`, `view_sections(page_id)`, `read_section(section_id)`—to locate and extract the answer. Each episode allows up to 2 turns of code execution before requiring a final answer.
 
-- **State:** The conversation history—the original question, any code the model has generated, and the outputs returned by the execution environment.
-
-- **Actions:** Text generation in two formats: Python code wrapped in `<python>...</python>` tags for execution, or a final answer wrapped in `<answer>...</answer>` tags to terminate the episode.
-
-- **Environment:** The model interacts with the corpus through three functions:
-  - `search_pages(query)` — returns articles whose titles are semantically similar to the query
-  - `view_sections(page_id)` — lists the hierarchical structure of an article
-  - `read_section(section_id)` — retrieves the content of a specific section
-
-Each episode runs for up to 2 turns. The model must learn to compose these primitives into effective multi-step search strategies that locate and extract the correct answer.
+Traditional tool-use frameworks constrain models to one action per turn with fixed input/output schemas. Code generation enables composition—the model can loop through results, filter with conditionals, and chain operations in a single generation. This shifts the problem from "which tool to call" to "what program to write." Additionally, unlike large models that can rely on memorized facts, a 4B parameter model lacks sufficient capacity to store the corpus. It must genuinely learn to search rather than recall, making this a test of learned information-seeking behavior rather than knowledge retrieval.

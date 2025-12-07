@@ -1,0 +1,27 @@
+# Evaluation settings - aligned with full.yaml training config
+
+model:
+  # API endpoint for the model being evaluated
+  base_url: "http://10.0.0.9:1234/v1"  # vLLM or other OpenAI-compatible endpoint
+  name: "qwen/qwen3-1.7b"    # Model name at the endpoint
+
+eval:
+  subset: "test"  # "train", "test", or "all"
+  n_samples: 1  # Number of runs per question
+  start_from_question: 0  # Skip questions before this index (for resuming)
+
+  # Must match training config for fair comparison
+  max_turns: 2  # Aligned with full.yaml training.max_turns
+  max_new_tokens: 512  # Aligned with full.yaml training.max_new_tokens
+  temperature: 0.7  # Single temperature for deterministic eval
+
+judge:
+  base_url: "http://10.0.0.9:1234/v1"  # Judge model endpoint
+  model: "qwen/qwen3-vl-8b"
+
+environment:
+  sandbox_host: "localhost"
+  sandbox_port: 8080
+
+logging:
+  output_dir: "evals"
