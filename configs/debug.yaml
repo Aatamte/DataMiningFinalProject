@@ -9,6 +9,7 @@ training:
   num_samples: 1
   num_epochs: 1
   num_rollouts: 2
+  gradient_micro_batches: 1  # 1 = disabled, N = split rollouts into N micro-batches for backward()
   max_turns: 3
   learning_rate: 1.0e-5
   max_new_tokens: 512
@@ -39,6 +40,7 @@ checkpoint:
 judge:
   model: "deepseek/deepseek-r1-0528-qwen3-8b"
   base_url: "http://localhost:1234/v1"
+  n_batch_judge: 1  # Max answers per judge call (1 = individual judging)
 
 environment:
   sandbox_host: "localhost"

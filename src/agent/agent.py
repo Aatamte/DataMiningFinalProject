@@ -102,13 +102,14 @@ class Agent:
         conv.add(Role.USER, f"Question: {question}")
         return conv
 
-    async def step(self, conversation: Conversation, temperature: float | None = None, top_p: float | None = None) -> Message:
+    async def step(self, conversation: Conversation, temperature: float | None = None, top_p: float | None = None, prefill: str | None = None) -> Message:
         """Generate a single response from the model.
 
         Args:
             conversation: Current conversation state
             temperature: Override temperature (uses config default if None)
             top_p: Override top_p (uses config default if None)
+            prefill: Optional text to prefill the response (e.g., "<answer>" to force answer)
 
         Returns:
             The generated assistant message
@@ -121,7 +122,7 @@ class Agent:
             response_text, latency_ms, tokens_generated = await self._step_api(messages, temp, p)
             model_name = self.config.api_model
         else:
-            response_text, latency_ms, tokens_generated = await self._step_local(messages, temp, p)
+            response_text, latency_ms, tokens_generated = await self._step_local(messages, temp, p, prefill=prefill)
             model_name = self.model.config.name_or_path
 
         # Truncate after </python> to prevent hallucinated outputs
@@ -168,8 +169,15 @@ class Agent:
 
         return response_text, latency_ms, tokens_generated
 
-    async def _step_local(self, messages: list[dict], temperature: float, top_p: float) -> tuple[str, float, int]:
-        """Generate via local model."""
+    async def _step_local(self, messages: list[dict], temperature: float, top_p: float, prefill: str | None = None) -> tuple[str, float, int]:
+        """Generate via local model.
+
+        Args:
+            messages: Conversation messages
+            temperature: Sampling temperature
+            top_p: Nucleus sampling threshold
+            prefill: Optional text to prefill the response with (e.g., "<answer>" to force answer)
+        """
         import torch
 
         prompt = self.tokenizer.apply_chat_template(
@@ -178,6 +186,10 @@ class Agent:
             add_generation_prompt=True,
             enable_thinking=self.config.enable_thinking,
         )
+
+        # Prefill: append to prompt so model continues from there
+        if prefill:
+            prompt = prompt + prefill
 
         # Check for truncation by comparing full length vs truncated
         full_length = len(self.tokenizer.encode(prompt, add_special_tokens=False))
@@ -213,6 +225,10 @@ class Agent:
         generated_tokens = outputs[0][input_length:]
         response_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
         tokens_generated = outputs.shape[1] - input_length
+
+        # Prepend prefill to response (it was part of the prompt, not generated)
+        if prefill:
+            response_text = prefill + response_text
 
         # Clean up GPU tensors (skip empty_cache - adds overhead, PyTorch handles automatically)
         del inputs, outputs, generated_tokens
@@ -379,8 +395,9 @@ class Agent:
                     role = m['role'].upper()
                     self._debug(f"  [{role}]:\n{m['content']}\n")
 
-            # Generate response
-            response = await self.step(conversation, temperature=temperature, top_p=top_p)
+            # Generate response (prefill with <answer> on final turn to force answer)
+            prefill = "<answer>" if is_final_turn and turn > 0 else None
+            response = await self.step(conversation, temperature=temperature, top_p=top_p, prefill=prefill)
             conversation.add_message(response)
             num_turns += 1
             # Yield to event loop - allows background tasks (e.g. judge) to make progress
@@ -522,7 +539,7 @@ class Agent:
 
         # Continue with remaining turns
         for turn in range(1, self.config.max_turns):
-            # On final turn, remind model it MUST provide an answer
+            # On final turn, remind model it MUST provide an answer and prefill <answer>
             is_final_turn = (turn == self.config.max_turns - 1)
             if is_final_turn:
                 reminder = Message(
@@ -532,7 +549,9 @@ class Agent:
                 )
                 conversation.add_message(reminder)
 
-            response = await self.step(conversation, temperature=temperature, top_p=p)
+            # Prefill with <answer> on final turn to force answer (no more tool calls)
+            prefill = "<answer>" if is_final_turn else None
+            response = await self.step(conversation, temperature=temperature, top_p=p, prefill=prefill)
             conversation.add_message(response)
             num_turns += 1
             # Yield to event loop - allows background tasks (e.g. judge) to make progress

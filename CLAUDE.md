@@ -128,6 +128,45 @@ Tests sandbox execution with mock tool handlers (doesn't require full setup).
 uv run python scripts/test_sandbox.py
 ```
 
+### `run_llamacpp.py` - llama.cpp Judge Server
+Runs the llama.cpp server for fast judge inference. Auto-downloads llama.cpp and model on first run.
+Works on both Windows and Linux.
+
+Reads from `.env`:
+- `JUDGE_MODEL` - which model to download (e.g., `qwen3-8b`)
+- `JUDGE_BASE_URL` - extracts port (e.g., port 1234 from `http://localhost:1234/v1`)
+
+```bash
+# Start server (downloads llama.cpp + model if needed)
+uv run python scripts/run_llamacpp.py
+
+# Stop server
+uv run python scripts/run_llamacpp.py --stop
+
+# Run in foreground (see logs)
+uv run python scripts/run_llamacpp.py -f
+
+# Custom settings
+uv run python scripts/run_llamacpp.py --parallel 8 --ctx-size 8192
+```
+
+### `run_vllm.py` - vLLM Judge Server (Linux only)
+Runs vLLM for high-throughput inference with continuous batching. Linux only (use WSL2 on Windows).
+Faster than llama.cpp for batch workloads.
+
+```bash
+# Start server (installs vllm if needed)
+uv run python scripts/run_vllm.py
+
+# Stop server
+uv run python scripts/run_vllm.py --stop
+
+# Custom GPU memory (default 0.5 to leave room for training)
+uv run python scripts/run_vllm.py --gpu-memory 0.7
+```
+
+Both scripts use `JUDGE_MODEL` and `JUDGE_BASE_URL` from `.env` - no config changes needed.
+
 ## Key Files
 
 | File | Purpose |

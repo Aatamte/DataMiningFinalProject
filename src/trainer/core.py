@@ -39,17 +39,28 @@ from src.environment import load_questions, SandboxClient
 from src.judge import get_local_judge_client, get_sync_judge_client
 from src.llm_logger import LLMLogger, set_llm_logger
 from src.agent import Agent, AgentConfig
+from src.prompts import build_batch_judge_prompt, parse_batch_judge_response
 from .metrics import MetricsTracker, setup_logging, setup_run_dir
-from .episode import get_judge_reward, get_judge_reward_sync, compute_reinforce_loss
+from .episode import get_judge_reward, get_judge_reward_sync, compute_reinforce_loss, compute_grpo_advantages, group_answers_by_similarity
 from .episode_logger import EpisodeLogger
 
 
 @dataclass
 class TrainingState:
-    """Training state for checkpointing and resumption."""
-    epoch: int = 0
-    step: int = 0  # Step within current epoch
-    global_step: int = 0
+    """Training state for checkpointing and resumption.
+
+    Uses a single `step` counter (global step) as source of truth.
+    Epoch and step-within-epoch are derived from step and num_samples.
+    """
+    step: int = 0  # Global step (fetched from wandb on resume)
+
+    def get_epoch(self, num_samples: int) -> int:
+        """Get current epoch (0-indexed) from step."""
+        return self.step // num_samples if num_samples > 0 else 0
+
+    def get_step_in_epoch(self, num_samples: int) -> int:
+        """Get step within current epoch (0-indexed) from step."""
+        return self.step % num_samples if num_samples > 0 else 0
 
 
 @dataclass
@@ -68,6 +79,7 @@ class TrainerConfig:
     num_epochs: int = 3
     num_rollouts: int = 4
     batch_splits: int = -1  # -1 = sequential, N = split rollouts into N batches for turn 1
+    gradient_micro_batches: int = 1  # Split rollouts into N micro-batches for backward() - saves GPU memory
     max_turns: int = 3
     lr: float = 1e-5
     max_new_tokens: int = 1024
@@ -104,6 +116,8 @@ class TrainerConfig:
     # Judge settings
     judge_model: str = "deepseek/deepseek-r1-0528-qwen3-8b"
     judge_base_url: str = "http://localhost:1234/v1"
+    n_batch_judge: int = 1  # Max answers per judge call (1 = individual judging)
+    judge_max_tokens: int = 1024  # Max output tokens for judge response
 
     # Paths
     output_dir: str = "runs"
@@ -136,6 +150,7 @@ class TrainerConfig:
             num_epochs=get("training", "num_epochs", cls.num_epochs),
             num_rollouts=get("training", "num_rollouts", cls.num_rollouts),
             batch_splits=get("training", "batch_splits", cls.batch_splits),
+            gradient_micro_batches=get("training", "gradient_micro_batches", cls.gradient_micro_batches),
             max_turns=get("training", "max_turns", cls.max_turns),
             lr=get("training", "learning_rate", cls.lr),
             max_new_tokens=get("training", "max_new_tokens", cls.max_new_tokens),
@@ -169,6 +184,8 @@ class TrainerConfig:
             # Judge
             judge_model=get("judge", "model", cls.judge_model),
             judge_base_url=get("judge", "base_url", cls.judge_base_url),
+            n_batch_judge=get("judge", "n_batch_judge", cls.n_batch_judge),
+            judge_max_tokens=get("judge", "max_tokens", cls.judge_max_tokens),
             # Logging
             output_dir=get("logging", "output_dir", cls.output_dir),
         )
@@ -349,9 +366,9 @@ class Trainer:
             self.load_checkpoint(str(latest_checkpoint))
 
         # Use wandb's last step if higher than checkpoint (handles out-of-sync cases)
-        if self._wandb_last_step > self.training_state.global_step:
-            self.logger.info(f"  Syncing global_step to wandb: {self.training_state.global_step} -> {self._wandb_last_step + 1}")
-            self.training_state.global_step = self._wandb_last_step + 1
+        if self._wandb_last_step > self.training_state.step:
+            self.logger.info(f"  Syncing step to wandb: {self.training_state.step} -> {self._wandb_last_step + 1}")
+            self.training_state.step = self._wandb_last_step + 1
 
     def _log_header(self, log_file) -> None:
         """Log training header info."""
@@ -395,6 +412,8 @@ class Trainer:
             resume="allow",  # Resume if exists, create if not
             config=asdict(self.config),
         )
+        # Allow out-of-order step logging (async pipeline logs steps non-monotonically)
+        wandb.define_metric("*", step_metric="step")
         self.use_wandb = True
 
         # Query wandb for last logged step (to continue from correct position)
@@ -414,11 +433,7 @@ class Trainer:
             api = wandb.Api()
             path = f"{entity}/{project}/{run_id}" if entity else f"{project}/{run_id}"
             run = api.run(path)
-            # Get the last step from history
-            history = run.history(keys=["global_step"], samples=1)
-            if len(history) > 0 and "global_step" in history.columns:
-                return int(history["global_step"].max())
-            # Fallback: check _step which wandb uses internally
+            # Get the last step from wandb's internal step counter
             history = run.history(keys=["_step"], samples=1)
             if len(history) > 0:
                 return int(history["_step"].max())
@@ -473,7 +488,7 @@ class Trainer:
         torch.save(state_dict, temp_path)
         temp_path.replace(state_path)  # replace() works on Windows (rename() doesn't)
 
-        self.logger.info(f"Saved checkpoint: {checkpoint_dir} (epoch={self.training_state.epoch}, step={self.training_state.global_step})")
+        self.logger.info(f"Saved checkpoint: {checkpoint_dir} (step={self.training_state.step})")
         return checkpoint_dir
 
     def load_checkpoint(self, checkpoint_path: str) -> None:
@@ -510,14 +525,8 @@ class Trainer:
             param_group['lr'] = self.config.lr
 
         # Restore training state
-        # Only restore global_step - epoch/step reset to 0 for fresh training loop
-        # This allows continued training with new epochs while preserving wandb step continuity
         ts = state_dict["training_state"]
-        self.training_state = TrainingState(
-            epoch=0,  # Start fresh epochs
-            step=0,   # Start from first sample
-            global_step=ts["global_step"],  # Continue step counter for wandb
-        )
+        self.training_state = TrainingState(step=ts["step"])
 
         # Restore metrics if available
         if "metrics" in state_dict and self.metrics:
@@ -540,7 +549,7 @@ class Trainer:
             )
             self.logger.info("Loaded full model weights")
 
-        self.logger.info(f"Resumed: global_step={self.training_state.global_step} (starting fresh epochs with reset LR)")
+        self.logger.info(f"Resumed from step {self.training_state.step} (LR reset to {self.config.lr})")
 
     async def _run_rollouts(
         self,
@@ -560,6 +569,10 @@ class Trainer:
         Returns:
             Tuple of (episodes, rollout_times, total_time)
         """
+        # Eval mode during generation - saves GPU memory (no gradient tracking overhead)
+        # Model is set back to train() in _process_question_results before loss computation
+        self.model.eval()
+
         episodes = []
         rollout_times = []
         all_rollouts_start = time.time()
@@ -567,31 +580,33 @@ class Trainer:
         if cfg.batch_splits > 0:
             # Batched turn 1 generation
             rollouts_per_batch = cfg.num_rollouts // cfg.batch_splits
-            if cfg.batch_splits > 1:
-                batch_temps = [
-                    cfg.temperature_min + (cfg.temperature_max - cfg.temperature_min) * i / (cfg.batch_splits - 1)
-                    for i in range(cfg.batch_splits)
-                ]
-                batch_top_ps = [
-                    cfg.top_p_min + (cfg.top_p_max - cfg.top_p_min) * i / (cfg.batch_splits - 1)
-                    for i in range(cfg.batch_splits)
-                ]
-            else:
-                batch_temps = [(cfg.temperature_min + cfg.temperature_max) / 2]
-                batch_top_ps = [(cfg.top_p_min + cfg.top_p_max) / 2]
+
+            # Generate random temp/top_p for each rollout upfront
+            rollout_temps = [random.uniform(cfg.temperature_min, cfg.temperature_max) for _ in range(cfg.num_rollouts)]
+            rollout_top_ps = [random.uniform(cfg.top_p_min, cfg.top_p_max) for _ in range(cfg.num_rollouts)]
+
+            # Use average temp/top_p for batched turn1 generation (all in same batch)
+            avg_temp = (cfg.temperature_min + cfg.temperature_max) / 2
+            avg_top_p = (cfg.top_p_min + cfg.top_p_max) / 2
 
             # Generate turn 1 for all rollouts in batches
             turn1_results = []
             batch_start = time.time()
-            for batch_idx, (temp, top_p) in enumerate(zip(batch_temps, batch_top_ps)):
-                batch_results = await agent.run_batch_turn1(question, rollouts_per_batch, temp, top_p)
-                turn1_results.extend([(r, temp, top_p) for r in batch_results])
+            for batch_idx in range(cfg.batch_splits):
+                start_r = batch_idx * rollouts_per_batch
+                end_r = cfg.num_rollouts if batch_idx == cfg.batch_splits - 1 else (batch_idx + 1) * rollouts_per_batch
+                batch_size = end_r - start_r
+                batch_results = await agent.run_batch_turn1(question, batch_size, avg_temp, avg_top_p)
+                # Pair each result with its per-rollout temp/top_p
+                for i, r in enumerate(batch_results):
+                    rollout_idx = start_r + i
+                    turn1_results.append((r, rollout_temps[rollout_idx], rollout_top_ps[rollout_idx]))
                 # Yield to event loop - allows background judge tasks to make progress
                 await asyncio.sleep(0)
             batch_time = time.time() - batch_start
-            self.logger.info(f"[Q{q_idx}] Batch turn1 generation: {batch_time:.1f}s")
+            self.logger.info(f"[Step {q_idx}] Batch turn1 generation: {batch_time:.1f}s")
 
-            # Continue each rollout from turn 1
+            # Continue each rollout from turn 1 with its own temp/top_p
             for r, ((conv, response, is_complete), temp, top_p) in enumerate(turn1_results):
                 rollout_start = time.time()
                 episode = await agent.continue_from_turn1(question, conv, response, temp, top_p)
@@ -599,7 +614,7 @@ class Trainer:
                 rollout_times.append(rollout_time)
                 episodes.append(episode)
                 avg_gen_time = rollout_time / episode.num_turns if episode.num_turns > 0 else 0
-                self.logger.info(f"[Q{q_idx} Rollout {r + 1}] (temp={temp:.2f}, top_p={top_p:.2f}): Answer = {episode.final_answer or '(none)'} [{rollout_time:.1f}s, {avg_gen_time:.1f}s/gen]")
+                self.logger.info(f"[Step {q_idx} R{r + 1}] (temp={temp:.2f}, top_p={top_p:.2f}): Answer = {episode.final_answer or '(none)'} [{rollout_time:.1f}s, {avg_gen_time:.1f}s/gen]")
                 # Yield to event loop - allows background judge tasks to make progress
                 await asyncio.sleep(0)
         else:
@@ -613,13 +628,13 @@ class Trainer:
                 rollout_times.append(rollout_time)
                 episodes.append(episode)
                 avg_gen_time = rollout_time / episode.num_turns if episode.num_turns > 0 else 0
-                self.logger.info(f"[Q{q_idx} Rollout {r + 1}] (temp={temp:.2f}, top_p={top_p:.2f}): Answer = {episode.final_answer or '(none)'} [{rollout_time:.1f}s, {avg_gen_time:.1f}s/gen]")
+                self.logger.info(f"[Step {q_idx} R{r + 1}] (temp={temp:.2f}, top_p={top_p:.2f}): Answer = {episode.final_answer or '(none)'} [{rollout_time:.1f}s, {avg_gen_time:.1f}s/gen]")
                 # Yield to event loop - allows background judge tasks to make progress
                 await asyncio.sleep(0)
 
         total_rollout_time = time.time() - all_rollouts_start
         avg_rollout_time = sum(rollout_times) / len(rollout_times) if rollout_times else 0
-        self.logger.info(f"[Q{q_idx}] Rollouts complete: {total_rollout_time:.1f}s total, {avg_rollout_time:.1f}s avg/rollout")
+        self.logger.info(f"[Step {q_idx}] Rollouts complete: {total_rollout_time:.1f}s total, {avg_rollout_time:.1f}s avg/rollout")
 
         return episodes, rollout_times, total_rollout_time
 
@@ -633,8 +648,9 @@ class Trainer:
     ) -> tuple[list, list[float], int, list[int], int, int]:
         """Judge all episodes and compute rewards.
 
-        Uses ThreadPoolExecutor for true parallelism - HTTP I/O releases GIL,
-        allowing judge requests to run while GPU does model inference.
+        Supports two modes:
+        - n_batch_judge == 1: Individual judging (parallel via ThreadPoolExecutor)
+        - n_batch_judge > 1: Batch judging (group similar answers, fewer API calls)
 
         Args:
             episodes: List of EpisodeResult
@@ -648,41 +664,133 @@ class Trainer:
         """
         from src.trainer.episode import JudgeResult
 
-        def judge_episode_sync(ep, ep_idx):
-            """Synchronous judge call - runs in thread, HTTP I/O releases GIL."""
-            trajectory = ep.format_for_judge()
-            response = ep.final_answer if ep.final_answer is not None else "(no answer)"
+        judge_start = time.time()
 
-            # Use sync client - HTTP I/O releases GIL for true parallelism
-            result = get_judge_reward_sync(
-                self.judge_client_sync, cfg.judge_model,
-                question, answer, response,
-                trajectory=trajectory,
-                correctness_weight=cfg.correctness_weight,
-                debug=cfg.debug_judge,
+        # Initialize results array (indexed by episode)
+        judge_results = [None] * len(episodes)
+
+        if cfg.n_batch_judge > 1:
+            # === BATCH JUDGING MODE ===
+            # Group similar answers and judge in batches
+
+            # Extract answers for similarity grouping
+            answers_list = [
+                ep.final_answer if ep.final_answer is not None else "(no answer)"
+                for ep in episodes
+            ]
+
+            # Sort by similarity, then chunk into batches
+            groups = group_answers_by_similarity(
+                answers_list,
+                batch_size=cfg.n_batch_judge,
             )
 
-            # Apply penalty for giving up
-            if ep.final_answer is None:
-                penalty_reward = -0.25 + (1 - cfg.correctness_weight) * (result.approach_score / 100.0)
-                return JudgeResult(
-                    reward=penalty_reward,
-                    correct=False,
-                    approach_score=result.approach_score,
-                    raw_response=result.raw_response,
+            if cfg.debug_judge:
+                self.logger.info(f"[Step {q_idx}] Batch judge: {len(episodes)} episodes -> {len(groups)} groups")
+
+            def judge_batch_sync(group_indices: list[int]) -> list[dict]:
+                """Judge a batch of episodes synchronously."""
+                # Build entries for batch prompt
+                entries = []
+                for idx in group_indices:
+                    ep = episodes[idx]
+                    entries.append({
+                        "id": idx,
+                        "response": ep.final_answer if ep.final_answer is not None else "(no answer)",
+                        "trajectory": ep.format_for_judge(),
+                    })
+
+                # Build and send batch prompt
+                prompt = build_batch_judge_prompt(question, answer, entries)
+                messages = [{"role": "user", "content": prompt}]
+
+                try:
+                    completion = self.judge_client_sync.chat.completions.create(
+                        model=cfg.judge_model,
+                        messages=messages,
+                        max_tokens=cfg.judge_max_tokens,
+                        temperature=0,
+                    )
+                    response_text = completion.choices[0].message.content
+                    results = parse_batch_judge_response(response_text)
+                    return results
+                except Exception as e:
+                    # On error, return empty results for all in batch
+                    self.logger.warning(f"[Step {q_idx}] Batch judge error: {e}")
+                    return [{"id": idx, "correct": False, "approach_score": 0} for idx in group_indices]
+
+            # Run batch judge calls in parallel (one per group)
+            loop = asyncio.get_event_loop()
+            with ThreadPoolExecutor(max_workers=len(groups)) as executor:
+                futures = [
+                    loop.run_in_executor(executor, judge_batch_sync, group)
+                    for group in groups
+                ]
+                batch_results = await asyncio.gather(*futures)
+
+            # Map batch results back to episodes
+            for batch_result in batch_results:
+                for item in batch_result:
+                    idx = item["id"]
+                    ep = episodes[idx]
+
+                    # Compute reward from correctness and approach score
+                    correct = item["correct"]
+                    approach_score = item["approach_score"]
+
+                    # Apply penalty for no answer
+                    if ep.final_answer is None:
+                        reward = -0.25 + (1 - cfg.correctness_weight) * (approach_score / 100.0)
+                        correct = False
+                    else:
+                        reward = cfg.correctness_weight * (1.0 if correct else 0.0) + \
+                                 (1 - cfg.correctness_weight) * (approach_score / 100.0)
+
+                    judge_results[idx] = JudgeResult(
+                        reward=reward,
+                        correct=correct,
+                        approach_score=approach_score,
+                    )
+
+            # Fill any missing results with defaults
+            for idx in range(len(episodes)):
+                if judge_results[idx] is None:
+                    judge_results[idx] = JudgeResult(reward=0.0, correct=False, approach_score=0, error="Missing from batch")
+
+        else:
+            # === INDIVIDUAL JUDGING MODE ===
+            def judge_episode_sync(ep, ep_idx):
+                """Synchronous judge call - runs in thread, HTTP I/O releases GIL."""
+                trajectory = ep.format_for_judge()
+                response = ep.final_answer if ep.final_answer is not None else "(no answer)"
+
+                result = get_judge_reward_sync(
+                    self.judge_client_sync, cfg.judge_model,
+                    question, answer, response,
+                    trajectory=trajectory,
+                    correctness_weight=cfg.correctness_weight,
+                    debug=cfg.debug_judge,
+                    max_tokens=cfg.judge_max_tokens,
                 )
-            return result
 
-        judge_start = time.time()
-        loop = asyncio.get_event_loop()
+                # Apply penalty for giving up
+                if ep.final_answer is None:
+                    penalty_reward = -0.25 + (1 - cfg.correctness_weight) * (result.approach_score / 100.0)
+                    return JudgeResult(
+                        reward=penalty_reward,
+                        correct=False,
+                        approach_score=result.approach_score,
+                        raw_response=result.raw_response,
+                    )
+                return result
 
-        # Run judge calls in thread pool - HTTP I/O releases GIL for true parallelism
-        with ThreadPoolExecutor(max_workers=len(episodes)) as executor:
-            futures = [
-                loop.run_in_executor(executor, judge_episode_sync, ep, i)
-                for i, ep in enumerate(episodes)
-            ]
-            judge_results = await asyncio.gather(*futures)
+            loop = asyncio.get_event_loop()
+            with ThreadPoolExecutor(max_workers=len(episodes)) as executor:
+                futures = [
+                    loop.run_in_executor(executor, judge_episode_sync, ep, i)
+                    for i, ep in enumerate(episodes)
+                ]
+                judge_results = await asyncio.gather(*futures)
 
         judge_time = time.time() - judge_start
 
@@ -705,14 +813,14 @@ class Trainer:
 
             # Detailed logging
             if episode.final_answer is None:
-                self.logger.info(f"[Q{q_idx} Rollout {r + 1}] Judge: NO ANSWER (penalty) | Approach: {judge_result.approach_score}/100 | Reward: {judge_result.reward:.2f}")
+                self.logger.info(f"[Step {q_idx} R{r + 1}] Judge: NO ANSWER (penalty) | Approach: {judge_result.approach_score}/100 | Reward: {judge_result.reward:.2f}")
             elif judge_result.error:
-                self.logger.info(f"[Q{q_idx} Rollout {r + 1}] Judge error: {judge_result.error}")
+                self.logger.info(f"[Step {q_idx} R{r + 1}] Judge error: {judge_result.error}")
             else:
                 status = "CORRECT" if judge_result.correct else "INCORRECT"
-                self.logger.info(f"[Q{q_idx} Rollout {r + 1}] Judge: {status} | Approach: {judge_result.approach_score}/100 | Reward: {judge_result.reward:.2f}")
+                self.logger.info(f"[Step {q_idx} R{r + 1}] Judge: {status} | Approach: {judge_result.approach_score}/100 | Reward: {judge_result.reward:.2f}")
 
-        self.logger.info(f"[Q{q_idx}] Judge complete: {judge_time:.1f}s")
+        self.logger.info(f"[Step {q_idx}] Judge complete: {judge_time:.1f}s")
 
         return judge_results, rewards, correct_count, approach_scores, answer_count, total_turns
 
@@ -728,6 +836,7 @@ class Trainer:
         question: str,
         answer: str,
         cfg: TrainerConfig,
+        step: int | None = None,
     ) -> tuple[float, float | None]:
         """Apply training update for a batch of episodes.
 
@@ -738,18 +847,22 @@ class Trainer:
             approach_scores: Approach scores for each episode
             answer_count: Number of episodes with answers
             total_turns: Total turns across all episodes
-            idx: Question index (for logging)
+            idx: Question index (for episode logging)
             question: Original question
             answer: Expected answer
             cfg: Training config
+            step: Global step for logging (if None, uses idx + 1)
 
         Returns:
             Tuple of (loss_value, grad_norm)
         """
+        # Use step for logging, fall back to idx + 1 for backward compat
+        log_step = step if step is not None else idx + 1
+
         # Log episodes
         for r, (episode, reward) in enumerate(zip(episodes, rewards)):
             self.episode_logger.log_episode(
-                q_idx=idx + 1,
+                q_idx=log_step,
                 rollout_idx=r + 1,
                 question=question,
                 expected=answer,
@@ -761,32 +874,103 @@ class Trainer:
         grad_norm = None
 
         if not cfg.eval_only:
+            import time as _time
+            _t_start = _time.time()
+
             self.model.train()
             if cfg.gradient_checkpointing:
                 self.model.gradient_checkpointing_enable()
             self.optimizer.zero_grad()
+            _t_setup = _time.time()
 
-            loss = compute_reinforce_loss(
-                self.model, self.tokenizer, episodes, rewards, self.device,
-                gamma=cfg.gamma,
-                rl_algo=cfg.rl_algo,
-                q_idx=idx + 1,
-                max_context=cfg.max_context,
-                debug=cfg.debug_loss,
-            )
+            # Compute advantages once for ALL episodes (for consistent GRPO baseline)
+            if cfg.rl_algo == "grpo":
+                all_advantages = compute_grpo_advantages(
+                    rewards, baseline=0.5, debug=cfg.debug_loss, q_idx=log_step
+                )
+            else:
+                all_advantages = [r - 0.5 for r in rewards]  # REINFORCE baseline
+
+            # Micro-batching: split episodes into smaller groups for backward()
+            n_micro = cfg.gradient_micro_batches
+            _t_advantages = _time.time()
+            if n_micro > 1 and len(episodes) > n_micro:
+                # Split into micro-batches
+                micro_batch_size = len(episodes) // n_micro
+                total_n_steps = 0
+                total_loss = 0.0
+                self.logger.info(f"[Step {log_step}] Starting {n_micro} micro-batches...")
+
+                for mb_idx in range(n_micro):
+                    _t_mb_start = _time.time()
+                    start_i = mb_idx * micro_batch_size
+                    # Last micro-batch gets remainder
+                    end_i = len(episodes) if mb_idx == n_micro - 1 else (mb_idx + 1) * micro_batch_size
+
+                    mb_episodes = episodes[start_i:end_i]
+                    mb_rewards = rewards[start_i:end_i]
+                    mb_advantages = all_advantages[start_i:end_i]
+
+                    # compute_reinforce_loss returns (loss, n_steps) when scale_by_total_steps is set
+                    loss, n_steps = compute_reinforce_loss(
+                        self.model, self.tokenizer, mb_episodes, mb_rewards, self.device,
+                        gamma=cfg.gamma,
+                        rl_algo=cfg.rl_algo,
+                        q_idx=log_step,
+                        max_context=cfg.max_context,
+                        debug=cfg.debug_loss and mb_idx == 0,  # Only debug first micro-batch
+                        advantages=mb_advantages,
+                        scale_by_total_steps=True,  # Don't scale inside, we'll scale after
+                    )
+                    total_n_steps += n_steps
+                    total_loss += loss.item() * n_steps
+                    _t_mb_end = _time.time()
+
+                    self.logger.info(f"[Step {log_step}] Micro-batch {mb_idx + 1}/{n_micro}: {len(mb_episodes)} episodes, {n_steps} steps, {_t_mb_end - _t_mb_start:.2f}s")
+
+                # Scale gradients by total steps across all micro-batches
+                if total_n_steps > 0:
+                    for param in self.model.parameters():
+                        if param.grad is not None:
+                            param.grad /= total_n_steps
+
+                loss_val = total_loss / max(total_n_steps, 1)
+            else:
+                # No micro-batching (or only 1 micro-batch) - use original flow
+                loss = compute_reinforce_loss(
+                    self.model, self.tokenizer, episodes, rewards, self.device,
+                    gamma=cfg.gamma,
+                    rl_algo=cfg.rl_algo,
+                    q_idx=log_step,
+                    max_context=cfg.max_context,
+                    debug=cfg.debug_loss,
+                    advantages=all_advantages,  # Still use pre-computed advantages for consistency
+                )
+                loss_val = loss.item()
+
+            _t_loss = _time.time()
 
             grad_norm = torch.nn.utils.clip_grad_norm_(
                 self.model.parameters(), max_norm=cfg.max_grad_norm
             )
+            _t_clip = _time.time()
 
             self.optimizer.step()
+            _t_optim = _time.time()
+
             if self.scheduler is not None:
                 self.scheduler.step()
-            loss_val = loss.item()
             current_lr = self.optimizer.param_groups[0]['lr']
-            self.logger.info(f"[Q{idx + 1}] Loss: {loss_val:.4f} | Grad norm: {grad_norm:.4f} | LR: {current_lr:.2e}")
+
+            # Timing breakdown
+            self.logger.info(
+                f"[Step {log_step}] Gradient update: setup={_t_setup - _t_start:.2f}s, "
+                f"loss+backward={_t_loss - _t_setup:.2f}s, clip={_t_clip - _t_loss:.2f}s, "
+                f"optim={_t_optim - _t_clip:.2f}s, total={_t_optim - _t_start:.2f}s"
+            )
+            self.logger.info(f"[Step {log_step}] Loss: {loss_val:.4f} | Grad norm: {grad_norm:.4f} | LR: {current_lr:.2e}")
         else:
-            self.logger.info(f"[Q{idx + 1}] [eval-only] Skipping training step")
+            self.logger.info(f"[Step {log_step}] [eval-only] Skipping training step")
 
         return loss_val, grad_norm
 
@@ -831,27 +1015,31 @@ class Trainer:
             self.logger.info(f"  Training samples: {num_samples} (sequential, first {num_samples})")
         subset = self.dataset.select(indices)
 
-        # Get starting point (for resumption)
-        start_epoch = self.training_state.epoch
+        # Get starting point (for resumption) - step is the single source of truth
         start_step = self.training_state.step
+        num_samples = len(subset)
+        total_steps = cfg.num_epochs * num_samples
 
-        if start_epoch > 0 or start_step > 0:
-            self.logger.info(f"\n[4/4] Resuming training from epoch {start_epoch + 1}, step {start_step + 1}...")
+        if start_step > 0:
+            start_epoch = start_step // num_samples
+            start_step_in_epoch = start_step % num_samples
+            self.logger.info(f"\n[4/4] Resuming from step {start_step} (epoch {start_epoch + 1}, sample {start_step_in_epoch + 1})...")
         else:
-            self.logger.info(f"\n[4/4] Training for {cfg.num_epochs} epoch(s)...")
+            start_epoch = 0
+            start_step_in_epoch = 0
+            self.logger.info(f"\n[4/4] Training for {cfg.num_epochs} epoch(s), {total_steps} total steps...")
 
         # For ETA calculation
-        total_steps = cfg.num_epochs * len(subset)
-        completed_steps = start_epoch * len(subset) + start_step
+        start_global_step = start_step  # Remember where we started this session
         training_start_time = time.time()
 
         # Setup LR scheduler (now that we know total_steps)
         # Note: LR scheduler always starts fresh (from initial LR), even when resuming
-        # This allows continued training with fresh LR decay while preserving global_step
+        # This allows continued training with fresh LR decay while preserving step counter
         if cfg.lr_scheduler == "linear" and not cfg.eval_only:
             from torch.optim.lr_scheduler import LambdaLR
             # Calculate remaining steps from current position
-            remaining_steps = total_steps - completed_steps
+            remaining_steps = total_steps - start_step
             # Linear decay from lr to lr_end over remaining_steps
             def lr_lambda(current_step):
                 if remaining_steps == 0:
@@ -873,11 +1061,11 @@ class Trainer:
                 self.logger.info("  [Async pipeline enabled - overlapping judge with next rollouts]")
             epoch_rewards = []
 
-            # Determine starting step for this epoch
-            epoch_start_step = start_step if epoch == start_epoch else 0
+            # Determine starting sample for this epoch
+            epoch_start_sample = start_step_in_epoch if epoch == start_epoch else 0
 
             # For async pipeline: track pending update from previous question
-            pending_update = None  # Dict with episodes, question, answer, idx, judge_task
+            pending_update = None  # Dict with episodes, question, answer, idx, step, judge_task
 
             # Helper to process a completed question (judge results -> update -> metrics -> checkpoint)
             async def _process_question_results(
@@ -896,13 +1084,15 @@ class Trainer:
                 question = pending['question']
                 answer = pending['answer']
                 idx = pending['idx']
+                step = pending['step']  # Global step for this question (set when queued)
 
                 epoch_rewards.extend(rewards)
 
-                # Apply training update
+                # Apply training update (pass step for logging)
                 loss_val, grad_norm = self._apply_update(
                     episodes, rewards, correct_count, approach_scores,
-                    answer_count, total_turns, idx, question, answer, cfg
+                    answer_count, total_turns, idx, question, answer, cfg,
+                    step=step
                 )
 
                 # Track metrics
@@ -920,18 +1110,15 @@ class Trainer:
                     "avg_turns": total_turns / n_rollouts,
                     "loss": loss_val,
                     "learning_rate": current_lr,
-                    "global_step": self.training_state.global_step,
+                    "step": step,
                 }
                 if not cfg.eval_only and grad_norm is not None:
                     wandb_metrics["grad_norm"] = grad_norm.item() if hasattr(grad_norm, 'item') else grad_norm
 
-                # Update training state (before logging so step is correct)
-                self.training_state.step = idx + 1
-                self.training_state.global_step += 1
-                self.training_state.epoch = epoch
-                wandb_metrics["global_step"] = self.training_state.global_step
+                # Update training state
+                self.training_state.step = step
 
-                self._log_wandb(wandb_metrics, step=self.training_state.global_step)
+                self._log_wandb(wandb_metrics, step=step)
 
                 if plot_func:
                     plot_func()
@@ -940,31 +1127,33 @@ class Trainer:
                 del episodes, rewards
 
                 # Save checkpoint if configured
-                if cfg.save_every_n_steps > 0 and self.training_state.global_step % cfg.save_every_n_steps == 0 and not cfg.eval_only:
+                if cfg.save_every_n_steps > 0 and step % cfg.save_every_n_steps == 0 and not cfg.eval_only:
                     self.save_checkpoint("latest")
 
                 # Print progress with ETA
-                completed_steps = epoch * len(subset) + idx + 1
                 elapsed = time.time() - training_start_time
-                steps_done_this_session = completed_steps - (start_epoch * len(subset) + start_step)
+                steps_done_this_session = step - start_global_step
                 if steps_done_this_session > 0:
                     avg_time_per_step = elapsed / steps_done_this_session
-                    remaining_steps = total_steps - completed_steps
+                    remaining_steps = total_steps - step
                     eta_seconds = remaining_steps * avg_time_per_step
                     eta_str = f"{int(eta_seconds // 3600)}h {int((eta_seconds % 3600) // 60)}m" if eta_seconds >= 3600 else f"{int(eta_seconds // 60)}m {int(eta_seconds % 60)}s"
-                    self.logger.info(f"[Q{idx + 1}] Progress: {completed_steps}/{total_steps} ({100*completed_steps/total_steps:.1f}%) | ETA: {eta_str}")
+                    self.logger.info(f"[Step {step}] Progress: {step}/{total_steps} ({100*step/total_steps:.1f}%) | ETA: {eta_str}")
 
             for idx, item in enumerate(subset):
-                # Skip already completed steps when resuming
-                if idx < epoch_start_step:
+                # Skip already completed samples when resuming
+                if idx < epoch_start_sample:
                     continue
+
+                # Calculate current step (global step for this sample)
+                step = epoch * num_samples + idx + 1
 
                 question = item.get('question', item.get('prompt', ''))
                 answer = item.get('answer', '')
-                is_last_question = (idx == len(subset) - 1)
+                is_last_question = (idx == num_samples - 1)
 
                 timestamp = datetime.now().strftime("%H:%M:%S")
-                self.logger.info(f"\n  [{timestamp}] Q{idx + 1}: {question[:60]}...")
+                self.logger.info(f"\n  [{timestamp}] Step {step}: {question[:60]}...")
                 self.logger.info(f"  Expected: {answer[:40]}...")
 
                 # Set model to eval mode for generation
@@ -983,7 +1172,7 @@ class Trainer:
                     agent = Agent(self.model, self.tokenizer, sandbox, agent_config)
 
                     # Run rollouts for current question
-                    episodes, rollout_times, total_rollout_time = await self._run_rollouts(agent, question, idx + 1, cfg)
+                    episodes, rollout_times, total_rollout_time = await self._run_rollouts(agent, question, step, cfg)
 
                     if cfg.async_pipeline and pending_update is not None:
                         # Process previous question's results (judge was running in background)
@@ -992,9 +1181,9 @@ class Trainer:
 
                     if cfg.async_pipeline and not is_last_question:
                         # Start judge in background, continue to next question
-                        self.logger.info(f"[Q{idx + 1}] Starting judge in background...")
+                        self.logger.info(f"[Step {step}] Starting judge in background...")
                         judge_task = asyncio.create_task(
-                            self._judge_episodes(episodes, question, answer, idx + 1, cfg)
+                            self._judge_episodes(episodes, question, answer, step, cfg)
                         )
                         # Yield immediately to let judge task start (send HTTP requests)
                         await asyncio.sleep(0)
@@ -1003,20 +1192,22 @@ class Trainer:
                             'question': question,
                             'answer': answer,
                             'idx': idx,
+                            'step': step,
                             'judge_task': judge_task,
                         }
                     else:
                         # Sync mode or last question: judge and update now
-                        self.logger.info(f"[Q{idx + 1}] Judging rollouts...")
+                        self.logger.info(f"[Step {step}] Judging rollouts...")
                         _, rewards, correct_count, approach_scores, answer_count, total_turns = await self._judge_episodes(
-                            episodes, question, answer, idx + 1, cfg
+                            episodes, question, answer, step, cfg
                         )
                         epoch_rewards.extend(rewards)
 
                         # Apply training update
                         loss_val, grad_norm = self._apply_update(
                             episodes, rewards, correct_count, approach_scores,
-                            answer_count, total_turns, idx, question, answer, cfg
+                            answer_count, total_turns, idx, question, answer, cfg,
+                            step=step
                         )
 
                         # Track metrics
@@ -1034,18 +1225,15 @@ class Trainer:
                             "avg_turns": total_turns / n_rollouts,
                             "loss": loss_val,
                             "learning_rate": current_lr,
-                            "global_step": self.training_state.global_step,
+                            "step": step,
                         }
                         if not cfg.eval_only and grad_norm is not None:
                             wandb_metrics["grad_norm"] = grad_norm.item() if hasattr(grad_norm, 'item') else grad_norm
 
-                        # Update training state (before logging so step is correct)
-                        self.training_state.step = idx + 1
-                        self.training_state.global_step += 1
-                        self.training_state.epoch = epoch
-                        wandb_metrics["global_step"] = self.training_state.global_step
+                        # Update training state
+                        self.training_state.step = step
 
-                        self._log_wandb(wandb_metrics, step=self.training_state.global_step)
+                        self._log_wandb(wandb_metrics, step=step)
 
                         if plot_func:
                             plot_func()
@@ -1054,26 +1242,24 @@ class Trainer:
                         del episodes, rewards
 
                         # Save checkpoint if configured
-                        if cfg.save_every_n_steps > 0 and self.training_state.global_step % cfg.save_every_n_steps == 0 and not cfg.eval_only:
+                        if cfg.save_every_n_steps > 0 and step % cfg.save_every_n_steps == 0 and not cfg.eval_only:
                             self.save_checkpoint("latest")
 
                         # Print progress with ETA
-                        completed_steps = epoch * len(subset) + idx + 1
                         elapsed = time.time() - training_start_time
-                        steps_done_this_session = completed_steps - (start_epoch * len(subset) + start_step)
+                        steps_done_this_session = step - start_global_step
                         if steps_done_this_session > 0:
                             avg_time_per_step = elapsed / steps_done_this_session
-                            remaining_steps = total_steps - completed_steps
+                            remaining_steps = total_steps - step
                             eta_seconds = remaining_steps * avg_time_per_step
                             eta_str = f"{int(eta_seconds // 3600)}h {int((eta_seconds % 3600) // 60)}m" if eta_seconds >= 3600 else f"{int(eta_seconds // 60)}m {int(eta_seconds % 60)}s"
-                            self.logger.info(f"[Q{idx + 1}] Progress: {completed_steps}/{total_steps} ({100*completed_steps/total_steps:.1f}%) | ETA: {eta_str}")
-
-            # Reset step counter for next epoch
-            self.training_state.step = 0
+                            self.logger.info(f"[Step {step}] Progress: {step}/{total_steps} ({100*step/total_steps:.1f}%) | ETA: {eta_str}")
 
             avg_reward = sum(epoch_rewards) / len(epoch_rewards) if epoch_rewards else 0
             self.metrics.log_epoch(avg_reward)
-            self._log_wandb({"epoch": epoch + 1, "epoch_reward_avg": avg_reward})
+            # Log epoch metrics with last step of the epoch to keep wandb steps monotonic
+            last_step_of_epoch = (epoch + 1) * num_samples
+            self._log_wandb({"epoch": epoch + 1, "epoch_reward_avg": avg_reward}, step=last_step_of_epoch)
             self.logger.info(f"\n  Epoch {epoch + 1} avg reward: {avg_reward:.2f}")
 
         # Save final checkpoint

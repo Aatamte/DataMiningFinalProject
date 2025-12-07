@@ -4,13 +4,102 @@ import logging
 import time
 from dataclasses import dataclass
 
+import numpy as np
 import torch
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 from src.prompts import build_judge_prompt, parse_judge_response
 from src.llm_logger import get_llm_logger
 from src.agent import EpisodeResult
 
 logger = logging.getLogger(__name__)
+
+
+def group_answers_by_similarity(
+    answers: list[str],
+    batch_size: int = 3,
+) -> list[list[int]]:
+    """Group answer indices by sorting similar answers together, then chunking.
+
+    Algorithm:
+    1. Compute TF-IDF similarity matrix
+    2. Greedy ordering: start with first answer, always pick most similar unvisited next
+    3. Chunk the sorted indices into batches of batch_size
+
+    This ensures similar answers are adjacent and batches are always full
+    (except possibly the last one).
+
+    Args:
+        answers: List of answer strings
+        batch_size: Number of answers per batch
+
+    Returns:
+        List of groups, each group is a list of answer indices.
+        Example: [[0, 3, 5], [1, 4, 2], ...] - batches of similar answers
+    """
+    n = len(answers)
+
+    if n <= 1:
+        return [[i] for i in range(n)]
+
+    if n <= batch_size:
+        return [list(range(n))]
+
+    # Handle empty/whitespace answers
+    cleaned = [a.strip() if a else "" for a in answers]
+
+    # TF-IDF vectorization
+    try:
+        vectorizer = TfidfVectorizer(
+            lowercase=True,
+            ngram_range=(1, 2),  # Unigrams and bigrams
+            min_df=1,
+            stop_words=None,  # Keep all words for short answers
+        )
+        tfidf_matrix = vectorizer.fit_transform(cleaned)
+
+        # Compute pairwise cosine similarity
+        sim_matrix = cosine_similarity(tfidf_matrix)
+    except ValueError:
+        # If vectorization fails (e.g., all empty), just chunk sequentially
+        return [list(range(i, min(i + batch_size, n))) for i in range(0, n, batch_size)]
+
+    # Greedy ordering: start with first, pick most similar unvisited next
+    visited = [False] * n
+    ordered = []
+
+    # Start with index 0
+    current = 0
+    ordered.append(current)
+    visited[current] = True
+
+    for _ in range(n - 1):
+        # Find most similar unvisited answer to current
+        best_sim = -1
+        best_idx = -1
+        for j in range(n):
+            if not visited[j] and sim_matrix[current, j] > best_sim:
+                best_sim = sim_matrix[current, j]
+                best_idx = j
+
+        if best_idx == -1:
+            # Fallback: pick any unvisited
+            for j in range(n):
+                if not visited[j]:
+                    best_idx = j
+                    break
+
+        ordered.append(best_idx)
+        visited[best_idx] = True
+        current = best_idx
+
+    # Chunk into batches
+    groups = []
+    for i in range(0, n, batch_size):
+        groups.append(ordered[i:i + batch_size])
+
+    return groups
 
 
 @dataclass
@@ -32,6 +121,7 @@ async def get_judge_reward(
     trajectory: str = "",
     correctness_weight: float = 0.75,
     debug: bool = False,
+    max_tokens: int = 1024,
 ) -> JudgeResult:
     """Get reward from judge model.
 
@@ -67,7 +157,7 @@ async def get_judge_reward(
         completion = await judge_client.chat.completions.create(
             model=judge_model,
             messages=messages,
-            max_tokens=4096,  # R1 models need room for <think> block + JSON
+            max_tokens=max_tokens,  # Room for thinking + JSON response
             temperature=0,
         )
         latency_ms = (time.perf_counter() - start_time) * 1000
@@ -107,7 +197,7 @@ async def get_judge_reward(
                 model=judge_model,
                 messages=messages,
                 response_content=judge_response,
-                max_tokens=4096,
+                max_tokens=max_tokens,
                 temperature=0,
                 latency_ms=latency_ms,
                 parsed_result=result,
@@ -129,6 +219,7 @@ def get_judge_reward_sync(
     trajectory: str = "",
     correctness_weight: float = 0.75,
     debug: bool = False,
+    max_tokens: int = 1024,
 ) -> JudgeResult:
     """Synchronous version of get_judge_reward for thread-based execution.
 
@@ -150,7 +241,7 @@ def get_judge_reward_sync(
         completion = judge_client.chat.completions.create(
             model=judge_model,
             messages=messages,
-            max_tokens=4096,
+            max_tokens=max_tokens,
             temperature=0,
         )
         latency_ms = (time.perf_counter() - start_time) * 1000
@@ -187,7 +278,7 @@ def get_judge_reward_sync(
                 model=judge_model,
                 messages=messages,
                 response_content=judge_response,
-                max_tokens=4096,
+                max_tokens=max_tokens,
                 temperature=0,
                 latency_ms=latency_ms,
                 parsed_result=result,
@@ -198,6 +289,43 @@ def get_judge_reward_sync(
         return JudgeResult(reward=reward, correct=correct, approach_score=approach_score, raw_response=judge_response)
     except Exception as e:
         return JudgeResult(reward=0.0, correct=False, approach_score=0, error=str(e))
+
+
+def compute_grpo_advantages(
+    rewards: list[float],
+    baseline: float = 0.5,
+    debug: bool = False,
+    q_idx: int = 0,
+) -> list[float]:
+    """Compute GRPO advantages for a group of rewards.
+
+    Uses group mean/std as baseline. When variance is too low, falls back
+    to fixed baseline to ensure learning signal.
+
+    Args:
+        rewards: List of rewards for the group
+        baseline: Fallback baseline when variance is too low
+        debug: If True, log diagnostic information
+        q_idx: Question index for logging
+
+    Returns:
+        List of advantages corresponding to each reward
+    """
+    group_mean = sum(rewards) / len(rewards)
+    group_var = sum((r - group_mean) ** 2 for r in rewards) / len(rewards)
+    group_std = group_var ** 0.5
+
+    # When variance is too low, fall back to REINFORCE with fixed baseline
+    if group_std < 0.01:
+        advantages = [r - baseline for r in rewards]
+        if debug:
+            print(f"[Step {q_idx}] GRPO->REINFORCE fallback: group_std={group_std:.3f}, mean={group_mean:.3f}, baseline={baseline}")
+    else:
+        advantages = [(r - group_mean) / (group_std + 1e-8) for r in rewards]
+        if debug:
+            print(f"[Step {q_idx}] GRPO: group_mean={group_mean:.3f}, group_std={group_std:.3f}")
+
+    return advantages
 
 
 def compute_reinforce_loss(
@@ -212,6 +340,8 @@ def compute_reinforce_loss(
     debug: bool = False,
     q_idx: int = 0,
     max_context: int = 2048,
+    advantages: list[float] | None = None,
+    scale_by_total_steps: int | None = None,
 ) -> torch.Tensor:
     """Compute policy gradient loss for RL training.
 
@@ -238,6 +368,9 @@ def compute_reinforce_loss(
         debug: If True, log detailed diagnostic information
         q_idx: Question index (1-based) for logging
         max_context: Maximum context length for truncation
+        advantages: Pre-computed advantages (for micro-batching). If None, computed internally.
+        scale_by_total_steps: If provided, scale gradients by 1/N instead of 1/local_steps
+                              (for micro-batching to maintain consistent gradient scale)
 
     Returns:
         Computed loss tensor (scalar for logging, gradients already accumulated)
@@ -252,29 +385,15 @@ def compute_reinforce_loss(
         "total_tokens": 0,
     }
 
-    # Compute advantages based on RL algorithm
-    if rl_algo == "grpo":
-        # GRPO: Group Relative Policy Optimization
-        # Use group mean as baseline, normalize by std
-        group_mean = sum(rewards) / len(rewards)
-        group_var = sum((r - group_mean) ** 2 for r in rewards) / len(rewards)
-        group_std = group_var ** 0.5
-
-        # When variance is too low, fall back to REINFORCE with fixed baseline
-        # This ensures learning signal for both all-success and all-failure cases
-        if group_std < 0.01:
+    # Compute advantages if not provided (backward compatible)
+    if advantages is None:
+        if rl_algo == "grpo":
+            advantages = compute_grpo_advantages(rewards, baseline, debug, q_idx)
+        else:
+            # REINFORCE: Fixed baseline
             advantages = [r - baseline for r in rewards]
             if debug:
-                print(f"[Q{q_idx}] GRPO->REINFORCE fallback: group_std={group_std:.3f}, mean={group_mean:.3f}, baseline={baseline}")
-        else:
-            advantages = [(r - group_mean) / (group_std + 1e-8) for r in rewards]
-            if debug:
-                print(f"[Q{q_idx}] GRPO: group_mean={group_mean:.3f}, group_std={group_std:.3f}")
-    else:
-        # REINFORCE: Fixed baseline
-        advantages = [r - baseline for r in rewards]
-        if debug:
-            print(f"[Q{q_idx}] REINFORCE: baseline={baseline}")
+                print(f"[Step {q_idx}] REINFORCE: baseline={baseline}")
 
     for ep_idx, (episode, advantage) in enumerate(zip(episodes, advantages)):
         reward = rewards[ep_idx]  # Keep for logging
@@ -285,7 +404,7 @@ def compute_reinforce_loss(
 
         num_turns = len(trajectory)
         if debug:
-            print(f"[Q{q_idx} Rollout {ep_idx + 1}] reward={reward:.3f}, advantage={advantage:+.2f}, turns={num_turns}, gamma={gamma}")
+            print(f"[Step {q_idx} R {ep_idx + 1}] reward={reward:.3f}, advantage={advantage:+.2f}, turns={num_turns}, gamma={gamma}")
 
         # For each turn in the trajectory, compute loss
         for turn_idx, (prompt, response) in enumerate(trajectory):
@@ -307,7 +426,7 @@ def compute_reinforce_loss(
             # Warn if truncation occurred
             if full_len_untruncated > total_len:
                 logger.warning(
-                    f"[Q{q_idx} Rollout {ep_idx + 1} Turn {turn_idx + 1}] "
+                    f"[Step {q_idx} R {ep_idx + 1} Turn {turn_idx + 1}] "
                     f"Loss truncated: {full_len_untruncated} -> {total_len} tokens"
                 )
 
@@ -326,7 +445,7 @@ def compute_reinforce_loss(
             # Skip if truncation left no response tokens
             if effective_response_len <= 0:
                 if debug:
-                    print(f"[Q{q_idx} Rollout {ep_idx + 1} Turn {turn_idx + 1}] SKIPPED - truncation left no response tokens")
+                    print(f"[Step {q_idx} R {ep_idx + 1} Turn {turn_idx + 1}] SKIPPED - truncation left no response tokens")
                 del inputs
                 continue
 
@@ -348,18 +467,18 @@ def compute_reinforce_loss(
 
             # NaN detection - skip this step if loss is invalid
             if torch.isnan(loss) or torch.isinf(loss):
-                print(f"[Q{q_idx} Rollout {ep_idx + 1} Turn {turn_idx + 1}] WARN: NaN/Inf loss detected, skipping backward()")
+                print(f"[Step {q_idx} R {ep_idx + 1} Turn {turn_idx + 1}] WARN: NaN/Inf loss detected, skipping backward()")
                 del inputs, outputs, loss, weighted_loss, labels
                 continue
 
             if debug:
-                print(f"[Q{q_idx} Rollout {ep_idx + 1} Turn {turn_idx + 1}] "
+                print(f"[Step {q_idx} R {ep_idx + 1} Turn {turn_idx + 1}] "
                       f"prompt={effective_prompt_len} tok, response={effective_response_len} tok, total={total_len} tok | "
                       f"loss={loss.item():.4f}, discount={discount:.3f}, weighted={weighted_loss.item():.4f}")
 
                 # Show token breakdown (prompt tokens now masked with -100)
                 pct_response = (effective_response_len / total_len) * 100 if total_len > 0 else 0
-                print(f"[Q{q_idx} Rollout {ep_idx + 1} Turn {turn_idx + 1}] Loss on {effective_response_len} response tokens ({pct_response:.1f}% of sequence)")
+                print(f"[Step {q_idx} R {ep_idx + 1} Turn {turn_idx + 1}] Loss on {effective_response_len} response tokens ({pct_response:.1f}% of sequence)")
 
             # Accumulate gradients immediately (avoids building giant graph)
             # Scale by 1/n_steps will be applied after we know total steps
@@ -375,17 +494,21 @@ def compute_reinforce_loss(
     torch.cuda.empty_cache()
 
     # Scale gradients by 1/n_steps (average instead of sum)
-    if n_steps > 0:
+    # When micro-batching, skip scaling here - caller will scale after all micro-batches
+    if scale_by_total_steps is None and n_steps > 0:
         for param in model.parameters():
             if param.grad is not None:
                 param.grad /= n_steps
 
     # Log gradient accumulation diagnostic
     if debug:
-        print(f"[Q{q_idx}] === GRADIENT ACCUMULATION SUMMARY ===")
-        print(f"[Q{q_idx}] Total backward() calls: {n_steps}")
-        print(f"[Q{q_idx}] Gradients scaled by 1/{n_steps} (averaged)")
-        print(f"[Q{q_idx}] Total prompt tokens: {diag_info['total_prompt_tokens']}, response tokens: {diag_info['total_response_tokens']}")
+        print(f"[Step {q_idx}] === GRADIENT ACCUMULATION SUMMARY ===")
+        print(f"[Step {q_idx}] Total backward() calls: {n_steps}")
+        if scale_by_total_steps is None:
+            print(f"[Step {q_idx}] Gradients scaled by 1/{n_steps} (averaged)")
+        else:
+            print(f"[Step {q_idx}] Gradients NOT scaled (micro-batch mode, caller will scale)")
+        print(f"[Step {q_idx}] Total prompt tokens: {diag_info['total_prompt_tokens']}, response tokens: {diag_info['total_response_tokens']}")
 
         # Check gradient norms
         total_grad_norm = 0.0
@@ -395,9 +518,11 @@ def compute_reinforce_loss(
                 total_grad_norm += param.grad.norm().item() ** 2
                 param_count += 1
         total_grad_norm = total_grad_norm ** 0.5
-        print(f"[Q{q_idx}] Gradient L2 norm (after scaling): {total_grad_norm:.4f}")
-        print(f"[Q{q_idx}] Parameters with gradients: {param_count}")
+        print(f"[Step {q_idx}] Gradient L2 norm (after scaling): {total_grad_norm:.4f}")
+        print(f"[Step {q_idx}] Parameters with gradients: {param_count}")
 
-    # Return scalar tensor for logging (gradients already accumulated)
+    # Return (loss, n_steps) for micro-batching, or just loss for backward compat
     avg_loss = total_loss_value / max(n_steps, 1)
+    if scale_by_total_steps is not None:
+        return torch.tensor(avg_loss, device=device), n_steps
     return torch.tensor(avg_loss, device=device)

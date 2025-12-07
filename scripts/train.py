@@ -54,7 +54,7 @@ async def validate_environment(config: dict) -> bool:
     # Check judge API is reachable
     print(f"\n[1/3] Checking judge API: {judge_url}")
     try:
-        resp = httpx.get(f"{judge_url}/models", timeout=5.0)
+        resp = httpx.get(f"{judge_url}/models", timeout=30.0)
         if resp.status_code == 200:
             models = resp.json()
             model_ids = [m.get("id", "") for m in models.get("data", [])]
