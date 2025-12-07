@@ -1,6 +1,10 @@
 # SFT (Supervised Fine-Tuning) settings
 # Train on expert trajectories from eval runs
 
+metadata:
+  run_id: ""  # Leave empty for auto-generated timestamp, or set custom name
+  tags: ["sft", "gpt-5-trajectories"]
+
 model:
   name: "Qwen/Qwen3-4B-Instruct-2507"
   max_context: 3000
@@ -8,24 +12,19 @@ model:
   attention: "sdpa"
 
 training:
-  # Path to eval results directory (contains q_*.json files)
-  trajectories_dir: "evals/eval_gpt-5-mini_YYYYMMDD_HHMMSS/results"
-
-  num_epochs: 3
-  batch_size: 4  # Gradient accumulation if > 1
-  learning_rate: 2.0e-5  # Slightly higher than RL since supervised
+  num_epochs: 8  # More epochs for small dataset
+  batch_size: 2  # Smaller batch = more updates
+  gradient_accumulation_steps: 2  # Effective batch size = 4
+  learning_rate: 1.0e-5  # Conservative to avoid overfitting
+  weight_decay: 0.01  # Regularization
   max_grad_norm: 1.0
-  warmup_ratio: 0.1  # Warmup for 10% of training
-
-  # Filter settings
-  correct_only: true  # Only train on correct trajectories
-  min_approach_score: 0  # Minimum approach score (0-100)
+  warmup_ratio: 0.1
 
 lora:
   enabled: true
-  r: 8
-  alpha: 16
-  dropout: 0.05
+  r: 16  # More capacity for learning
+  alpha: 32  # Usually 2x r
+  dropout: 0.1  # Higher dropout for small dataset
   target_modules:
     - "q_proj"
     - "k_proj"
@@ -34,5 +33,6 @@ lora:
   gradient_checkpointing: true
 
 checkpoint:
-  save_every_n_steps: 50
+  save_every_n_steps: 0  # 0 = only save at end of each epoch
+  save_epochs: true  # Save after each epoch
   output_dir: "runs_sft"

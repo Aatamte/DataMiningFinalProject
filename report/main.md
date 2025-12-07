@@ -14,7 +14,7 @@ Large language models excel at recalling facts from their training data, but str
 
 This work takes the next step: instead of calling tools, the model writes Python code that executes in a sandbox. Search functions are primitives the model can compose with loops, conditionals, and string operations—transforming the problem from "which tool to call" into "what program to write." The model learns entirely through reinforcement learning, discovering effective search strategies through trial and error with no human demonstrations.
 
-Our trained agent (Qwen3-4B, 4 billion parameters) achieves TODO% accuracy on held-out questions, compared to TODO% for the untrained baseline—a TODO percentage point improvement from reinforcement learning alone. The agent learns non-trivial behaviors: iterating through search results with programmatic filters, navigating from broad topic pages to specific sections, and adapting its strategy based on intermediate outputs. These results demonstrate that small language models can learn to program effective information-seeking behavior without human demonstrations.
+Our trained agent (Qwen3-4B, 4 billion parameters) achieves TODO% accuracy on held-out questions, compared to 11.5% for the untrained baseline—a TODO percentage point improvement from reinforcement learning alone. The agent learns non-trivial behaviors: iterating through search results with programmatic filters, navigating from broad topic pages to specific sections, and adapting its strategy based on intermediate outputs. These results demonstrate that small language models can learn to program effective information-seeking behavior without human demonstrations.
 
 
 INPUT DATA
@@ -55,12 +55,12 @@ EVIDENCE OF SUCCESS
 
 Results
 
-Our trained agent achieves 42.68% accuracy on held-out questions, compared to TODO% for the untrained Qwen3-4B baseline—a TODO percentage point improvement from reinforcement learning. We also compare against Gemma-3-4B (4B parameters) which achieves 23.22% accuracy under the same evaluation protocol.
+Our trained agent achieves TODO% accuracy on held-out questions, compared to 11.5% for the untrained Qwen3-4B baseline—a TODO percentage point improvement from reinforcement learning. We also compare against the smaller Qwen3-1.7B model to demonstrate scaling effects.
 
 Model                   Parameters    Accuracy    Avg Turns
-Qwen3-4B (untrained)    4B            TODO%       TODO
-Qwen3-4B (trained)      4B            42.68%      2.31
-Gemma-3-4B              4B            23.22%      2.01
+Qwen3-1.7B (untrained)  1.7B          5.2%        1.96
+Qwen3-4B (untrained)    4B            11.5%       1.99
+Qwen3-4B (trained)      4B            TODO%       TODO
 
 We use accuracy as our primary metric because each question has a single correct answer, making binary correctness the most direct measure of task success.
 
@@ -184,7 +184,7 @@ These patterns reveal that failures stem primarily from behavioral issues (givin
 
 CONCLUSIONS
 
-This project demonstrates that a 4-billion parameter model can learn effective information-seeking behavior through reinforcement learning alone, without human demonstrations. By framing search as code generation rather than tool selection, the model learns to compose multi-step strategies—iterating through results, filtering with conditionals, and adapting based on intermediate outputs—achieving TODO% accuracy compared to TODO% for the untrained baseline. Our failure analysis reveals that most errors stem from behavioral issues (premature surrender, overly complex code) rather than capability limits, suggesting that continued training or curriculum learning could yield further gains. A natural next step is training the model to recognize retrieval failure and reformulate queries, rather than hallucinating answers when initial searches return irrelevant content.
+This project demonstrates that a 4-billion parameter model can learn effective information-seeking behavior through reinforcement learning alone, without human demonstrations. By framing search as code generation rather than tool selection, the model learns to compose multi-step strategies—iterating through results, filtering with conditionals, and adapting based on intermediate outputs—achieving TODO% accuracy compared to 11.5% for the untrained baseline. Our failure analysis reveals that most errors stem from behavioral issues (premature surrender, overly complex code) rather than capability limits, suggesting that continued training or curriculum learning could yield further gains. A natural next step is training the model to recognize retrieval failure and reformulate queries, rather than hallucinating answers when initial searches return irrelevant content.
 
 
 APPENDIX

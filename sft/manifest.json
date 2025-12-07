@@ -1,0 +1,434 @@
+{
+  "count": 81,
+  "filter": "all",
+  "source_evals": [
+    "evals/eval_google_gemma-3-4b_20251204_122918",
+    "evals/eval_google_gemma-3-4b_20251207_115015",
+    "evals/eval_google_gemma-3-4b_20251207_115357",
+    "evals/eval_gpt-5-mini_20251207_130103",
+    "evals/eval_gpt-5-mini_20251207_130311",
+    "evals/eval_gpt-5-mini_20251207_130416",
+    "evals/eval_gpt-5_20251207_130812",
+    "evals/eval_gpt-5_20251207_131054",
+    "evals/eval_gpt-5_20251207_131157",
+    "evals/eval_gpt-5_20251207_131358",
+    "evals/eval_gpt-5_20251207_131627",
+    "evals/eval_gpt-5_20251207_132250",
+    "evals/eval_gpt-5_20251207_133052",
+    "evals/eval_gpt-5_20251207_133921",
+    "evals/eval_gpt-5_20251207_134447",
+    "evals/eval_gpt-5_20251207_134758",
+    "evals/eval_Qwen3-1.7B_20251204_133249",
+    "evals/eval_qwen3-4b-instruct-2507@f16_20251204_113921",
+    "evals/eval_qwen_qwen3-1.7b_20251207_121750",
+    "evals/eval_qwen_qwen3-4b-instruct-2507_20251207_103701",
+    "evals/eval_qwen_qwen3-4b-instruct-2507_20251207_103938"
+  ],
+  "trajectories": [
+    {
+      "file": "traj_0000.json",
+      "question": "Which notable Italian political figure is associated with the Doris family busin",
+      "answer": "Silvio Berlusconi"
+    },
+    {
+      "file": "traj_0001.json",
+      "question": "Which character did Jacob Tremblay voice in the 2021 Pixar film 'Luca'?",
+      "answer": "Luca Paguro"
+    },
+    {
+      "file": "traj_0002.json",
+      "question": "What was the name of the failed Cuban army offensive against the Sierra Maestra ",
+      "answer": "Operation Verano"
+    },
+    {
+      "file": "traj_0003.json",
+      "question": "Which animated Netflix series features Adam Conover voicing multiple characters ",
+      "answer": "BoJack Horseman"
+    },
+    {
+      "file": "traj_0004.json",
+      "question": "What was the cause of Michael Clarke Duncan's death in 2012?",
+      "answer": "Respiratory failure"
+    },
+    {
+      "file": "traj_0005.json",
+      "question": "Which Taylor Swift song spent eight weeks at number one, marking her longest run",
+      "answer": "Anti-Hero"
+    },
+    {
+      "file": "traj_0006.json",
+      "question": "In which Broadway play did Bobby Cannavale make his debut, earning a Tony Award ",
+      "answer": "Mauritius"
+    },
+    {
+      "file": "traj_0007.json",
+      "question": "Which football club owns a 44% minority stake in Leeds United as of the 2022\u201323 ",
+      "answer": "San Francisco 49ers (via 49ers Enterprises)"
+    },
+    {
+      "file": "traj_0008.json",
+      "question": "What is the name of the global media and production company founded by Kevin Har",
+      "answer": "Laugh Out Loud Productions"
+    },
+    {
+      "file": "traj_0009.json",
+      "question": "Which actress known for supernatural teen dramas stars as Kristin Ramsey in Wolf",
+      "answer": "Sarah Michelle Gellar"
+    },
+    {
+      "file": "traj_0010.json",
+      "question": "What record did the song 'Idol' break regarding streaming numbers in Japan?",
+      "answer": "It set the record in Japan as the fastest song to reach 100 million streams (in five weeks) and 200 million streams (in nine weeks)."
+    },
+    {
+      "file": "traj_0011.json",
+      "question": "Which animated Disney short film accompanied Once Upon a Studio's theatrical rel",
+      "answer": "Wish"
+    },
+    {
+      "file": "traj_0012.json",
+      "question": "Which university did Maxine Beneba Clarke attend for her Bachelor of Creative Ar",
+      "answer": "University of Wollongong"
+    },
+    {
+      "file": "traj_0013.json",
+      "question": "What term is used to describe action-adventure games that are similar in gamepla",
+      "answer": "Grand Theft Auto clone"
+    },
+    {
+      "file": "traj_0014.json",
+      "question": "What is the name of the restaurant Guillaume Brahimi ran at the Sydney Opera Hou",
+      "answer": "Guillaume at Bennelong"
+    },
+    {
+      "file": "traj_0015.json",
+      "question": "What is the title of the 1998 film adaptation about slavery and African American",
+      "answer": "Beloved"
+    },
+    {
+      "file": "traj_0016.json",
+      "question": "In what year were apartheid laws repealed, leading to the first multiracial elec",
+      "answer": "1991"
+    },
+    {
+      "file": "traj_0017.json",
+      "question": "At what age was Mckenna Grace diagnosed with scoliosis?",
+      "answer": "16"
+    },
+    {
+      "file": "traj_0018.json",
+      "question": "Which song by Troye Sivan became his first to enter the top 40 of the Billboard ",
+      "answer": "Youth"
+    },
+    {
+      "file": "traj_0019.json",
+      "question": "What is the title of Mckenna Grace's 2023 EP music release?",
+      "answer": "Bittersweet 16"
+    },
+    {
+      "file": "traj_0020.json",
+      "question": "At which memorial panel number is Kevin Cosgrove's name inscribed at the Nationa",
+      "answer": "Panel S-60"
+    },
+    {
+      "file": "traj_0021.json",
+      "question": "What role did Isabel May play on the CBS series Young Sheldon?",
+      "answer": "Veronica Duncan"
+    },
+    {
+      "file": "traj_0022.json",
+      "question": "At which university was John Rhys-Davies one of the first 105 students admitted ",
+      "answer": "University of East Anglia"
+    },
+    {
+      "file": "traj_0023.json",
+      "question": "Which coalition countries contributed troops to the initial 2003 invasion of Ira",
+      "answer": "United States, United Kingdom, Australia, and Poland"
+    },
+    {
+      "file": "traj_0024.json",
+      "question": "Which band was Buddy Holly's first major hit single 'That'll Be the Day' credite",
+      "answer": "The Crickets"
+    },
+    {
+      "file": "traj_0025.json",
+      "question": "Which character did Parveen Kaur portray in the TV series Manifest?",
+      "answer": "Saanvi Bahl"
+    },
+    {
+      "file": "traj_0026.json",
+      "question": "Which band was Maya Rudolph a backing singer and keyboardist for before joining ",
+      "answer": "The Rentals"
+    },
+    {
+      "file": "traj_0027.json",
+      "question": "What NFL record does Homer Jones hold related to yards per reception?",
+      "answer": "He holds the NFL career record for highest yards per reception: 22.3 (minimum 200 receptions)."
+    },
+    {
+      "file": "traj_0028.json",
+      "question": "Which company manufactured Jeff Bauman's prosthetic legs?",
+      "answer": "Ottobock"
+    },
+    {
+      "file": "traj_0029.json",
+      "question": "What honour was Sade awarded by the British Empire in 2002?",
+      "answer": "Officer of the Order of the British Empire (OBE)"
+    },
+    {
+      "file": "traj_0030.json",
+      "question": "What was the budget of the film Jeanne du Barry?",
+      "answer": "$22.4 million"
+    },
+    {
+      "file": "traj_0031.json",
+      "question": "What is the name of the insurance agent character who investigates the Garvey si",
+      "answer": "Thomas \"Tom\" Claffin"
+    },
+    {
+      "file": "traj_0032.json",
+      "question": "In what year was Homer Jones drafted into professional football?",
+      "answer": "1963"
+    },
+    {
+      "file": "traj_0033.json",
+      "question": "Who introduced Julian Sands to his second wife Evgenia Citkowitz?",
+      "answer": "John Malkovich"
+    },
+    {
+      "file": "traj_0034.json",
+      "question": "What is the ZIP code of Newton, Georgia?",
+      "answer": "39870"
+    },
+    {
+      "file": "traj_0035.json",
+      "question": "Which company is developing the Panther KF51 battle tank?",
+      "answer": "Rheinmetall (via its Rheinmetall Landsysteme division)"
+    },
+    {
+      "file": "traj_0036.json",
+      "question": "Who composed the majority of the musical score for the 1977 miniseries Roots?",
+      "answer": "Gerald Fried"
+    },
+    {
+      "file": "traj_0037.json",
+      "question": "Which former UFC champion did Jake Paul defeat by unanimous decision in October ",
+      "answer": "Anderson Silva"
+    },
+    {
+      "file": "traj_0038.json",
+      "question": "Which actor played King Louis XV in the film Jeanne du Barry?",
+      "answer": "Johnny Depp"
+    },
+    {
+      "file": "traj_0039.json",
+      "question": "In what year did Peter Laviolette become the head coach of the Nashville Predato",
+      "answer": "2014"
+    },
+    {
+      "file": "traj_0040.json",
+      "question": "In which New York neighborhood did actor Jeremy Allen White grow up?",
+      "answer": "Carroll Gardens, Brooklyn"
+    },
+    {
+      "file": "traj_0041.json",
+      "question": "Which Russian political party introduced a straight pride flag in 2015?",
+      "answer": "United Russia"
+    },
+    {
+      "file": "traj_0042.json",
+      "question": "Which alien species takes over Earth in the film 'Landscape with Invisible Hand'",
+      "answer": "The Vuvv"
+    },
+    {
+      "file": "traj_0043.json",
+      "question": "On what date was the PAW Patrol episodes list last revised according to the give",
+      "answer": "July 26, 2019"
+    },
+    {
+      "file": "traj_0044.json",
+      "question": "How many episodes were there in the Korean drama 'Sunlight Pours Down'?",
+      "answer": "16"
+    },
+    {
+      "file": "traj_0045.json",
+      "question": "What was the original name of Adobe Premiere before being acquired and renamed b",
+      "answer": "ReelTime"
+    },
+    {
+      "file": "traj_0046.json",
+      "question": "Which TVP channel is primarily focused on regional programming and local station",
+      "answer": "TVP3 (TVP Regionalna)"
+    },
+    {
+      "file": "traj_0047.json",
+      "question": "In which Japanese province was Miyamoto Musashi most probably born?",
+      "answer": "Mimasaka Province"
+    },
+    {
+      "file": "traj_0048.json",
+      "question": "What was the approximate worldwide gross revenue of The Expendables (2010)?",
+      "answer": "About $274.5 million"
+    },
+    {
+      "file": "traj_0049.json",
+      "question": "Who was Linda Hamilton married to when she had a $50 million divorce settlement ",
+      "answer": "James Cameron"
+    },
+    {
+      "file": "traj_0050.json",
+      "question": "What family game show did Adam Conover host the American adaptation of on Nickel",
+      "answer": "The Crystal Maze"
+    },
+    {
+      "file": "traj_0051.json",
+      "question": "Which video game studio developed the original 2004 game Fable?",
+      "answer": "Big Blue Box Studios"
+    },
+    {
+      "file": "traj_0052.json",
+      "question": "In which year did Andrej Kramari\u0107 make his debut for the Croatian senior nationa",
+      "answer": "2014"
+    },
+    {
+      "file": "traj_0053.json",
+      "question": "What was Peter Boyle's birthplace?",
+      "answer": "Norristown, Pennsylvania"
+    },
+    {
+      "file": "traj_0054.json",
+      "question": "What was the name of the morning radio show Tiffany Thornton co-hosted on 105.9 ",
+      "answer": "Kramer and Tiffany"
+    },
+    {
+      "file": "traj_0055.json",
+      "question": "What is the typical lifespan of an American black bear in the wild?",
+      "answer": "About 18 years"
+    },
+    {
+      "file": "traj_0056.json",
+      "question": "Where did Miles Teller and Keleigh Sperry get married in 2019?",
+      "answer": "Maui, Hawaii"
+    },
+    {
+      "file": "traj_0057.json",
+      "question": "Which magnesium isotope is the most abundant in nature, making up about 79% of m",
+      "answer": "Magnesium-24 (24Mg)"
+    },
+    {
+      "file": "traj_0058.json",
+      "question": "Which serious health condition was Norah O'Donnell diagnosed with in 2016?",
+      "answer": "Melanoma (in situ skin cancer)"
+    },
+    {
+      "file": "traj_0059.json",
+      "question": "Who is the creator of the original Flemish series Clan, on which Bad Sisters is ",
+      "answer": "Malin-Sarah Gozin"
+    },
+    {
+      "file": "traj_0060.json",
+      "question": "Which Wiz Khalifa single, a tribute to his hometown, peaked at number 1 on the B",
+      "answer": "Black and Yellow"
+    },
+    {
+      "file": "traj_0061.json",
+      "question": "Which two countries are notably mentioned for blocking access to certain news in",
+      "answer": "China and Singapore"
+    },
+    {
+      "file": "traj_0062.json",
+      "question": "What is the name of the training facility on the North Carolina\u2013Virginia border ",
+      "answer": "Blackwater Lodge and Training Center"
+    },
+    {
+      "file": "traj_0063.json",
+      "question": "Which 1996 film is Twisters a new chapter of?",
+      "answer": "Twister"
+    },
+    {
+      "file": "traj_0064.json",
+      "question": "What schema format is used in the document containing the Untitled Alien film re",
+      "answer": "JSON Schema (Draft 7)"
+    },
+    {
+      "file": "traj_0065.json",
+      "question": "What was the cause of Cat Stevens' near-death experience in 1969 that led to his",
+      "answer": "Tuberculosis (a severe bout that nearly killed him in 1969)"
+    },
+    {
+      "file": "traj_0066.json",
+      "question": "Which Disney artist appears as himself in Once Upon a Studio?",
+      "answer": "Burny Mattinson"
+    },
+    {
+      "file": "traj_0067.json",
+      "question": "Which comedian provides narration on Tyler, the Creator's album Igor?",
+      "answer": "Jerrod Carmichael"
+    },
+    {
+      "file": "traj_0068.json",
+      "question": "Where is George Reeves interred?",
+      "answer": "George Reeves is interred at Mountain View Cemetery in Altadena, California."
+    },
+    {
+      "file": "traj_0069.json",
+      "question": "Which prestigious drama school did Laurence Fox graduate from?",
+      "answer": "Royal Academy of Dramatic Art"
+    },
+    {
+      "file": "traj_0070.json",
+      "question": "In which U.S. state was Insidious: The Red Door primarily filmed?",
+      "answer": "New Jersey"
+    },
+    {
+      "file": "traj_0071.json",
+      "question": "Who was the director of the Los Alamos Laboratory and assigned the code name 'Tr",
+      "answer": "J. Robert Oppenheimer"
+    },
+    {
+      "file": "traj_0072.json",
+      "question": "What tattoo does Elijah Wood have below his waist on the right side?",
+      "answer": "Elvish tattoo of the Sindarin word \"nine\" in Tolkien's tengwar script below his waist on the right side"
+    },
+    {
+      "file": "traj_0073.json",
+      "question": "Which acting school workshop did Linda Hamilton attend in New York City?",
+      "answer": "Lee Strasberg Theatre and Film Institute"
+    },
+    {
+      "file": "traj_0074.json",
+      "question": "What is the name of the in-game region where Fallout 76 is set?",
+      "answer": "The game Fallout 76 is set in the region known as Appalachia."
+    },
+    {
+      "file": "traj_0075.json",
+      "question": "In which Belgian city was actor Johnny Galecki born?",
+      "answer": "Bree"
+    },
+    {
+      "file": "traj_0076.json",
+      "question": "In which Canadian valley was actress Parveen Kaur raised?",
+      "answer": "Okanagan Valley"
+    },
+    {
+      "file": "traj_0077.json",
+      "question": "What is the source material for the TV series Wolf Pack?",
+      "answer": "The source material for the TV series Wolf Pack is the 2004 book of the same name written by Edo van Belkom."
+    },
+    {
+      "file": "traj_0078.json",
+      "question": "Which 1980s actor made his feature film debut in The Outsiders?",
+      "answer": "Rob Lowe"
+    },
+    {
+      "file": "traj_0079.json",
+      "question": "Which game developer published the Made in Abyss role-playing game released in S",
+      "answer": "Spike Chunsoft"
+    },
+    {
+      "file": "traj_0080.json",
+      "question": "What inspired Billy Idol's stage name 'Idol'?",
+      "answer": "The name \"Billy Idol\" was inspired by a schoolteacher's description of him as \"idle\"."
+    }
+  ]
+}

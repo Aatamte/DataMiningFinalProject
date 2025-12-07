@@ -23,3 +23,5 @@ models/
 runs/
 wandb/
 
+runs_sft/
+

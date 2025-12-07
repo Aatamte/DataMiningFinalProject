@@ -38,6 +38,10 @@ KV_CACHE_DTYPE = "auto"        # auto (FP8 not supported on RTX 3090 with FlashI
 CPU_OFFLOAD_GB = 0             # No CPU offload
 DISABLE_LOG_REQUESTS = True    # Less overhead
 
+# LoRA settings
+MAX_LORA_RANK = 64             # Max LoRA rank supported (set to your highest rank)
+MAX_LORAS = 4                  # Max number of LoRA adapters
+
 
 # =============================================================================
 # Supported Models - short name -> HuggingFace path
@@ -52,10 +56,16 @@ MODELS = {
     # Qwen3 4B variants
     "qwen3-4b":       "Qwen/Qwen3-4B",
     "qwen3-4b-awq":   "Qwen/Qwen3-4B-AWQ",
+    "qwen3-4b-instruct": "Qwen/Qwen3-4B-Instruct-2507",
 
     # Qwen3 smaller
     "qwen3-1.7b":     "Qwen/Qwen3-1.7B",
     "qwen3-0.6b":     "Qwen/Qwen3-0.6B",
+}
+
+# LoRA models: name -> (base_model, lora_path)
+LORA_MODELS = {
+    "sft": ("Qwen/Qwen3-4B-Instruct-2507", "final_adapters/sft_adapter"),
 }
 
 
@@ -86,7 +96,7 @@ def get_judge_model() -> str:
     return os.environ.get("JUDGE_MODEL", "")
 
 
-def resolve_model(name: str, check_local: bool = True) -> tuple[str, bool]:
+def resolve_model(name: str, check_local: bool = True) -> tuple[str, bool, str | None]:
     """Resolve model name to path.
 
     Args:
@@ -94,20 +104,28 @@ def resolve_model(name: str, check_local: bool = True) -> tuple[str, bool]:
         check_local: Whether to check for local copy first
 
     Returns:
-        (model_path, is_local) - path to use and whether it's local
+        (model_path, is_local, lora_path) - path to use, whether it's local, and optional LoRA path
     """
+    # Check if it's a LoRA model first
+    key = name.lower()
+    if key in LORA_MODELS:
+        base_model, lora_path = LORA_MODELS[key]
+        return base_model, False, lora_path
+
     # Determine HF model ID
     if "/" in name:
         hf_id = name
     else:
-        key = name.lower()
         if key not in MODELS:
             print(f"ERROR: Unknown model '{name}'")
             print(f"\nSupported short names:")
             for short, full in MODELS.items():
                 print(f"  {short:15} -> {full}")
+            print(f"\nLoRA models:")
+            for short, (base, lora) in LORA_MODELS.items():
+                print(f"  {short:15} -> {base} + {lora}")
             print(f"\nOr use full HuggingFace path (e.g., Qwen/Qwen3-8B-AWQ)")
-            return "", False
+            return "", False, None
         hf_id = MODELS[key]
 
     # Check for local copy
@@ -116,9 +134,9 @@ def resolve_model(name: str, check_local: bool = True) -> tuple[str, bool]:
         local_name = hf_id.split("/")[-1]
         local_path = MODELS_DIR / local_name
         if local_path.exists() and (local_path / "config.json").exists():
-            return str(local_path), True
+            return str(local_path), True, None
 
-    return hf_id, False
+    return hf_id, False, None
 
 
 def check_server(port: int) -> bool:
@@ -136,7 +154,7 @@ def check_server(port: int) -> bool:
 
 def cmd_download(model_name: str):
     """Download a model to local models/ directory."""
-    hf_id, is_local = resolve_model(model_name, check_local=False)
+    hf_id, is_local, _ = resolve_model(model_name, check_local=False)
     if not hf_id:
         return False
 
@@ -188,6 +206,16 @@ def cmd_list():
             status = "remote"
         print(f"{short:<15} {hf_id:<25} {status:<10}")
 
+    if LORA_MODELS:
+        print("-" * 60)
+        print("LORA MODELS")
+        print("-" * 60)
+        for short, (base, lora) in LORA_MODELS.items():
+            exists = Path(lora).exists()
+            status = "ready" if exists else "missing"
+            print(f"{short:<15} {base:<25} {status:<10}")
+            print(f"{'':15} LoRA: {lora}")
+
     print("-" * 60)
     print(f"Local models dir: {MODELS_DIR.absolute()}")
 
@@ -219,7 +247,7 @@ def cmd_stop():
 
 def cmd_server(model_name: str, port: int, foreground: bool):
     """Start the vLLM server."""
-    model_path, is_local = resolve_model(model_name)
+    model_path, is_local, lora_path = resolve_model(model_name)
     if not model_path:
         return False
 
@@ -261,11 +289,22 @@ def cmd_server(model_name: str, port: int, foreground: bool):
     if DISABLE_LOG_REQUESTS:
         cmd.append("--disable-log-requests")
 
+    # Add LoRA if specified
+    if lora_path:
+        cmd.extend([
+            "--enable-lora",
+            "--lora-modules", f"sft={lora_path}",
+            "--max-lora-rank", str(MAX_LORA_RANK),
+            "--max-loras", str(MAX_LORAS),
+        ])
+
     print("=" * 60)
     print("VLLM SERVER")
     print("=" * 60)
     source = "LOCAL" if is_local else "HuggingFace"
     print(f"Model: {model_path} ({source})")
+    if lora_path:
+        print(f"LoRA: {lora_path}")
     print(f"Port: {port}")
     print(f"GPU Memory: {GPU_MEMORY_UTILIZATION * 100:.0f}%")
     print(f"Max Context: {MAX_MODEL_LEN}")
