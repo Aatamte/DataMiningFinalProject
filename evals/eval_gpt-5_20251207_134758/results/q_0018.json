@@ -1,0 +1,42 @@
+{
+  "index": 18,
+  "question": "Which Disney artist appears as himself in Once Upon a Studio?",
+  "expected": "Burny Mattinson",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "Burny Mattinson",
+      "correct": true,
+      "approach_score": 100,
+      "reward": 1.0,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: Which Disney artist appears as himself in Once Upon a Studio?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nfrom collections import defaultdict, Counter\nimport re, json, string\n\ndef find_as_himself_mentions(text, title):\n    findings = []\n    # Look for phrases like \"as himself\" or \"appears as himself\"\n    patterns = [\n        r'([A-Z][A-Za-z \\.\\'-]+?)\\s+as himself',\n        r'([A-Z][A-Za-z \\.\\'-]+?)\\s+appears?\\s+as himself',\n        r'([A-Z][A-Za-z \\.\\'-]+?)\\s+who appears as himself',\n        r'([A-Z][A-Za-z \\.\\'-]+?)\\s+\\(as himself\\)',\n    ]\n    for pat in patterns:\n        for m in re.finditer(pat, text):\n            name = m.group(1).strip()\n            # Heuristically filter out character names with \"the\" or clear character names\n            if not any(stop in name for stop in ['the ', 'as ', 'voice', 'Voiced']):\n                findings.append((title, name, m.group(0)))\n    return findings\n\ndef scan_page_for_as_himself(page):\n    pid = page['page_id']\n    title = page['title']\n    content = read_section(pid + \":full\")\n    findings = find_as_himself_mentions(content, title)\n\n    # Also try scanning cast/production sections explicitly if available\n    sections = view_sections(pid)\n    key_sections = [s for s in sections if any(k in s['section_name'].lower() for k in ['cast', 'voice', 'production', 'development', 'cameo'])]\n    for s in key_sections:\n        sec_text = read_section(s['section_id'])\n        findings.extend(find_as_himself_mentions(sec_text, title))\n    return findings, content\n\nqueries = [\n    \"Once Upon a Studio\",\n    \"Once Upon a Studio cast\",\n    \"Once Upon a Studio short film cast\",\n    \"Burny Mattinson Once Upon a Studio\",\n    \"Disney artist appears as himself Once Upon a Studio\",\n]\n\nNUM_RESULTS = 5\nall_findings = []\npages_seen = set()\npage_contents = {}\n\nfor q in queries:\n    results = search_pages(q)[:NUM_RESULTS]\n    if not results:\n        continue\n    for r in results:\n        if r['page_id'] in pages_seen:\n            continue\n        pages_seen.add(r['page_id'])\n        findings, content = scan_page_for_as_himself(r)\n        page_contents[r['title']] = content[:2000]  # keep snippet if needed\n        all_findings.extend(findings)\n\n# If nothing obvious, broaden search to names likely associated\nif not all_findings:\n    for name in [\"Burny Mattinson\", \"Eric Goldberg\", \"Andreas Deja\", \"Glen Keane\"]:\n        for r in search_pages(name)[:3]:\n            txt = read_section(r['page_id'] + \":full\")\n            if \"Once Upon a Studio\" in txt:\n                m = re.search(r'appears? as himself.*Once Upon a Studio', txt, re.IGNORECASE)\n                if m:\n                    all_findings.append((r['title'], r['title'], m.group(0)))\n\n# Deduplicate by name\nunique = {}\nfor title, name, snippet in all_findings:\n    key = name.strip()\n    if key not in unique:\n        unique[key] = {'from': title, 'snippet': snippet}\n\nprint(\"=== Findings for 'as himself' mentions ===\")\nfor name, info in unique.items():\n    print(f\"- {name} (from: {info['from']}) :: {info['snippet']}\")\n\n# Heuristic: prioritize findings from the Once Upon a Studio page itself\nanswer_name = None\nfor name, info in unique.items():\n    if 'Once Upon a Studio' in info['from']:\n        answer_name = name\n        break\n\n# If not found, look for Burny Mattinson (commonly cited Disney artist)\nif not answer_name:\n    if 'Burny Mattinson' in unique:\n        answer_name = 'Burny Mattinson'\n    else:\n        # fallback: pick the top alphabetical (stable) but print warning\n        if unique:\n            answer_name = sorted(unique.keys())[0]\n\nprint(\"\\n=== Selected Answer ===\")\nprint(answer_name if answer_name else \"NOT FOUND\")\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\n=== Findings for 'as himself' mentions ===\n- Holyfield appeared (from: Evander Holyfield) :: Holyfield appeared as himself\n\n=== Selected Answer ===\nHolyfield appeared\n\n</python_output>"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>Burny Mattinson</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 100.0
+}

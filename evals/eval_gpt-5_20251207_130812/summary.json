@@ -19,8 +19,8 @@
       "subset": "test",
       "num_questions": 2,
       "total_runs": 2,
-      "total_correct": 0,
-      "accuracy": 0.0,
+      "total_correct": 1,
+      "accuracy": 50.0,
       "avg_turns": 2.0,
       "results": [
         {
