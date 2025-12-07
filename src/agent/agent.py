@@ -150,8 +150,15 @@ class Agent:
         """Generate via OpenAI-compatible API."""
         start_time = time.perf_counter()
 
+        # Build headers with API key if available
+        headers = {"Content-Type": "application/json"}
+        api_key = os.environ.get("OPENAI_API_KEY", "")
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+
         response = await self._http_client.post(
             f"{self.config.api_url}/chat/completions",
+            headers=headers,
             json={
                 "model": self.config.api_model,
                 "messages": messages,
@@ -390,7 +397,8 @@ class Agent:
                 reminder = Message(
                     Role.EXECUTION,
                     "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. "
-                    "A partial or uncertain answer is better than no answer."
+                    "If unsure, make up a plausible-sounding answer. "
+                    "NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
                 )
                 conversation.add_message(reminder)
                 self._debug(f"[INJECTED FINAL TURN REMINDER]")
@@ -553,7 +561,8 @@ class Agent:
                 reminder = Message(
                     Role.EXECUTION,
                     "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. "
-                    "A partial or uncertain answer is better than no answer."
+                    "If unsure, make up a plausible-sounding answer. "
+                    "NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
                 )
                 conversation.add_message(reminder)
 

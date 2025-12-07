@@ -330,6 +330,7 @@ async def main_async() -> None:
 
     eval_cfg = CONFIG["eval"]
     subset = eval_cfg["subset"]
+    n_questions = eval_cfg.get("n_questions", 0)  # 0 = all
     n_samples = eval_cfg["n_samples"]
     start_from = eval_cfg.get("start_from_question", 0)
     max_turns = eval_cfg["max_turns"]
@@ -354,6 +355,7 @@ async def main_async() -> None:
     print(f"Model: {model_name}")
     print(f"Model endpoint: {model_url}")
     print(f"Subset: {subset}")
+    print(f"N questions: {n_questions if n_questions > 0 else 'all'}")
     print(f"Start from question: {start_from}")
     print(f"Runs per question: {n_samples}")
     print(f"Max turns: {max_turns}")
@@ -389,6 +391,8 @@ async def main_async() -> None:
         print("=" * 60)
 
         questions = load_questions_for_eval(subset)
+        if n_questions > 0:
+            questions = questions[:n_questions]
         print(f"Questions: {len(questions)}")
 
         subset_results = await eval_subset(

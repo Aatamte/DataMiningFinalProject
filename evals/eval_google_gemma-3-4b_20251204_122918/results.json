@@ -1,0 +1,6227 @@
+{
+  "model": "google/gemma-3-4b",
+  "mode": "api",
+  "q_percentage": 100.0,
+  "n_per_q": 1,
+  "total_questions": 478,
+  "num_questions": 478,
+  "total_runs": 478,
+  "accuracy": 23.221757322175733,
+  "avg_turns": 2.01255230125523,
+  "results": [
+    {
+      "question": "What controversy involved the Fallout 76 Power Armor edition's physical item?",
+      "expected": "Canvas bag replaced with nylon",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The controversy involved a security breach that exposed personal information of Fallout 76 customers, including details obtained through a support ticket error.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the demon possessing the death-row inmate in the film Nefarious?",
+      "expected": "Nefarious",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "None",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the estimated budget for the 2020 Sonic the Hedgehog film?",
+      "expected": "$90 million",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer this question based on the available Wikipedia content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which university did the character Mariana Adams Foster graduate from in Good Trouble?",
+      "expected": "MIT",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Bristol",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which 2023 film featuring a live-action remake of a classic Disney animated movie was delayed due to the pandemic?",
+      "expected": "The Little Mermaid",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Encanto",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which university did Miles Teller attend for his Bachelor of Fine Arts degree?",
+      "expected": "New York University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am sorry, but I could not find the information about Miles Teller's university in the Wikipedia article.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who is the main detective character that teams up with Jake in the series 'Jake and the Fatman'?",
+      "expected": "McCabe",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The article does not explicitly state the name of the main detective character.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which 2023 album did Caroline Polachek release that received critical acclaim and includes the single 'Bunny Is a Rider'?",
+      "expected": "I Want to Turn Into You",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Chemtrails",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What martial art does Pom Klementieff practice, in which she holds a purple belt?",
+      "expected": "Taekwondo",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Taekwondo",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the gross tonnage of the largest cruise ship as of 2023?",
+      "expected": "236,857 GT",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "19900",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which two companies are distributing Twisters in the United States and internationally?",
+      "expected": "Universal Pictures and Warner Bros. Pictures",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Universal Pictures and Warner Bros. Pictures",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which musical instrument did Evan Rachel Wood's character aspire to play in the 2001 film Little Secrets?",
+      "expected": "Violin",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Piano",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the unicursal hexagram an example of in Blaise Pascal's 1639 work?",
+      "expected": "Hexagrammum Mysticum",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "an example of a hexagram in Blaise Pascal\u2019s 1639 work",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the Wikipedia redirect target for the term 'Child grooming'?",
+      "expected": "grooming (Child)",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "[grooming]",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the cause of Miyamoto Musashi's death believed to be?",
+      "expected": "Lung cancer",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Old age",
+          "correct": false,
+          "num_turns": 3
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which television program featured an age-progressed bust that helped lead to John List's capture?",
+      "expected": "America's Most Wanted",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Unsolved Mysteries",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the name of the Danish Continental team Jonas Vingegaard rode for from 2016 to 2018?",
+      "expected": "ColoQuick\u2013Cult",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Team Sunweb",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Cambodian king coined the term 'Khmer Rouge' in the 1960s?",
+      "expected": "Norodom Sihanouk",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Norodom Sihanouk",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "At what age did Kiernan Shipka start taking ballroom dancing classes?",
+      "expected": "Five years old",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The article does not specify the exact age at which Kiernan Shipka began taking ballroom dancing classes.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which prestigious drama school did Alfred Molina attend?",
+      "expected": "Guildhall School of Music and Drama",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Guildhall School of Music and Drama",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which award did Troye Sivan become the youngest recipient of in 2017?",
+      "expected": "Stephen F. Kolzak Award",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "MTV Video Music Award",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who is Greta Lee married to?",
+      "expected": "Russ Armstrong",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Russ Armstrong",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "In which chapter and verse of the Quran does the phrase 'Peace to you! Your Lord has made mercy incumbent upon Himself' appear?",
+      "expected": "Surah Al-An'am 6:54",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The exact chapter and verse is debated among Islamic scholars, but it's generally associated with Surah Ar-Rahman (55:23).",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of Jeff Bauman's daughter born in 2014?",
+      "expected": "Nora Gail Bauman",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Nora Gail Bauman",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What award did Zac Efron win in 2021 for hosting a Netflix documentary series?",
+      "expected": "Daytime Emmy Award",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He won a Primetime Emmy Award for Outstanding Actor in a Limited Series or Movie in 2021.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What instrument does Johnny Galecki play, which was also incorporated into his character on The Big Bang Theory?",
+      "expected": "Cello",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "cello",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which Italian philosopher used the unicursal hexagram to represent 'Figura Amoris'?",
+      "expected": "Giordano Bruno",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Francesco Vettori",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who was the founder of the Qing dynasty who proclaimed it in 1636?",
+      "expected": "Hong Taiji",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Hong Taiji",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "In which year did Matteo Lane start his comedy career?",
+      "expected": "2011",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "2011",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who was the first Chairman of the Joint Chiefs of Staff in the United States?",
+      "expected": "Omar Bradley",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Arthur Harmon",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the largest religious group in the Levant?",
+      "expected": "Muslims",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Islam",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which layer of Troy was destroyed around 1180 BC with evidence of enemy attack and scorch marks?",
+      "expected": "Troy VIIa",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The wooden horse layer was destroyed around 1180 BC with evidence of enemy attack and scorch marks.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the minimum gross revenue for a media franchise to be included in the highest-grossing media franchises list?",
+      "expected": "$2 billion",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "A media franchise must gross at least $3.7 billion worldwide to be included in the list.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "During which holiday weekend in 2016 did Disney Channel air a marathon of older Disney Channel Original Movies to celebrate its 100th film?",
+      "expected": "Memorial Day",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Memorial Day",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What anti-government ideology did Terry Nichols adhere to before the Oklahoma City bombing?",
+      "expected": "Sovereign citizen movement",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Nichols\u2019s views were influenced by white supremacist and anti-government beliefs.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which actress played a character originally intended for Tom Hanks in the 2144 storyline of Cloud Atlas?",
+      "expected": "Halle Berry",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Zoe Saldana",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which role did Miles Teller play in the 2014 film Whiplash?",
+      "expected": "Drummer",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He played a drumming student.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the name of the wealthy patron whose circle Rimsky-Korsakov led, promoting Russian nationalist composers and sponsoring the Russian Symphony Concerts?",
+      "expected": "Mitrofan Belyayev",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Anton Nikolaevich Pozdnansky",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What term describes fantasy works set in a modern world involving magic or supernatural elements?",
+      "expected": "Contemporary fantasy",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "portal fantasy",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What dance styles did Jeremy Allen White practice during elementary school?",
+      "expected": "Ballet, jazz, tap",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "ballet, jazz, and tap",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who made their directorial debut with the film Insidious: The Red Door?",
+      "expected": "Patrick Wilson",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Patrick Wilson",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which controversial monument did Erdo\u011fan order to be demolished in Kars in 2011?",
+      "expected": "Monument to Humanity",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The monument was a statue of St. Stephen.",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What was the official naval rank or position held by Rimsky-Korsakov while he combined his musical career with service in the Russian Navy?",
+      "expected": "Inspector of Naval Bands",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Captain",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What profession did Canibus work in for the U.S. Department of Justice before focusing full-time on music?",
+      "expected": "Data analyst",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "law enforcement",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "From which university did Mamoudou Athie receive his MFA degree?",
+      "expected": "Yale University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Yale",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In what year was the term 'dyslexia' first coined and by whom?",
+      "expected": "1883 by Rudolf Berlin",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Rudolf Berlin in 1883",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the name of the first non-Royal Caribbean cruise ship over 135,000 gross tons still in service?",
+      "expected": "Queen Mary 2",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "SS United States",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which battle during the Texas Revolution did John Joel Glanton reportedly narrowly escape a massacre?",
+      "expected": "Goliad Massacre",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Goliad Massacre",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which actor played the character Trace Riley in Chesapeake Shores?",
+      "expected": "Jesse Metcalfe",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Jesse Metcalfe",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which church baptized Kourtney Kardashian and her children in Armenia in 2019?",
+      "expected": "Armenian Apostolic Church",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Saint Hripsime Church",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the pregnancy category assigned to lisdexamfetamine in Australia?",
+      "expected": "B3",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Schedule C",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "For which short form series was Mamoudou Athie nominated for an Emmy Award?",
+      "expected": "Cake",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Cake",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which university did Ayo Edebiri attend for her bachelor's degree?",
+      "expected": "New York University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Information not found",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "For which television series did Bobby Cannavale win the Primetime Emmy Award for Outstanding Supporting Actor in a Drama Series in 2013?",
+      "expected": "Boardwalk Empire",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Rescue Me",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which high school did Jharrel Jerome attend in New York City?",
+      "expected": "Fiorello H. LaGuardia High School",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Fiorello H. LaGuardia High School",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which South Korean network aired The Good Bad Mother in 2023?",
+      "expected": "JTBC",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "JTBC",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Maya Rudolph won Primetime Emmy Awards in 2020 and 2021 for voicing which character in the Netflix animated series Big Mouth?",
+      "expected": "Connie the Hormone Monstress",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Netflix animated series Big Mouth",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which musical role did Judi Dench play in 1968, marking her breakthrough in musical theatre?",
+      "expected": "Sally Bowles",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "She played the role of Maria in *The Sound of Music*.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who replaced Dusty Hill as ZZ Top's bassist after his death in 2021?",
+      "expected": "Elwood Francis",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Frank Beard",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who led the team of inventors that created the PXL2000?",
+      "expected": "James Wickstead",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "James Wickstead",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which tropical cyclone event previously listed among deadliest natural disasters was later proven to be a hoax?",
+      "expected": "Cyclone of 1882",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Great Miami Hurricane of 1926",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which MMA team and trainer was Gina Carano associated with during her fighting career?",
+      "expected": "Jackson Wink MMA Academy and Greg Jackson",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Rosi Sexton",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the revision ID associated with the 2019-07-26 15:55:50Z timestamp for the PAW Patrol episodes list?",
+      "expected": "907982330",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "907982330",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "When was the Panther KF51 publicly unveiled?",
+      "expected": "June 13, 2022",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Panther KF51 was publicly unveiled in 1969.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the population of Newton, Georgia according to the 2020 United States Census?",
+      "expected": "602",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to provide you with the exact population of Newton, Georgia according to the 2020 United States Census based on the available Wikipedia content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where was the series Chesapeake Shores primarily filmed?",
+      "expected": "Vancouver Island, British Columbia",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The series was primarily filmed in and around Easton, Maryland.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which company did Amouranth announce she had bought and rented out to a Circle K?",
+      "expected": "Gas station",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Circle K",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Apple chip is used as the main processor in the Apple Vision Pro?",
+      "expected": "M2",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The device is powered by a custom-designed Apple Silicon chip.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which language did Matteo Lane study in high school besides English, Italian, Spanish, and French?",
+      "expected": "German",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "German",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the typical broadcast schedule of MasterChef Australia episodes during the week?",
+      "expected": "Sunday to Thursday",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am sorry, I cannot provide the typical broadcast schedule of MasterChef Australia episodes as it was not found in the Wikipedia page.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which band was Maya Rudolph a backing singer and keyboardist for before joining Saturday Night Live?",
+      "expected": "The Rentals",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Rentals",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which dialect forms the basis of Modern Standard Hindi?",
+      "expected": "Delhi dialect",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Rajasthani",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What NFL record does Homer Jones hold related to yards per reception?",
+      "expected": "22.3 yards per reception",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "22.3",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which state lost its 27th congressional district as a result of the 2020 United States census reapportionment?",
+      "expected": "New York",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "South Carolina",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which company manufactured Jeff Bauman's prosthetic legs?",
+      "expected": "Ottobock",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Ottobock",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "How many legs did the Born Pink World Tour have?",
+      "expected": "9",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "4",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What honour was Sade awarded by the British Empire in 2002?",
+      "expected": "Officer of the Order of the British Empire",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Dame Commander of the Order of the British Empire",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the budget of the film Jeanne du Barry?",
+      "expected": "$22.4 million",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "60 million",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the insurance agent character who investigates the Garvey sisters in Bad Sisters?",
+      "expected": "Thomas Claffin",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Frank White",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In what year was Homer Jones drafted into professional football?",
+      "expected": "1963",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer this question based on the available Wikipedia content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which NFL player is credited with inventing the 'spike' touchdown celebration?",
+      "expected": "Homer Jones",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Sammy Sosa",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which law mandated the U.S. Attorney General to collect data on police use of excessive force but lacked enforcement provisions?",
+      "expected": "Crime Control and Law Enforcement Act of 1994",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Lautenberg Amendment",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which song does Napoleon dance to in the film's climactic dance scene?",
+      "expected": "Canned Heat by Jamiroquai",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Killers",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the main linguistic feature that distinguishes Western Romance languages from Eastern Romance languages along the Spezia-Rimini Line?",
+      "expected": "Lenition of intervocalic stops",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The main linguistic feature that distinguishes Western Romance languages from Eastern Romance languages along the Spezia-Rimini Line is the presence of a phonological process known as *velar frontization* in the former, which resulted in the pronunciation of /k/ and /g/ before front vowels (e.g., i, e) as [\u0283] and [\u0292], respectively.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which mixtape by Mac Miller became the first independently distributed debut album to top the US Billboard 200 since 1995?",
+      "expected": "Blue Slide Park",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Blue Slide Park",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who is considered the author of the first fantasy novel ever written for adults?",
+      "expected": "George MacDonald",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "J.R.R. Tolkien",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which university did Johnny Miller attend, where he was also an All-American golfer?",
+      "expected": "Brigham Young University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Johnny Miller attended the University of California, Berkeley.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What format is used to represent the metadata of the article content?",
+      "expected": "Schema",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The metadata is represented in a format that includes sections and their names, as well as page IDs.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which year did the Assembly of India adopt Hindi written in Devanagari as the official language of the Republic of India?",
+      "expected": "1949",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "1947",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What percentage of the world's PVC production capacity is located in China?",
+      "expected": "About 50%",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer this question because the initial search did not yield a start index within the content of the page.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who is the writer of the short story '45510' that inspired the song 'Idol'?",
+      "expected": "Aka Akasaka",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Marty Friedman",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Ukrainian official temporarily changed his Twitter avatar to a NAFO 'Fella' in August 2022?",
+      "expected": "Oleksii Reznikov",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Oleksiy Cherepanov",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which character voiced by John Rhys-Davies appeared in the animated TV series Gargoyles?",
+      "expected": "Macbeth",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He voiced Goliath.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Chinese serial killer, executed in 2004, confessed to killing 65 people between 2000 and 2003 and was known as 'The Monster Killer'?",
+      "expected": "Yang Xinhai",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Eugene Lee Yang",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which club did Andrej Kramari\u0107 become the all-time top goalscorer for on 29 March 2019?",
+      "expected": "TSG 1899 Hoffenheim",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Rijeka",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What collectible card game was introduced in Genshin Impact's Version 3.3 update?",
+      "expected": "Genius Invokation TCG",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Wishesong",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which university did Martin Lorentzon attend for his master\u2019s degree?",
+      "expected": "Chalmers University of Technology",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Information not found on education section.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What medical condition does Troye Sivan have a mild form of?",
+      "expected": "Marfan syndrome",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Marfan syndrome",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What was the budget for the production of the 1977 Roots miniseries?",
+      "expected": "$6.6 million",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to provide the budget for the 1977 Roots miniseries based on the available Wikipedia content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the name of the first apartheid-era prime minister of South Africa?",
+      "expected": "D. F. Malan",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "D. F. de Klerk",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of Lacey Chabert's apparel line launched with HSN in 2022?",
+      "expected": "Lacey Chabert Collection",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Lacey Chabert Collection",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "On which network did the television series Dave premiere?",
+      "expected": "FXX",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "NBC",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who was the chief designer of the T-80 main battle tank?",
+      "expected": "Nikolay Popov",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Aleksandr Tupachev",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who performs the cover of Leonard Cohen's 'Who by Fire' used as the opening theme for Bad Sisters?",
+      "expected": "PJ Harvey",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Brendan Gleeson and Jon Batiste",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What colors are used in the straight pride flag introduced by United Russia?",
+      "expected": "Red, white, blue",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Red, yellow, and black",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Netflix series did Isabel May star in as Katie Cooper?",
+      "expected": "Alexa & Katie",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Alexa & Katie",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which country undertook restoration work on Angkor Wat between 1986 and 1992 during a period when France did not recognize the Cambodian government?",
+      "expected": "India",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "France",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What kind of media franchise lists include the highest-grossing Japanese films according to the article?",
+      "expected": "Highest-grossing films",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Film franchise",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the technology company co-founded by Miles Bron in Glass Onion?",
+      "expected": "Alpha",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Moonfish",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What alien device allows Tasi to travel to another world in Amnesia: Rebirth?",
+      "expected": "Traveler's Amulet",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Echo Device",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who directed the 2023 independent Christian horror film Nefarious?",
+      "expected": "Chuck Konzelman and Cary Solomon",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Chuck Konzelman and Cary Solomon",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Phil Hartman co-wrote the film 'Pee-wee's Big Adventure' and played which recurring character on Pee-wee's Playhouse?",
+      "expected": "Captain Carl",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Marceline",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the population of Sapporo city according to the list?",
+      "expected": "1,976,257",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer this question because I could not extract the population from the Wikipedia page content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "At which film festival did 'Landscape with Invisible Hand' have its world premiere in 2023?",
+      "expected": "Sundance Film Festival",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Venice Biennale",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What language, besides English, was Harry Harrison known to speak and write with ease and often incorporated into his novels?",
+      "expected": "Esperanto",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Russian",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the abusive circus owner character in The Secret Life of Pets 2?",
+      "expected": "Sergei",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Duke",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which television series did Guillaume Brahimi co-author a book for that was later made into a TV show on SBS?",
+      "expected": "French Food Safari",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "SBS",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which company honored the Texas\u2013Texas A&M football rivalry with a special edition cereal box in 2006?",
+      "expected": "General Mills",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "General Mills",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the nickname for the border line between Aldi Nord and Aldi S\u00fcd territories in Germany?",
+      "expected": "Aldi-\u00c4quator",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "\u201cTevion\u201d and \u201cMaginon\u201d",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where is Kevin Cosgrove buried?",
+      "expected": "St. Patrick Catholic Cemetery",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "St. Mary's Church Cemetery, Cranston, Rhode Island",
+          "correct": false,
+          "num_turns": 3
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who introduced Julian Sands to his second wife Evgenia Citkowitz?",
+      "expected": "John Malkovich",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Evgenia Citkowitz",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the ZIP code of Newton, Georgia?",
+      "expected": "39870",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "39870",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which company is developing the Panther KF51 battle tank?",
+      "expected": "Rheinmetall",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Rheinmetall",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who composed the majority of the musical score for the 1977 miniseries Roots?",
+      "expected": "Gerald Fried",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Alan Etter and Charles Fox",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which former UFC champion did Jake Paul defeat by unanimous decision in October 2022?",
+      "expected": "Anderson Silva",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Anderson Silva",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which actor reprises the role of Dalton Lambert in Insidious: The Red Door?",
+      "expected": "Ty Simpkins",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Hiam Abbass",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which actor played King Louis XV in the film Jeanne du Barry?",
+      "expected": "Johnny Depp",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Michel Serrault",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In what year did Peter Laviolette become the head coach of the Nashville Predators?",
+      "expected": "2014",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "2013",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which New York neighborhood did actor Jeremy Allen White grow up?",
+      "expected": "Carroll Gardens, Brooklyn",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The text does not provide information about Jeremy Allen White\u2019s childhood neighborhood.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the problem that uses SVD to compute the optimal rotation aligning one set of points with another, often used in molecular structure comparison?",
+      "expected": "Kabsch algorithm",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "bilateral filtering",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Russian political party introduced a straight pride flag in 2015?",
+      "expected": "United Russia",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Liberal Democratic Party",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where did James Dougherty move to after marrying Rita Lambert in 1974?",
+      "expected": "Sabattus, Maine",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Sabattus, Maine",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which alien species takes over Earth in the film 'Landscape with Invisible Hand'?",
+      "expected": "Vuvv",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Vuvv",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "On what date was the PAW Patrol episodes list last revised according to the given timestamp?",
+      "expected": "2019-07-26",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "November 29, 2023",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "How many episodes were there in the Korean drama 'Sunlight Pours Down'?",
+      "expected": "16 episodes",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "36",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the original name of Adobe Premiere before being acquired and renamed by Adobe?",
+      "expected": "ReelTime",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Macromedia Premiere",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which TVP channel is primarily focused on regional programming and local stations?",
+      "expected": "TVP3",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "TVP",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What time was the PAW Patrol episodes list last revised according to the given timestamp?",
+      "expected": "15:55:50Z",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer this question because the page \"paw_patrol_episodes\" was not found in Wikipedia. The search returned an error indicating that the page does not exist.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which Japanese province was Miyamoto Musashi most probably born?",
+      "expected": "Mimasaka Province",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Bizen Province",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the approximate worldwide gross revenue of The Expendables (2010)?",
+      "expected": "$274.5 million",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am sorry, I cannot answer your question because the page does not contain the information about the approximate worldwide gross revenue of The Expendables (2010).",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the podcast co-hosted by Ayo Edebiri and Olivia Craighead?",
+      "expected": "Iconography",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Iconography",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the nickname of Anchorage known for its summer floral displays?",
+      "expected": "The City of Lights and Flowers",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Anchorage",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which future famous actor appeared as an uncredited extra in 'Prince of the City'?",
+      "expected": "Bruce Willis",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Robert De Niro",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What major security incident involving Yahoo was disclosed in 2016 affecting at least 500 million user accounts?",
+      "expected": "2014 data breach",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Yahoo suffered a massive data breach in 2016 that affected approximately 500 million user accounts.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is Jharrel Jerome's ethnic descent?",
+      "expected": "Dominican",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The provided text does not contain information about Jharrel Jerome's ethnic descent.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which character did Gustaf Skarsg\u00e5rd play in the Netflix series Cursed?",
+      "expected": "Merlin",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Nico",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the band formed by Clint Howard in 1981?",
+      "expected": "The Kempsters",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Kempsters",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which arts college did Hunter Schafer defer enrollment to focus on her career?",
+      "expected": "Central Saint Martins",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Saint Martins",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which song is the theme tune for The Office (British TV series), arranged by Big George?",
+      "expected": "Handbags and Gladrags",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "There's No Postman",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which literary movement is 'The King in Yellow' associated with?",
+      "expected": "Decadent movement",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Decadent movement",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which M\u0101ori god's eyes are said to have become the Matariki stars according to tradition?",
+      "expected": "T\u0101whirim\u0101tea",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "T\u0101whirim\u0101tea",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which character in Good Trouble leaves to join the ACLU in Washington, D.C. in season 4?",
+      "expected": "Callie Adams Foster",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I\u2019m sorry, I cannot answer this question based on the available Wikipedia content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which opera by Rimsky-Korsakov was based on a short story by Nikolai Gogol and marked a creative renewal after a period of creative drought?",
+      "expected": "Christmas Eve",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Sh\u0113r\u012b\u00bb (\u0428\u0435\u0445\u0435\u0440\u0430\u0437\u0430\u0434\u0430) was based on a short story by Nikolai Gogol and marked a creative renewal after a period of creative drought.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which update reintroduced human non-player characters to Fallout 76?",
+      "expected": "Wastelanders",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Update 24",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In the Maemo operating system, what does activating 'Red Pill Mode' in the application installer allow a user to do?",
+      "expected": "View and reconfigure system packages",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "activating 'Red Pill Mode' allows a user to view and reconfigure system packages that the installer normally doesn\u2019t acknowledge.",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which early 20th-century physicist first experimented with Monte Carlo methods in neutron diffusion but did not publish the work?",
+      "expected": "Enrico Fermi",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Panayat Papanicolao",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the composer responsible for the music in Amnesia: Rebirth?",
+      "expected": "Mikko Tarmia",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Mikko Tarmia",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which animation studio produced the animation for The War of the Rohirrim?",
+      "expected": "Sola Entertainment",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Bros. Animation",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In what year did Laika become the first earthling to orbit the Earth?",
+      "expected": "1957",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "1957",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Against which team did Andrej Kramari\u0107 score five goals in a single Croatian league match in November 2014?",
+      "expected": "Lokomotiva",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Werder Bremen",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the highest grade of the Knight's Cross of the Iron Cross awarded to Hans-Ulrich Rudel?",
+      "expected": "Golden Oak Leaves, Swords, and Diamonds",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Eisetzadel",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the primary method used for diagnosing Treacher Collins syndrome?",
+      "expected": "Based on symptoms and X-rays",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The primary method used for diagnosing Treacher Collins syndrome is a clinical examination, often combined with genetic testing.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which Broadway play did Bobby Cannavale make his debut, earning a Tony Award nomination for Best Featured Actor in a Play?",
+      "expected": "Mauritius",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Crucible",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which football club owns a 44% minority stake in Leeds United as of the 2022\u201323 season?",
+      "expected": "49ers Enterprises",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Manchester City",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the global media and production company founded by Kevin Hart in 2017?",
+      "expected": "Laugh Out Loud Productions",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Hartslag Media",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the nationality and genre of the television series Bad Sisters?",
+      "expected": "Irish black comedy",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The nationality of Bad Sisters is Irish and the genre is black comedy thriller.",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which university did Matteo Lane attend for his Bachelor of Fine Arts degree?",
+      "expected": "School of the Art Institute of Chicago",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Information not found.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What kind of rock is predominantly found in the peak ring borehole M0077A related to the Chicxulub impact?",
+      "expected": "Pink granite",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "carbonate",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which city in Japan ceased to exist as a city on July 1, 1943?",
+      "expected": "Tokyo City",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Tokyo",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What term is used to describe the celebration of reaching one billion seconds in Unix time?",
+      "expected": "Unix billennium",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "one billion seconds",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What time standard is used universally in aviation for flight plans and air traffic control?",
+      "expected": "UTC",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "UTC",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which song is used as the opening theme for the TV series Bad Sisters, and who performs it?",
+      "expected": "\"Who by Fire\" by PJ Harvey",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I apologize, but I was unable to extract the requested information about the opening theme song from the Wikipedia article.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which visual production company collaborated with Blackpink's Born Pink World Tour?",
+      "expected": "Ceremony London",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Ceremony London",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which real-life hype man stars as himself in the series Dave?",
+      "expected": "GaTa",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Jaboukie Young-White",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "For which 1993 film did Fred Ward and the ensemble win a Golden Globe Special Ensemble Cast Award?",
+      "expected": "Short Cuts",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The film is *Seven*.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which company released Annihilation digitally in many countries shortly after its theatrical release?",
+      "expected": "Netflix",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Skydance Media",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the profession of Mamoudou Athie's father who received asylum in the U.S.?",
+      "expected": "Diplomat",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "diplomat",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which company distributed the film Nefarious in 2023?",
+      "expected": "Soli Deo Gloria Releasing",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Soli Deo Gloria Releasing",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "At what age did Parveen Kaur move to Toronto to pursue her career?",
+      "expected": "18",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The article does not specify the age at which she moved to Toronto.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What university did Tiffany Thornton attend where she sang the national anthem at sporting events?",
+      "expected": "Texas A&M University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "A&M University",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who composed the music for the film 'Landscape with Invisible Hand'?",
+      "expected": "Michael Abels",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Michael Abels",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who is Adam Conover's younger sister, who is a science reporter and holds a PhD in physics?",
+      "expected": "Emily Conover",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Emily Conover",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which player holds the record for the most goals scored for the Norway national football team?",
+      "expected": "J\u00f8rgen Juve",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Erling Haaland",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What congenital disease affecting the cornea did Gabe Newell suffer from and later get cured by cornea transplants?",
+      "expected": "Fuchs' dystrophy",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Gabe Newell suffered from corneal scarring, which led to a significant reduction in vision.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the minimum gross revenue for media franchises to be included in the highest-grossing list?",
+      "expected": "$2 billion",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to determine the minimum gross revenue from the available Wikipedia page content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What sport did Katee Sackhoff plan to pursue before a knee injury led her to acting?",
+      "expected": "Swimming",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "soccer",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "On which game show adaptation did Adam Conover serve as host starting in 2020 on Nickelodeon?",
+      "expected": "The Crystal Maze",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Nickelodeon",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which sport did Paul Mescal play competitively before focusing on acting?",
+      "expected": "Gaelic football",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He played Gaelic football competitively before focusing on acting.",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What was the name of Billy Crystal's 1985 stand-up comedy album?",
+      "expected": "Mahvelous!",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "When Comedy Does Occur",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What anime series features 'Idol' as its opening theme?",
+      "expected": "Oshi no Ko",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Sword Art Online",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Blue Beetle character was a genius-level inventor and used gadgets to fight crime without superpowers?",
+      "expected": "Ted Kord",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Jaime Reyes",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which culture is traditionally associated with the origin of the Celtic language in central Europe around 1200 BC?",
+      "expected": "Urnfield culture",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Central Europe",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who was the English-born Australian serial killer known as 'The Baby Farming Murderess' executed in 1894?",
+      "expected": "Frances Knorr",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Ed Gein",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which year did Guillaume Brahimi receive the Knight of the National Order of Merit from the French government?",
+      "expected": "2014",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "1987",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which well-known actor portrays the oncologist Dr. Atticus Sherman in seasons 2 to 4 of The Big C?",
+      "expected": "Alan Alda",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Pauline Burroughs",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who is credited with adding the white color to the blue and red cockade to form the French tricolour?",
+      "expected": "Marquis de Lafayette",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Joseph-Marie Cont\u00e9",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where was boygenius's debut EP recorded?",
+      "expected": "Sound City Studios, Los Angeles",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "City Studios in Los Angeles",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which animated film did Pharrell Williams co-compose the score for alongside Hans Zimmer and Heitor Pereira?",
+      "expected": "Despicable Me",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Paddington 2",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What award did Bad Sisters win in 2022 recognizing excellence in storytelling?",
+      "expected": "Peabody Award",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Bad Sisters won the BAFTA Award for Best Comedy in 2023.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which character did James Cromwell portray in the film Star Trek: First Contact?",
+      "expected": "Zefram Cochrane",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Quark",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Neil Patrick Harris was the first openly gay man to host which major awards ceremony in 2015?",
+      "expected": "Academy Awards",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Academy Awards",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "As of October 13, 2021, which record did Peter Laviolette break in the NHL?",
+      "expected": "Winningest American-born head coach",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He broke Patrick Roy\u2019s record for most losses by an NHL head coach with 96.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which company is distributing the film 'Landscape with Invisible Hand' theatrically?",
+      "expected": "Metro-Goldwyn-Mayer",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Metro-Goldwyn-Mayer",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which famous painting features as a major plot point in Glass Onion?",
+      "expected": "Mona Lisa",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Starry Night",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which type of crab, the largest terrestrial hermit crab, is native to Okinawa Island?",
+      "expected": "Coconut crab",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "road",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which type of revenue data is used to estimate the total revenue of the highest-grossing media franchises?",
+      "expected": "Publicly available data",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The article does not provide specific details on the revenue data used to estimate the total revenue of the highest-grossing media franchises.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which author wrote an essay questioning whether a fully informed person would choose the red pill in The Matrix?",
+      "expected": "Russell Blackford",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Michael Malice",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which reality TV show did Nastassia Bianca Schroeder appear on with her family in 2005?",
+      "expected": "The Amazing Race 8",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "She appeared on the reality TV show *Girls Next Door* with her family in 2005.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What role did Norah O'Donnell assume at CBS Evening News starting July 15, 2019?",
+      "expected": "Anchor and managing editor",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "She was named anchor and managing editor of the CBS Evening News starting July 15, 2019.",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which benefit concert did boygenius headline in November 2021?",
+      "expected": "Bread and Roses annual benefit concert",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "November 19, 2021",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the approximate perimeter length of the moat surrounding Angkor Wat?",
+      "expected": "Over 5 kilometres",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "<answer>The moat is approximately 12 meters (39 feet) wide and 3.4 kilometers (2.1 miles) long, giving a total perimeter of around 6.8 kilometers (4.2 miles).</answer",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which hull type allows a motor yacht to exceed speed limits typical of displacement hulls by rising somewhat out of the water?",
+      "expected": "Semi-displacement hull",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Semi-displacement hull",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "How many subspecies of American black bears are traditionally recognized?",
+      "expected": "16 subspecies",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Traditionally, three subspecies of American black bears are recognized: the eastern black bear, the southwestern black bear, and the coastal brown bear. However, the classification of these subspecies is debated among scientists.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the wine Stassi Schroeder launched in partnership with Kristen Doute and Katie Maloney-Schwartz?",
+      "expected": "Basic Witch Potion",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Basic Witch Potion No. 1",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "In which Paramount+ western limited series did Isabel May play the lead role and narrator Elsa Dutton?",
+      "expected": "1883",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Isabel May",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "For which Canadian comedy series did Elisha Cuthbert receive a Canadian Screen Award nomination for Best Guest Performance?",
+      "expected": "Jann",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Schitt\u2019s Creek",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who popularized the political use of the red pill metaphor in a 2007 blog post titled 'The Case Against Democracy: Ten Red Pills'?",
+      "expected": "Curtis Yarvin",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Etan Cohen",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which actor and director, also related to Talia Balsam, is her uncle?",
+      "expected": "Tim Van Patten",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Phil Burbank",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which group provided the background shout vocals in the song 'Idol'?",
+      "expected": "Real Akiba Boyz",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Mamas & The Papas",
+          "correct": false,
+          "num_turns": 3
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which composer replaced Alexandre Desplat to score the film Black Widow?",
+      "expected": "Lorne Balfe",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Danny Elfman",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who was Linda Hamilton married to when she had a $50 million divorce settlement in 1999?",
+      "expected": "James Cameron",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Linda Hamilton was not married in 1999.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What family game show did Adam Conover host the American adaptation of on Nickelodeon starting in 2020?",
+      "expected": "The Crystal Maze",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Nickelodeon",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which video game studio developed the original 2004 game Fable?",
+      "expected": "Big Blue Box Studios",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Lionhead Studios",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "In which year did Andrej Kramari\u0107 make his debut for the Croatian senior national team?",
+      "expected": "2014",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "2013",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who composed the music for the Korean television series Dr. Romantic?",
+      "expected": "Jeon Chang-yeop",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Lee Min-jae",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was Peter Boyle's birthplace?",
+      "expected": "Norristown, Pennsylvania",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Peter Boyle was born in Chicago, Illinois.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the name of the morning radio show Tiffany Thornton co-hosted on 105.9 KLAZ?",
+      "expected": "Kramer and Tiffany",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Kramer and Tiffany",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the typical lifespan of an American black bear in the wild?",
+      "expected": "18 years",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The typical lifespan of an American black bear in the wild is 20-30 years, although some individuals can live longer.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where did Miles Teller and Keleigh Sperry get married in 2019?",
+      "expected": "Maui, Hawaii",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am sorry, I cannot answer this question based on the provided Wikipedia page content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which magnesium isotope is the most abundant in nature, making up about 79% of magnesium?",
+      "expected": "24Mg",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Magnesium-26",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which serious health condition was Norah O'Donnell diagnosed with in 2016?",
+      "expected": "Melanoma",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "melanoma",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who is the creator of the original Flemish series Clan, on which Bad Sisters is based?",
+      "expected": "Malin-Sarah Gozin",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The series was created by Tony Leondis.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Wiz Khalifa single, a tribute to his hometown, peaked at number 1 on the Billboard Hot 100?",
+      "expected": "Black and Yellow",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Shape of Me",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which two countries are notably mentioned for blocking access to certain news information on the Internet?",
+      "expected": "China and Singapore",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "China and Russia",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the training facility on the North Carolina\u2013Virginia border owned by Blackwater?",
+      "expected": "Blackwater Lodge and Training Center",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Little Creek Training Facility",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which 1996 film is Twisters a new chapter of?",
+      "expected": "Twister",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Twisters was a new chapter of the original film",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What schema format is used in the document containing the Untitled Alien film revision?",
+      "expected": "JSON",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "JSON",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What was the cause of Cat Stevens' near-death experience in 1969 that led to his spiritual awakening?",
+      "expected": "Tuberculosis",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He suffered a severe stroke in 1969, which led him to question his lifestyle and ultimately embrace Islam.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Disney artist appears as himself in Once Upon a Studio?",
+      "expected": "Burny Mattinson",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Walt Disney",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which comedian provides narration on Tyler, the Creator's album Igor?",
+      "expected": "Jerrod Carmichael",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Childish Gambino",
+          "correct": false,
+          "num_turns": 3
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where is the global headquarters of Falun Gong located?",
+      "expected": "Dragon Springs, New York",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Shenzhen, Guangdong, China",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which historian and ethnologist conducted investigations of the Utsuro-bune story in 1925 and 1962?",
+      "expected": "Yanagita Kunio",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The historian and ethnologist who conducted investigations of the Utsuro-bune story in 1925 and 1962 was In\u014d Tadataka.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Russian diplomat had a notable Twitter interaction with NAFO members that helped bring the group to mainstream prominence?",
+      "expected": "Mikhail Ulyanov",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Sergey Brin",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the motto of Banca Mediolanum associated with the Doris family?",
+      "expected": "Banca Mediolanum, costruita intorno a te",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Elayi, J. 2013.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which book by Maxine Beneba Clarke won the 2013 Victorian Premier's Unpublished Manuscript Award?",
+      "expected": "Foreign Soil",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Soil",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which conference is associated with the introduction of the F-measure name according to its etymology?",
+      "expected": "Message Understanding Conference (MUC-4)",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Fourth Message Understanding Conference (MUC-4)",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "For which English Premier League club did Andrej Kramari\u0107 play before joining Hoffenheim?",
+      "expected": "Leicester City",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Crystal Palace",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What percentage of University of Texas students voted in favor of reinstating the football rivalry in a 2017 referendum?",
+      "expected": "96.71%",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to determine the exact percentage of University of Texas students who voted in favor of reinstating the football rivalry in a 2017 referendum based on the available Wikipedia page content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where is the bronze statue of Richard Winters, unveiled in 2012, located?",
+      "expected": "Sainte-Marie-du-Mont, France",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The bronze statue is located in West Point, New York.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which South Korean television network aired the series 'Sunlight Pours Down' in 2004?",
+      "expected": "SBS",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "SBS",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which actress known for supernatural teen dramas stars as Kristin Ramsey in Wolf Pack?",
+      "expected": "Sarah Michelle Gellar",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Lyrica Houston",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What record did the song 'Idol' break regarding streaming numbers in Japan?",
+      "expected": "Fastest to 100 and 200 million streams",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "It broke the record for the most streams of a Japanese song by a global artist within its first 24 hours on streaming platforms in Japan.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which animated Disney short film accompanied Once Upon a Studio's theatrical release in November 2023?",
+      "expected": "Wish",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Wish (film)",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which university did Maxine Beneba Clarke attend for her Bachelor of Creative Arts and law degree?",
+      "expected": "University of Wollongong",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "University of Wollongong",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What term is used to describe action-adventure games that are similar in gameplay and design to the Grand Theft Auto series?",
+      "expected": "Grand Theft Auto clone",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "open world action adventure games",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the restaurant Guillaume Brahimi ran at the Sydney Opera House?",
+      "expected": "Guillaume at Bennelong",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Bennelong",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the title of the 1998 film adaptation about slavery and African American history?",
+      "expected": "Beloved",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "12 Years a Slave",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In what year were apartheid laws repealed, leading to the first multiracial elections in South Africa?",
+      "expected": "1991",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "1994",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "At what age was Mckenna Grace diagnosed with scoliosis?",
+      "expected": "16",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer this question based on the available Wikipedia content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which song by Troye Sivan became his first to enter the top 40 of the Billboard Hot 100 chart?",
+      "expected": "Youth",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Best of Both Worlds",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In what year did the pilot episode of 'Jake and the Fatman' air as part of the 'Matlock' series?",
+      "expected": "1986",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "1983",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "For which film did Bruce Dern receive an Academy Award nomination for Best Actor?",
+      "expected": "Nebraska",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Missouri Breaks",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which actress played the lead role of Katie Otto in American Housewife?",
+      "expected": "Katy Mixon",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Katy Sherman",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What injury did \u0130lkay G\u00fcndo\u011fan suffer in December 2016 while playing for Manchester City?",
+      "expected": "Cruciate ligament tear",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He suffered a hamstring injury.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Under which Michelin-starred chef did Guillaume Brahimi train in Paris?",
+      "expected": "Joel Robuchon",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Joel Robuchon",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "In which magazine has the Black Clover manga been serialized since 2015?",
+      "expected": "Weekly Sh\u014dnen Jump",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "2015",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which 2023 film features Glenn Howerton in the role of Jim Balsillie?",
+      "expected": "BlackBerry",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Jim Balsillie",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What record did Jayson Tatum set during the 2023 NBA All-Star Game?",
+      "expected": "55 points",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "443",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which color broadcasting standard did TVP start using in 1971?",
+      "expected": "SECAM",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "RGB",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which year was Hunter Schafer listed on Teen Vogue's '21 Under 21' list for her activism?",
+      "expected": "2017",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "2017",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which two countries joined the Commonwealth in 2022 despite never having been under British rule?",
+      "expected": "Togo and Gabon",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer this question based on the provided Wikipedia content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the telehealth company founded by Phil McGraw in 2012?",
+      "expected": "Doctor On Demand",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Well",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What award did Anh Do win in 2017 for his portrait of Jack Charles?",
+      "expected": "Archibald Prize People's Choice",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Anh Do won a Logie Award in 2017.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who did Julianne Hough partner with to become the youngest professional dancer to win Dancing with the Stars?",
+      "expected": "Apolo Ohno",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Hannah Montana",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Joe Pesci helped introduce which two singers to songwriter Bob Gaudio, leading to the formation of The Four Seasons?",
+      "expected": "Frankie Valli and Tommy DeVito",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Frankie Valli and Tommy DeVito",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which season of '24' received universal critical acclaim and was praised as the best?",
+      "expected": "Season 5",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Season 2",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "At which annual event was the PXL2000 invention rights sold to Fisher-Price?",
+      "expected": "American International Toy Fair",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "1983",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In 'Sunlight Pours Down', what disease causes the death of Ji Yeon-woo's mother?",
+      "expected": "Wilson's disease",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Alzheimer's disease",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which 2021 collaborative album did Lil Durk release with Lil Baby that debuted at number one on the Billboard 200?",
+      "expected": "Voice of the Heroes",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Paint the Town Red",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "How many seasons did 'The Haves and the Have Nots' run before its series finale?",
+      "expected": "8 seasons",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "8",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which animated film did Jonah Hill voice the character Green Lantern?",
+      "expected": "The Lego Movie",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Br\u00fcno",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the expansion in Assassin's Creed Valhalla that is set in Ireland?",
+      "expected": "Wrath of the Druids",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "War of the Roses",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which role did Bobby Cannavale play in the Marvel Cinematic Universe films Ant-Man and Ant-Man and the Wasp?",
+      "expected": "Jim Paxton",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He has not played any roles in the Marvel Cinematic Universe films Ant-Man and Ant-Man and the Wasp.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which type of firearm is used in approximately 77.2% of mass public shootings in the US according to the 2022 Institute of Justice dataset?",
+      "expected": "Handguns",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "AR-15",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Taylor Swift single was the first to debut atop both the Billboard 200 and Hot 100 in the same week?",
+      "expected": "Cardigan",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Blank Space",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which star is known as the 'wishing star' in M\u0101ori tradition during Matariki?",
+      "expected": "Hiwa-i-te-rangi",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Papat\u016b\u0101nuku",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Disney Channel series did Jake Paul act in before being fired due to neighborhood complaints?",
+      "expected": "Bizaardvark",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "SpongeBob SquarePants",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which software category comparisons are suggested as related to YouTube downloaders?",
+      "expected": "BitTorrent clients, file-sharing applications, download managers",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Software comparison",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which state was Gordon Granger born?",
+      "expected": "New York",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Texas",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which character does Samuel L. Jackson play in the film Spiral?",
+      "expected": "Chief Marcus Banks",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Isaiah Moore",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What record did Andrej Kramari\u0107 achieve on 24 January 2021 in the Bundesliga?",
+      "expected": "Top Croatian goalscorer",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He scored 84 goals in the Bundesliga.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which streaming platforms offer Dr. Romantic in selected regions?",
+      "expected": "Disney+, Kocowa, Viki, Viu",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to provide the specific streaming platforms offering Dr. Romantic due to a lack of readily available information in the Wikipedia page content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "For which film did Tenoch Huerta win the Ariel Award for Best Actor in 2012?",
+      "expected": "D\u00edas de Gracia",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "D\u00edas de Gracia",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who are traditionally credited as the founders of the Iroquois League?",
+      "expected": "Dekanawida, Hiawatha, Jigonsaseh",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "the Mohawk, Onondaga, Oneida, Cayuga, and Seneca",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who composed the majority of the music for the video game Fable?",
+      "expected": "Russell Shaw",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Howard Shore",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is Edward Furlong's ethnic descent on his mother's side?",
+      "expected": "Mexican",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am sorry, but I cannot answer your question based on the available Wikipedia page content. The text does not contain information about Edward Furlong\u2019s ethnic descent on his mother\u2019s side.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What university did Phil McGraw graduate from with a BA in psychology?",
+      "expected": "Midwestern State University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Baylor University",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which country did the filming of Poor Things begin in August 2021?",
+      "expected": "Hungary",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "United Kingdom",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the name of the syndicated daytime talk show hosted by Anderson Cooper from 2011 to 2013?",
+      "expected": "Anderson Live",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Talk",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Name the Canadian serial killer known as 'The Boozing Barber' who killed women by alcohol poisoning.",
+      "expected": "Gilbert Paul Jordan",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He was known as \"The Boozing Barber\".",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the title of Mckenna Grace's 2023 EP music release?",
+      "expected": "Bittersweet 16",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Bittersweet 16",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "At which memorial panel number is Kevin Cosgrove's name inscribed at the National September 11 Memorial?",
+      "expected": "Panel S-60",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Panel S-60",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What role did Isabel May play on the CBS series Young Sheldon?",
+      "expected": "Veronica Duncan",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Isabel May starred as Zoe Hull in the Paramount+ series *1883* and was the narrator for both *1883* and *1923*. She also played Katie Cooper on *Alexa & Katie* and Georgie\u2019s love interest on *Young Sheldon*.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "At which university was John Rhys-Davies one of the first 105 students admitted and co-founded its drama club?",
+      "expected": "University of East Anglia",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The information about where John Rhys-Davies attended university is not available on Wikipedia.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which ancient civilization first used the term 'Iberia' to describe the Iberian Peninsula around 500 BCE?",
+      "expected": "Hecataeus of Miletus",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Phoenicians",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which coalition countries contributed troops to the initial 2003 invasion of Iraq?",
+      "expected": "United States, United Kingdom, Australia, Poland",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "United Kingdom",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which band was Buddy Holly's first major hit single 'That'll Be the Day' credited to?",
+      "expected": "The Crickets",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Big Bopper",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which character did Parveen Kaur portray in the TV series Manifest?",
+      "expected": "Saanvi Bahl",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Michalski",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What two forces do the unicursal hexagram and the pentagram together represent in Thelema?",
+      "expected": "Planetary and elemental forces",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The unification of opposites and the interplay of masculine and feminine.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which amendment to the United States Constitution is mentioned in connection with African American history?",
+      "expected": "Fourteenth Amendment",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Twenty-Seventh Amendment to the United States Constitution prohibits congressional pay raises during a term of office.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the estimated prevalence of dissociative identity disorder in the general population?",
+      "expected": "1.5\u20132%",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "It is estimated that between 1% and 5% of the population experiences dissociative identity disorder at some point in their lives.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which island in Haiti is known as the most densely populated island in the world?",
+      "expected": "Ilet a Brouee",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Cartagena",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the nickname given to Bruno Mars by his father when he was two years old?",
+      "expected": "Bruno",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Wondaland Tour",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which award did Bad Sisters win in 2023 for Best Drama Series?",
+      "expected": "BAFTA",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Best Limited Series",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the serial number/name of the Blue Beetle scarab artifact?",
+      "expected": "Khaji Da",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The scarab's serial number is Khepri.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which member of The Temptations was known for suffering from sickle-cell disease and alcoholism before his death in 1973?",
+      "expected": "Paul Williams",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Elton \"Albee\" Broadnax",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which country was actor Glenn Howerton born?",
+      "expected": "Japan",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Canada",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who is the producer that worked on multiple Kings of Leon albums including their debut and 'Only by the Night'?",
+      "expected": "Angelo Petraglia",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Rick Rubin",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the character who is a high-powered New York City career woman and oldest O'Brien sibling in Chesapeake Shores?",
+      "expected": "Abby O'Brien-Winters",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Maren Frye",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the birthplace of Tenoch Huerta?",
+      "expected": "Ecatepec de Morelos",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Ecatepec de Morelos, Mexico",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the name of the feature film John Slattery directed that premiered at the 2014 Sundance Film Festival?",
+      "expected": "God's Pocket",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "God\u2019s Pocket",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which Neil Gaiman novel was adapted into a stage play at the Royal National Theatre in London?",
+      "expected": "The Ocean at the End of the Lane",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "American Gods",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who was John Joel Glanton's second-in-command in his scalp-hunting gang according to Samuel Chamberlain's memoir?",
+      "expected": "Judge Holden",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "A.J. Eddleman",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the first Taylor Swift single to reach number one in the United States?",
+      "expected": "We Are Never Ever Getting Back Together",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "\u201cTim McGraw\u201d",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "For which Academy Award category was '13 Hours: The Secret Soldiers of Benghazi' nominated?",
+      "expected": "Best Sound Mixing",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "It was nominated for Best Documentary Feature.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which category includes franchises with total estimated revenue figures based on publicly available data?",
+      "expected": "Highest-grossing media franchises",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer the question because the categories section was not found in the Wikipedia page.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What technology does the Apple Vision Pro use for iris recognition authentication?",
+      "expected": "Optic ID",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "LiDAR and infrared cameras",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Edo period author composed the Toen sh\u014dsetsu text that contains the most detailed version of the Utsuro-bune legend?",
+      "expected": "Kyokutei Bakin",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Mochiharu (Tokugawa)",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which series of MasterChef Australia introduced judges Andy Allen, Melissa Leong, and Jock Zonfrillo?",
+      "expected": "Series 12",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Andy Allen, Melissa Leong, and Jock Zonfrillo",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What percentage of Spotify\u2019s voting rights does Martin Lorentzon hold?",
+      "expected": "43.3%",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer this question because the provided Wikipedia page does not contain the percentage of Spotify\u2019s voting rights held by Martin Lorentzon.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which upcoming thriller film will Isabel May star in opposite Jurnee Smollett?",
+      "expected": "Sunflower",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Isabel May will star in opposite Jurnee Smollett in the upcoming thriller film *The Woman King*.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which streaming platform acquired the worldwide rights to Earwig and the Witch excluding Japan and the United States?",
+      "expected": "Netflix",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "HBO Max",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which U.S. President appointed Shirley Temple as the United States Ambassador to Ghana?",
+      "expected": "Gerald Ford",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Gerald Ford",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "In which Guillermo del Toro horror drama series did Parveen Kaur have her first recurring role?",
+      "expected": "The Strain",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Strain",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What congenital disease affecting the cornea did Gabe Newell suffer from before receiving two transplants?",
+      "expected": "Fuchs' dystrophy",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Fuchs' dystrophy",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the name of Napoleon Dynamite's best friend who runs small businesses?",
+      "expected": "Deb",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Uncle Rico",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which mathematician first introduced the idea of a worldwide system of time zones in 1858?",
+      "expected": "Quirico Filopanti",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Charles F. Dowd",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which vehicle holds the overall electric lap record on the modern N\u00fcrburgring Nordschleife?",
+      "expected": "Volkswagen I.D. R",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Volkswagen I.D. R",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "For which film did Hayden Christensen earn nominations for both a Golden Globe and a Screen Actors Guild Award?",
+      "expected": "Life as a House",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Wars: The Rise of Skywalker",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Before his career in filmmaking, which law firm did Jonathan Goldstein work for as a corporate litigator?",
+      "expected": "Jones Day",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Jones, Day, Reavis & Pogue",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who was the leader of the Student Revolutionary Directorate that attempted the 1957 Presidential Palace attack?",
+      "expected": "Jos\u00e9 Antonio Echeverr\u00eda",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The article does not explicitly state the leader of the Student Revolutionary Directorate.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which German field marshal was the only recipient of the Grand Cross of the Iron Cross during World War II?",
+      "expected": "Hermann G\u00f6ring",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Walther von Braun",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which film did Linda Hamilton make her big-screen debut?",
+      "expected": "The Assassination Game",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Terminator 2: Judgment Day",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which year did Julianne Hough win the Emmy Award for Outstanding Choreography together with her brother Derek Hough?",
+      "expected": "2015",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "2011",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who illustrated Maxine Beneba Clarke's picture book 'The Patchwork Bike'?",
+      "expected": "Thanh Rudd",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Lemmy Kilmister",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who is the author of the 1970 middle-grade novel featuring Margaret Simon as the protagonist?",
+      "expected": "Judy Blume",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Peter Benchley",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which university was Kirk Douglas's alma mater, to which he donated $5 million in 2012?",
+      "expected": "St. Lawrence University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "University of Southern California",
+          "correct": false,
+          "num_turns": 3
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the profession of the character Choi Kang-ho in The Good Bad Mother before his amnesia?",
+      "expected": "Prosecutor",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Police officer",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "How many seasons of Dave were confirmed as of April 2023?",
+      "expected": "3 seasons",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to determine the exact number of confirmed seasons as of April 2023 based on the available Wikipedia content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the approximate budget of 'Prince of the City' and how much did it gross at the box office?",
+      "expected": "$8.6 million budget, $8 million gross",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "(no answer)",
+          "correct": false,
+          "num_turns": 3
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the alma mater of Jonathan Goldstein for his undergraduate studies?",
+      "expected": "University of Michigan",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am sorry, but I cannot answer your question because the Wikipedia page does not contain information about Jonathan Goldstein\u2019s alma mater.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is Matteo Lane's ethnic descent through his mother?",
+      "expected": "Mexican and Italian",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Italian",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What river marks the division between the Northern and Southern Levant?",
+      "expected": "Litani River",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Euphrates",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Song of Ice and Fire novel did George R. R. Martin originally intend The Winds of Winter to be the final installment of the series before expanding it?",
+      "expected": "Originally a trilogy",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "A Feast for Crows",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Before becoming an actor, which branch of the military did Fred Ward serve in?",
+      "expected": "United States Air Force",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "United States Air Force",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "In what year was Newton, Georgia founded?",
+      "expected": "1837",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "1837",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which modeling agency did Kendall Jenner sign with in November 2013 that marked her transition to high fashion?",
+      "expected": "The Society Management",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "PINZ",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which American grocery chain does Aldi Nord own?",
+      "expected": "Trader Joe's",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Schwarz Gruppe",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which television series did Edward Furlong appear as Shane Casey in five episodes?",
+      "expected": "CSI: NY",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Wire",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who composed the opening theme 'Bel Ami' for the TV series Good Trouble?",
+      "expected": "Kim Bingham",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Joseph Lehman",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the caliber of the main gun on the Panther KF51 battle tank?",
+      "expected": "130 mm",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "105mm",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the title of the German novel that the 1998 film The Parent Trap is based on?",
+      "expected": "Lisa and Lottie",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Das doppelte Lottchen",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What notable facial feature does Richard Thomas have that led to him being turned down for a TV commercial role in his youth?",
+      "expected": "Nevus on left cheek",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He had a prominent birthmark on his chin.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the common average number of identities reported by individuals diagnosed with dissociative identity disorder?",
+      "expected": "Approximately 16",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "<answer>The exact common average number of identities reported by individuals with DID is difficult to pinpoint from the available Wikipedia article, as it doesn't provide a specific numerical value.</answer",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which university did Peter Laviolette attend for college ice hockey?",
+      "expected": "Westfield State University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am sorry, I cannot answer your question because the Wikipedia page does not contain the information about which university Peter Laviolette attended for college ice hockey.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What common 1990s male-to-female hormone therapy drug is speculated to be referenced by the red pill as a transgender allegory?",
+      "expected": "Premarin",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "cyproterone",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which television series featured Austin Butler as Sebastian Kydd?",
+      "expected": "The Carrie Diaries",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Shannara Chronicles",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the peak viewership rating percentage for the series 'Sunlight Pours Down'?",
+      "expected": "14.4%",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to determine the peak viewership rating percentage for \"Sunlight Pours Down\" from the available Wikipedia page content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which 2020 film starring Isabel May had its world premiere at the Venice Film Festival?",
+      "expected": "Run Hide Fight",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Old Guard",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the maximum ROM size for Game Boy Color cartridges without additional mapper hardware?",
+      "expected": "32 KB",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Game Boy Color cartridges can have a maximum ROM size of 32 MB without additional mapper hardware.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the title of the 2023 Tasmanian noir crime comedy TV series starring Kate Box?",
+      "expected": "Deadloch",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Kate Box",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the title of the film that was initially cancelled but later revived, as listed among suspended productions during the COVID-19 pandemic?",
+      "expected": "Nimona",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The list of films impacted by the COVID-19 pandemic",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which university did Peter Boyle graduate from with a Bachelor of Arts degree?",
+      "expected": "La Salle University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "La Salle University",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who defeated Jake Paul in his first professional boxing loss via split decision?",
+      "expected": "Tommy Fury",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Anderson Silva",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where was the television series Wolf Pack primarily filmed despite being set in Southern California?",
+      "expected": "Atlanta, Georgia",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Georgia",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the title of the special that aired immediately before the Season 7 premiere of 'Who Shot Mr. Burns? (Part Two)'?",
+      "expected": "Springfield's Most Wanted",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Simpsons: Ethnic Ending Special",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which format is a superset of JSON and supports comments, unlike JSON?",
+      "expected": "YAML",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "YAML",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "At which academy did Paul Mescal study acting?",
+      "expected": "The Lir Academy",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "College Dublin",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What company did Mark Rober work for as a product designer in the Special Projects Group?",
+      "expected": "Apple Inc.",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Apple Inc.",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which type of natural disaster list excludes epidemics, famines, and the 1938 Yellow River flood?",
+      "expected": "Ten deadliest natural disasters by highest estimated death toll excluding epidemics and famines",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Tsunamis",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which college did Adam Conover attend where he earned a degree in philosophy and joined the sketch comedy group Olde English?",
+      "expected": "Bard College",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Bard College",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "For which Swedish political party\u2019s commission did Martin Lorentzon work as an immigrants' integration expert starting in 2019?",
+      "expected": "Moderate Party",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Moderate Party",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What was the estimated number of Assyrians killed during the Assyrian genocide in World War I?",
+      "expected": "275,000\u2013300,000",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to provide an exact number due to the difficulty in extracting it from the Wikipedia page content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which character did Jacob Tremblay voice in the 2021 Pixar film 'Luca'?",
+      "expected": "Luca",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Alberto",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which acting school workshop did Linda Hamilton attend in New York City?",
+      "expected": "Lee Strasberg",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Stella Adler Studio",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the name of the failed Cuban army offensive against the Sierra Maestra mountains in 1958?",
+      "expected": "Operation Verano",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Operation Barbarossa",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which animated Netflix series features Adam Conover voicing multiple characters including a Ryan Seacrest-type character?",
+      "expected": "BoJack Horseman",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Adam Conover voices multiple characters, including a Ryan Seacrest-type character, in the animated Netflix series BoJack Horseman.",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which congressional district of California has Kevin McCarthy represented since 2007, after renumbering?",
+      "expected": "California's 20th congressional district",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Kevin McCarthy represented California\u2019s 20th congressional district.",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What was the cause of Michael Clarke Duncan's death in 2012?",
+      "expected": "Respiratory failure",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He died of respiratory failure.",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which Taylor Swift song spent eight weeks at number one, marking her longest run at the top of the Billboard Hot 100?",
+      "expected": "Anti-Hero",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Eight Weeks",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the in-game region where Fallout 76 is set?",
+      "expected": "Appalachia",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "West Virginia",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which university did James Cromwell graduate from with a Bachelor of Fine Arts degree?",
+      "expected": "Carnegie Mellon University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am sorry, but I cannot answer this question because the Wikipedia article does not contain the specific information about which university James Cromwell graduated from with a Bachelor of Fine Arts degree.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What character in 'The Haves and the Have Nots' is known as 'The Ice Queen'?",
+      "expected": "Veronica Harrington",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Veronica Carlisle",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which famous Renaissance artist was part of the committee that decided the placement of Michelangelo's David?",
+      "expected": "Leonardo da Vinci",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Leonardo da Vinci",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which 1979 Atari game is credited by Brett Weiss as an early action-adventure game utilizing multiple screens as playing area?",
+      "expected": "Superman",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Complex",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What criminal act are the characters forced to commit in the Black Mirror episode 'Shut Up and Dance'?",
+      "expected": "Bank robbery",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "They are forced to commit murder.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Linda Hamilton has a twin sister; what was her twin sister's name?",
+      "expected": "Leslie Hamilton Freas",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Leslie",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the price per share for Accenture's initial public offering in July 2001?",
+      "expected": "$14.50",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am sorry, I cannot answer this question because the price per share for Accenture's initial public offering in July 2001 was not found in the Wikipedia page content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which year did Kate Box graduate from the National Institute of Dramatic Art?",
+      "expected": "2003",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "2003",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which spin-off of MasterChef Australia features professional pastry chefs competing for a prize?",
+      "expected": "Dessert Masters",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "MasterChef Australia: The Professionals",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "How many consecutive weeks did 'Idol' top the Billboard Japan Hot 100 chart?",
+      "expected": "Nine weeks",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer this question based on the available information.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "At what age did Austin Butler teach himself to play guitar?",
+      "expected": "Thirteen",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He began playing guitar at the age of 12.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Indian state was the first to adopt Hindi as its sole official language, replacing Urdu, in 1881?",
+      "expected": "Bihar",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Rajasthan",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where is George Reeves interred?",
+      "expected": "Mountain View Cemetery",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Lexington, Kentucky",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which metric is cited as a symmetrical extension of the F1 score addressing its lack of symmetry?",
+      "expected": "P4-metric",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Dice coefficient",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Showtime original series drew the largest audience for its premiere on August 16, 2010?",
+      "expected": "The Big C",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Time",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What type of engine powers the Panther KF51?",
+      "expected": "MTU MB 873 Ka-501 V-12 diesel",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "MTU Friedrichshafen MB 873 Ka-501 V-12 water-cooled diesel",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which notable Italian political figure is associated with the Doris family business network?",
+      "expected": "Silvio Berlusconi",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Doria Pamphilj",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which artist is known as the 'Godfather of House'?",
+      "expected": "Frankie Knuckles",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "David deejay",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which year did Jonas Vingegaard set a time record on the climb Coll de Rates?",
+      "expected": "2018",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am sorry, I cannot answer your question because the year Jonas Vingegaard set a time record on the climb Coll de Rates is not available in the Wikipedia page content I was able to retrieve.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who directed the 2023 short film Once Upon a Studio?",
+      "expected": "Trent Correy and Dan Abraham",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Trent Correy and Dan Abraham",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the profession of the character Ally Wernick in the series Dave?",
+      "expected": "Kindergarten teacher",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer the question because I could not find a section about characters in the Wikipedia page for \u201cDave (TV series)\u201d.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which year did the Albrecht brothers split their supermarket business into Aldi Nord and Aldi S\u00fcd?",
+      "expected": "1960",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "1965",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "From which Italian region does the Doris family originate?",
+      "expected": "Veneto",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Veneto",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who suggested the name 'Monte Carlo' for the Monte Carlo methods?",
+      "expected": "Nicholas Metropolis",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "William Webb-Hutton",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What character did Evan Rachel Wood voice in the Disney animated film Frozen II?",
+      "expected": "Queen Iduna",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Iduna",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which cinematographer worked on 'Nope' and used 65mm IMAX film for the horror genre for the first time?",
+      "expected": "Hoyte van Hoytema",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Roger Deakins",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was Jesse Ventura's ring name during his professional wrestling career?",
+      "expected": "Jesse 'The Body' Ventura",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Unknown",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which 2022 Academy Award Best Picture winner was edited using Adobe Premiere Pro?",
+      "expected": "Everything Everywhere All At Once",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "I am unable to answer this question based on the provided Wikipedia content.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Australian actor was born on June 13, 1996, and starred in The Power of the Dog?",
+      "expected": "Kodi Smit-McPhee",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Kobil Imray",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which horror film released in 2019 featured Kiernan Shipka playing a deaf teenager?",
+      "expected": "The Silence",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Kiernan Shipka",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What political position did Marco Rubio hold in the Florida House of Representatives from 2006 to 2008?",
+      "expected": "Speaker",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Rubio served as the chair of the Miami-Dade County Republican Party and was a state representative for Senate District 5.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which Belgian city was actor Johnny Galecki born?",
+      "expected": "Bree",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Los Angeles",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What award did Shelby Steele win in 1990 for his book The Content of Our Character?",
+      "expected": "National Book Critics Circle Award",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He received the Book Critics Circle Award in 1990 for his book *The Content of Our Character*.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which Shinto shrine is the head shrine of the Hachiman kami?",
+      "expected": "Usa Shrine",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Grand Mosque",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which university did Greta Lee attend for studying communication and theater?",
+      "expected": "Northwestern University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Northwestern University",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which prestigious drama school did Laurence Fox graduate from?",
+      "expected": "Royal Academy of Dramatic Art",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "RADA",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "In the FAA classification, what is the passenger enplanement range for a medium hub airport?",
+      "expected": "3,500,000-18,500,000",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The FAA does not provide a specific passenger enplanement range for medium hub airports.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where did the filming of Poor Things begin in August 2021?",
+      "expected": "Hungary",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Hungary",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the name of the clothing brand Pharrell co-founded with Japanese fashion icon Nigo?",
+      "expected": "Billionaire Boys Club",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Human Nature",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which U.S. state was Insidious: The Red Door primarily filmed?",
+      "expected": "New Jersey",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "New Jersey",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the title of the short story by Aka Akasaka that 'Idol' is based on?",
+      "expected": "45510",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Original Story by Aka Akasaka",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the werewolf alpha character in the TV series Wolf Pack?",
+      "expected": "Baron",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Uliana",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which city was principal photography for the film Nefarious conducted?",
+      "expected": "Oklahoma City",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Oklahoma City",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who was the first to describe the polar bear as a distinct species in 1774?",
+      "expected": "Constantine John Phipps",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Constantine Phipps, 2nd Baron Mulgrave",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which Canadian valley was actress Parveen Kaur raised?",
+      "expected": "Okanagan Valley",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Thompson River Valley",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What phrase originating from NAFO is used to mock pro-Russian accounts for spreading false claims?",
+      "expected": "You pronounced this nonsense",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "you pronounced this nonsense",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which Broadway musical marked Michelle Williams's debut on Broadway in 2014?",
+      "expected": "Cabaret",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Cabaret",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Who was the director of the Los Alamos Laboratory and assigned the code name 'Trinity' to the first nuclear test?",
+      "expected": "J. Robert Oppenheimer",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "J. Robert Oppenheimer",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is the source material for the TV series Wolf Pack?",
+      "expected": "2004 book by Edo van Belkom",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The TV series *Wolf Pack* is based on the 2004 novel of the same name written by Edo van Belkom.",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Linda Blair co-authored a book promoting which lifestyle that she adopted in 2001?",
+      "expected": "Veganism",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "veganism",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Which comedy group was Adam Conover a member of during his college years at Bard College?",
+      "expected": "Olde English",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Olde English",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What tattoo does Elijah Wood have below his waist on the right side?",
+      "expected": "Elvish word 'nine'",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "nine",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which company published the Mac OS X port of Fable: The Lost Chapters?",
+      "expected": "Feral Interactive",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Lionhead Studios",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who is the writer of the 2023 South Korean television series The Good Bad Mother?",
+      "expected": "Bae Se-young",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The series was written by Kim Eun-sook.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which 2004 teen comedy film starring Elisha Cuthbert earned her an MTV Movie Award nomination for Best Breakthrough Performance?",
+      "expected": "The Girl Next Door",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Mean Girls",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In what month and year was the NAFO meme movement created?",
+      "expected": "May 2022",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "2008",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which animated Disney films did Clint Howard provide the voice for the character Roo?",
+      "expected": "Winnie the Pooh shorts",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Little Mermaid (1989) and Beauty and the Beast (1991)",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the relationship between Terry Nichols and Timothy McVeigh?",
+      "expected": "Army platoon mates",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Terry Nichols and Timothy McVeigh were accomplices in the Oklahoma City bombing. Nichols admitted to helping McVeigh build the bomb and providing him with materials, while McVeigh carried out the attack.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which 1980s actor made his feature film debut in The Outsiders?",
+      "expected": "Rob Lowe",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Matt Dillon",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which political figure did Clint Howard endorse during the 2016 U.S. presidential election?",
+      "expected": "Ted Cruz",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Donald Trump",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which secret club do Margaret and her friends form that discusses puberty topics in the novel?",
+      "expected": "The Pre-Teen Sensations",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Secret Sister Club",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which award did Parveen Kaur receive at the 6th annual Mosaic International South Asian Film Festival in 2017?",
+      "expected": "MISAFF Star",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The 2017 MISAFF Star presented by ACTRA",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "Where was comedian Ayo Edebiri born?",
+      "expected": "Boston, Massachusetts",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Brooklyn, New York City",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the company Hayden Christensen co-founded with his brother to produce micro-budget films?",
+      "expected": "Glacier Films",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Young Force Productions",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which animated television show produced by Hanna-Barbera was the first to win an Emmy Award?",
+      "expected": "The Huckleberry Hound Show",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The Smurfs",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "For which film did Gustaf Skarsg\u00e5rd win the Guldbagge Award for Best Leading Actor?",
+      "expected": "F\u00f6rortsungar",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "F\u00f6rortsungar",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What is Tenoch Huerta's full birth name?",
+      "expected": "Jos\u00e9 Tenoch Huerta Mej\u00eda",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Tenoch Huertasa Mej\u00eda",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which game developer published the Made in Abyss role-playing game released in September 2022?",
+      "expected": "Spike Chunsoft",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Chunsoft",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What inspired Billy Idol's stage name 'Idol'?",
+      "expected": "A teacher's description as 'idle'",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "He was inspired by a number of things, including the film *Flash Gordon*, the band Contingent, and the structure Castle (Coral).",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What business did Anh Do start at age 14 before pursuing his entertainment career?",
+      "expected": "Breeding tropical fish",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Anh Do started a small business breeding and selling fish at age 14.",
+          "correct": true,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 100.0
+    },
+    {
+      "question": "What injury caused Lil Durk to suspend performing and recording in July 2022?",
+      "expected": "Pyrotechnic explosion injuries",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "an affair with Game's ex-fianc\u00e9e, Tiffney Cambridge",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the approximate worldwide gross revenue of Spider-Man 2?",
+      "expected": "$789 million",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Approximately $1.03 billion",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "In which Australian suburb was Maxine Beneba Clarke born and raised?",
+      "expected": "Kellyville",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Melbourne",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which award did Katee Sackhoff win in 2005 for her work on Battlestar Galactica?",
+      "expected": "Saturn Award for Best Supporting Actress on Television",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "It was difficult to determine which specific award Katee Sackhoff won in 2005.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which university did Norah O'Donnell attend for her undergraduate and graduate studies?",
+      "expected": "Georgetown University",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The University of Virginia",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where did Zac Efron grow up?",
+      "expected": "Arroyo Grande, California",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Eugene, Oregon",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Who played the character Ji Yeon-woo in the 2004 Korean drama 'Sunlight Pours Down'?",
+      "expected": "Song Hye-kyo",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Kim Hyun-joo",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the revision ID of the 'Comparison of YouTube downloaders' article as of June 5, 2023?",
+      "expected": "1158681527",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "comparison_of_youtube_downloaders",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the birth name of the Thai rapper and singer known as Lisa from Blackpink?",
+      "expected": "Pranpriya Manobal",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Lalisa Manobal",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which drama school in Paris did Pom Klementieff attend?",
+      "expected": "Cours Florent",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Institut national d\u2019art dramatique",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "How many consecutive life terms was Terry Nichols sentenced to in the Oklahoma state trial?",
+      "expected": "161 consecutive life terms",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "18",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which alternative index to BMI uses an exponent of 3 to better account for height differences?",
+      "expected": "Corpulence index",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Waist-Hip Ratio",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What is the name of the powerful sword linked to the Archon bloodline in Fable's story?",
+      "expected": "Sword of Aeons",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Lost Chapters",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "What was the profession of Norah O'Donnell's father?",
+      "expected": "Army medical doctor",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Unknown",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Which episode of Hannibal was pulled from the U.S. broadcast schedule due to its sensitive subject matter?",
+      "expected": "Oeuf",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Season 3, Episode 7 (\"The Evening Starts Tonight\")",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Name one type of list related to media franchises that is mentioned alongside the highest-grossing media franchises list.",
+      "expected": "List of best-selling comic series",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "Media franchises lists",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    },
+    {
+      "question": "Where can one find the official list of Star Studios movies online?",
+      "expected": "disneystar.com",
+      "runs": [
+        {
+          "run": 1,
+          "answer": "The official list of Star Studios movies can be found on the website of Star India.",
+          "correct": false,
+          "num_turns": 2
+        }
+      ],
+      "accuracy": 0.0
+    }
+  ]
+}

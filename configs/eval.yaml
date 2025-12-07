@@ -2,11 +2,12 @@
 
 model:
   # API endpoint for the model being evaluated
-  base_url: "http://10.0.0.9:1234/v1"  # vLLM or other OpenAI-compatible endpoint
-  name: "qwen/qwen3-1.7b"    # Model name at the endpoint
+  base_url: "https://api.openai.com/v1"
+  name: "gpt-5-mini"    # Model name at the endpoint
 
 eval:
   subset: "test"  # "train", "test", or "all"
+  n_questions: 0  # Total questions to evaluate (0 = all)
   n_samples: 1  # Number of runs per question
   start_from_question: 0  # Skip questions before this index (for resuming)
 
