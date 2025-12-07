@@ -119,14 +119,11 @@ async def get_judge_reward(
     answer: str,
     response: str,
     trajectory: str = "",
-    correctness_weight: float = 0.75,
+    use_approach_magnitude: bool = True,
     debug: bool = False,
     max_tokens: int = 1024,
 ) -> JudgeResult:
     """Get reward from judge model.
-
-    Reward formula: w * correct + (1-w) * (approach_score / 100)
-    where w = correctness_weight
 
     Args:
         judge_client: OpenAI-compatible async client for judge
@@ -135,14 +132,16 @@ async def get_judge_reward(
         answer: Ground truth answer
         response: Model's final answer to evaluate
         trajectory: Full conversation trajectory for approach evaluation
-        correctness_weight: Weight for correctness vs approach (0-1). Default 0.75
-                           means 75% weight on correct answer, 25% on approach.
+        use_approach_magnitude: If True, need approach score (full prompt).
+                               If False, simple +1/-1 (simple prompt).
         debug: If True, print full judge prompt and response
 
     Returns:
         JudgeResult with reward, correctness, approach_score, and raw response
     """
-    prompt = build_judge_prompt(question, answer, response, trajectory=trajectory)
+    # Simple mode when we don't need approach scoring
+    simple_mode = not use_approach_magnitude
+    prompt = build_judge_prompt(question, answer, response, trajectory=trajectory, simple=simple_mode)
     messages = [{"role": "user", "content": prompt}]
 
     if debug:
@@ -170,19 +169,21 @@ async def get_judge_reward(
             print(judge_response)
             print(f"{'='*60}\n")
 
-        result = parse_judge_response(judge_response)
+        result = parse_judge_response(judge_response, simple=simple_mode)
         correct = result.get("correct", False)
         approach_score = result.get("approach_score", 0)
-
-        if debug:
-            print(f"[JUDGE DEBUG] PARSED: correct={correct}, approach_score={approach_score}, reward={correctness_weight * (1.0 if correct else 0.0) + (1-correctness_weight) * (approach_score / 100.0):.3f}")
 
         # Clamp approach_score to 0-100
         approach_score = max(0, min(100, approach_score))
 
-        # Reward = w * correct + (1-w) * (approach_score / 100)
-        approach_weight = 1.0 - correctness_weight
-        reward = correctness_weight * (1.0 if correct else 0.0) + approach_weight * (approach_score / 100.0)
+        # Reward: sign from correctness, magnitude from approach
+        if correct:
+            reward = approach_score / 100.0 if use_approach_magnitude else 1.0
+        else:
+            reward = -(1.0 - approach_score / 100.0) if use_approach_magnitude else -1.0
+
+        if debug:
+            print(f"[JUDGE DEBUG] PARSED: correct={correct}, approach_score={approach_score}, reward={reward:.3f}")
 
         # Log judge call
         llm_logger = get_llm_logger()
@@ -207,7 +208,7 @@ async def get_judge_reward(
 
         return JudgeResult(reward=reward, correct=correct, approach_score=approach_score, raw_response=judge_response)
     except Exception as e:
-        return JudgeResult(reward=0.0, correct=False, approach_score=0, error=str(e))
+        return JudgeResult(reward=-1.0, correct=False, approach_score=0, error=str(e))
 
 
 def get_judge_reward_sync(
@@ -217,7 +218,7 @@ def get_judge_reward_sync(
     answer: str,
     response: str,
     trajectory: str = "",
-    correctness_weight: float = 0.75,
+    use_approach_magnitude: bool = True,
     debug: bool = False,
     max_tokens: int = 1024,
 ) -> JudgeResult:
@@ -226,7 +227,9 @@ def get_judge_reward_sync(
     This version uses a sync OpenAI client and can run in a ThreadPoolExecutor
     for true parallelism with GPU operations (HTTP I/O releases the GIL).
     """
-    prompt = build_judge_prompt(question, answer, response, trajectory=trajectory)
+    # Simple mode when we don't need approach scoring
+    simple_mode = not use_approach_magnitude
+    prompt = build_judge_prompt(question, answer, response, trajectory=trajectory, simple=simple_mode)
     messages = [{"role": "user", "content": prompt}]
 
     if debug:
@@ -254,16 +257,18 @@ def get_judge_reward_sync(
             print(judge_response)
             print(f"{'='*60}\n")
 
-        result = parse_judge_response(judge_response)
+        result = parse_judge_response(judge_response, simple=simple_mode)
         correct = result.get("correct", False)
         approach_score = result.get("approach_score", 0)
 
         # Clamp approach_score to 0-100
         approach_score = max(0, min(100, approach_score))
 
-        # Reward = w * correct + (1-w) * (approach_score / 100)
-        approach_weight = 1.0 - correctness_weight
-        reward = correctness_weight * (1.0 if correct else 0.0) + approach_weight * (approach_score / 100.0)
+        # Reward: sign from correctness, magnitude from approach
+        if correct:
+            reward = approach_score / 100.0 if use_approach_magnitude else 1.0
+        else:
+            reward = -(1.0 - approach_score / 100.0) if use_approach_magnitude else -1.0
 
         # Log judge call
         llm_logger = get_llm_logger()
@@ -288,7 +293,7 @@ def get_judge_reward_sync(
 
         return JudgeResult(reward=reward, correct=correct, approach_score=approach_score, raw_response=judge_response)
     except Exception as e:
-        return JudgeResult(reward=0.0, correct=False, approach_score=0, error=str(e))
+        return JudgeResult(reward=-1.0, correct=False, approach_score=0, error=str(e))
 
 
 def compute_grpo_advantages(
@@ -342,6 +347,7 @@ def compute_reinforce_loss(
     max_context: int = 2048,
     advantages: list[float] | None = None,
     scale_by_total_steps: int | None = None,
+    skip_not_found: bool = False,
 ) -> torch.Tensor:
     """Compute policy gradient loss for RL training.
 
@@ -371,6 +377,8 @@ def compute_reinforce_loss(
         advantages: Pre-computed advantages (for micro-batching). If None, computed internally.
         scale_by_total_steps: If provided, scale gradients by 1/N instead of 1/local_steps
                               (for micro-batching to maintain consistent gradient scale)
+        skip_not_found: If True, skip loss computation for turns with "not found" in response
+                        (prevents model from learning to give up)
 
     Returns:
         Computed loss tensor (scalar for logging, gradients already accumulated)
@@ -408,6 +416,12 @@ def compute_reinforce_loss(
 
         # For each turn in the trajectory, compute loss
         for turn_idx, (prompt, response) in enumerate(trajectory):
+            # Skip "not found" responses (prevents learning to give up)
+            if skip_not_found and "not found" in response.lower():
+                if debug:
+                    print(f"[Step {q_idx} R {ep_idx + 1} Turn {turn_idx + 1}] SKIPPED - 'not found' in response")
+                continue
+
             full_text = prompt + response
 
             # Tokenize once, measure prompt length by tokenizing prompt separately (no GPU)

@@ -21,6 +21,18 @@ JUDGE_SCHEMA = {
     "required": ["correct", "approach_score"]
 }
 
+# Simple schema - correctness only (when correctness_weight == 1.0)
+JUDGE_SCHEMA_SIMPLE = {
+    "type": "object",
+    "properties": {
+        "correct": {
+            "type": "boolean",
+            "description": "Whether the response correctly answers the question"
+        }
+    },
+    "required": ["correct"]
+}
+
 # Schema for batch judge response (array of results)
 BATCH_JUDGE_SCHEMA = {
     "type": "array",
@@ -32,6 +44,19 @@ BATCH_JUDGE_SCHEMA = {
             "approach_score": {"type": "integer", "minimum": 0, "maximum": 100}
         },
         "required": ["id", "correct", "approach_score"]
+    }
+}
+
+# Simple batch schema - correctness only
+BATCH_JUDGE_SCHEMA_SIMPLE = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "id": {"type": "integer"},
+            "correct": {"type": "boolean"}
+        },
+        "required": ["id", "correct"]
     }
 }
 
@@ -69,13 +94,29 @@ IMPORTANT: Think briefly (under 100 words), then output JSON immediately.
 
 JSON:"""
 
+# Simple prompt - correctness only (faster, fewer tokens)
+JUDGE_PROMPT_TEMPLATE_SIMPLE = """Is the agent's answer correct?
+
+Question: {question}
+Ground truth: {answer}
+Agent's answer: {response}
+
+Rules:
+- "correct": true ONLY if answer matches "{answer}" exactly or nearly identical (minor formatting OK)
+- false if partial, wrong, "not found", or missing key words
+
+Output: {{"correct": true}} or {{"correct": false}}
+
+JSON:"""
+
 
 def build_judge_prompt(
     question: str,
     answer: str,
     response: str,
     trajectory: str = "",
-    schema: dict | None = None
+    schema: dict | None = None,
+    simple: bool = False,
 ) -> str:
     """Build the judge prompt with filled values.
 
@@ -85,10 +126,18 @@ def build_judge_prompt(
         response: Model's final answer to evaluate
         trajectory: Full conversation trajectory (code, outputs, reasoning)
         schema: JSON schema for response format (uses JUDGE_SCHEMA if None)
+        simple: If True, use simple correctness-only prompt (faster, fewer tokens)
 
     Returns:
         Formatted prompt string
     """
+    if simple:
+        return JUDGE_PROMPT_TEMPLATE_SIMPLE.format(
+            question=question,
+            answer=answer,
+            response=response,
+        )
+
     if schema is None:
         schema = JUDGE_SCHEMA
 
@@ -101,15 +150,16 @@ def build_judge_prompt(
     )
 
 
-def parse_judge_response(response: str, schema: dict | None = None) -> dict:
+def parse_judge_response(response: str, schema: dict | None = None, simple: bool = False) -> dict:
     """Parse and validate judge response against schema.
 
     Args:
         response: Raw response string from judge
         schema: Expected schema (uses JUDGE_SCHEMA if None)
+        simple: If True, only require 'correct' field, default approach_score to 0
 
     Returns:
-        Parsed JSON dict
+        Parsed JSON dict with 'correct' and 'approach_score' keys
 
     Raises:
         ValueError: If response is not valid JSON or missing required fields
@@ -117,7 +167,7 @@ def parse_judge_response(response: str, schema: dict | None = None) -> dict:
     import re
 
     if schema is None:
-        schema = JUDGE_SCHEMA
+        schema = JUDGE_SCHEMA_SIMPLE if simple else JUDGE_SCHEMA
 
     original_response = response  # Keep for error reporting
 
@@ -141,6 +191,10 @@ def parse_judge_response(response: str, schema: dict | None = None) -> dict:
     for field in required:
         if field not in data:
             raise ValueError(f"Missing required field: {field}")
+
+    # Default approach_score to 0 if not present (simple mode)
+    if "approach_score" not in data:
+        data["approach_score"] = 0
 
     return data
 
@@ -185,11 +239,29 @@ Example output format:
 
 JSON:"""
 
+# Simple batch prompt - correctness only
+BATCH_JUDGE_PROMPT_TEMPLATE_SIMPLE = """Are these answers correct?
+
+Question: {question}
+Ground truth: {answer}
+
+{entries}
+
+Rules:
+- "correct": true ONLY if answer matches "{answer}" exactly or nearly identical
+- false if partial, wrong, "not found", or missing key words
+
+Output JSON array:
+[{{"id": 0, "correct": true}}, {{"id": 1, "correct": false}}]
+
+JSON:"""
+
 
 def build_batch_judge_prompt(
     question: str,
     answer: str,
     entries: list[dict],
+    simple: bool = False,
 ) -> str:
     """Build batch judge prompt for multiple answers.
 
@@ -197,6 +269,7 @@ def build_batch_judge_prompt(
         question: The question being answered
         answer: Ground truth answer
         entries: List of dicts with keys: id, response, trajectory
+        simple: If True, use simple correctness-only prompt (faster, fewer tokens)
 
     Returns:
         Formatted prompt string
@@ -205,9 +278,14 @@ def build_batch_judge_prompt(
     for entry in entries:
         entry_id = entry["id"]
         response = entry.get("response", "(no answer)")
-        trajectory = entry.get("trajectory", "(no trajectory)")
 
-        entry_text = f"""---
+        if simple:
+            # Simple mode: just ID and answer
+            entry_text = f"[ID: {entry_id}] Answer: {response}"
+        else:
+            # Full mode: include trajectory
+            trajectory = entry.get("trajectory", "(no trajectory)")
+            entry_text = f"""---
 [ID: {entry_id}]
 Final answer: {response}
 Trajectory:
@@ -215,18 +293,20 @@ Trajectory:
 """
         entry_texts.append(entry_text)
 
-    return BATCH_JUDGE_PROMPT_TEMPLATE.format(
+    template = BATCH_JUDGE_PROMPT_TEMPLATE_SIMPLE if simple else BATCH_JUDGE_PROMPT_TEMPLATE
+    return template.format(
         question=question,
         answer=answer,
         entries="\n".join(entry_texts),
     )
 
 
-def parse_batch_judge_response(response: str) -> list[dict]:
+def parse_batch_judge_response(response: str, simple: bool = False) -> list[dict]:
     """Parse batch judge response into list of results.
 
     Args:
         response: Raw response string from judge
+        simple: If True, approach_score is optional (defaults to 0)
 
     Returns:
         List of dicts with keys: id, correct, approach_score
@@ -264,13 +344,13 @@ def parse_batch_judge_response(response: str) -> list[dict]:
             raise ValueError(f"Missing 'id' field in: {item}")
         if "correct" not in item:
             raise ValueError(f"Missing 'correct' field in: {item}")
-        if "approach_score" not in item:
+        if not simple and "approach_score" not in item:
             raise ValueError(f"Missing 'approach_score' field in: {item}")
 
         results.append({
             "id": item["id"],
             "correct": bool(item["correct"]),
-            "approach_score": int(item["approach_score"]),
+            "approach_score": int(item.get("approach_score", 0)),
         })
 
     return results

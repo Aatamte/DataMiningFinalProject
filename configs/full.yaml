@@ -10,7 +10,7 @@ model:
 training:
   num_samples: 300
   num_epochs: 10
-  num_rollouts: 20
+  num_rollouts: 24
   batch_splits: 1  # -1 = sequential, N = split rollouts into N batches for turn 1
   gradient_micro_batches: 4  # Split rollouts into N micro-batches for backward() - saves GPU memory
   max_turns: 2
@@ -23,9 +23,6 @@ training:
   top_p_min: 0.85  # Min top_p for rollout diversity
   top_p_max: 0.99  # Max top_p for rollout diversity
   gamma: 0.99  # Discount factor for earlier turns (final turn gets full signal)
-  correctness_weight: 0.75  # 75% correct answer, 25% approach quality
-  lr_scheduler: "linear"  # "none" or "linear"
-  lr_end: 1.0e-4  # Final LR for linear decay
   rl_algo: "grpo"  # "reinforce" (fixed baseline) or "grpo" (group relative)
   max_grad_norm: 1.0  # Gradient clipping threshold
   shuffle: true  # Shuffle training samples each epoch
@@ -33,7 +30,7 @@ training:
   debug_loss: false  # Log gradient accumulation diagnostics
   debug_judge: false  # Log full judge prompts and responses
   use_8bit_adam: false  # Disabled: causes KeyError 'state1' with LoRA (bitsandbytes bug)
-  train_on_correct_only: true  # Only train on episodes with correct answers (reward >= 0.75)
+  train_on_correct_only: false  # Train on all episodes (negative rewards for wrong/no-answer)
 
 lora:
   enabled: true
@@ -54,8 +51,15 @@ checkpoint:
 judge:
   model: "models/Qwen3-8B-AWQ"
   base_url: "http://10.0.0.213:1234/v1"
-  n_batch_judge: 2  # Max answers per judge call (1 = individual, >1 = batch similar answers)
+  n_batch_judge: 1  # Max answers per judge call (1 = individual, >1 = batch similar answers)
   max_tokens: 1600  # Max output tokens for judge response (includes thinking)
+
+reward:
+  # Formula: sign from correctness, magnitude from approach score
+  # - Correct: + approach/100 (good approach = high reward)
+  # - Wrong:   - (1 - approach/100) (good approach = small penalty)
+  use_approach_magnitude: true  # true = above formula, false = simple +1/-1
+  skip_not_found_loss: true  # Skip loss for "Answer not found" responses (train turn 1 only)
 
 environment:
   sandbox_host: "localhost"

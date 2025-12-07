@@ -91,10 +91,11 @@ class TrainerConfig:
     top_p_max: float = 0.99  # Max top_p for rollout diversity
     max_grad_norm: float = 1.0  # Gradient clipping for stability
     gamma: float = 0.99  # Discount factor for earlier turns in trajectory
-    correctness_weight: float = 0.75  # Weight for correct answer vs approach (0-1)
-    lr_scheduler: str = "linear"  # LR scheduler: "none", "linear"
-    lr_end: float = 0.0  # Final LR for linear decay (default: decay to 0)
     rl_algo: str = "grpo"  # RL algorithm: "reinforce" (fixed baseline) or "grpo" (group relative)
+
+    # Reward settings
+    use_approach_magnitude: bool = True  # True: approach determines magnitude, False: simple +1/-1
+    skip_not_found_loss: bool = True  # Skip loss for turns with "not found" in response (prevents learning to give up)
     shuffle: bool = True  # Shuffle training samples
     async_pipeline: bool = False  # Overlap judge with next question's rollouts
     debug_loss: bool = True  # Log gradient accumulation diagnostics
@@ -164,10 +165,10 @@ class TrainerConfig:
             top_p_max=get("training", "top_p_max", cls.top_p_max),
             max_grad_norm=get("training", "max_grad_norm", cls.max_grad_norm),
             gamma=get("training", "gamma", cls.gamma),
-            correctness_weight=get("training", "correctness_weight", cls.correctness_weight),
-            lr_scheduler=get("training", "lr_scheduler", cls.lr_scheduler),
-            lr_end=get("training", "lr_end", cls.lr_end),
             rl_algo=get("training", "rl_algo", cls.rl_algo),
+            # Reward
+            use_approach_magnitude=get("reward", "use_approach_magnitude", cls.use_approach_magnitude),
+            skip_not_found_loss=get("reward", "skip_not_found_loss", cls.skip_not_found_loss),
             shuffle=get("training", "shuffle", cls.shuffle),
             async_pipeline=get("training", "async_pipeline", cls.async_pipeline),
             debug_loss=get("training", "debug_loss", cls.debug_loss),
@@ -705,8 +706,9 @@ class Trainer:
                         "trajectory": ep.format_for_judge(),
                     })
 
-                # Build and send batch prompt
-                prompt = build_batch_judge_prompt(question, answer, entries)
+                # Build and send batch prompt (simple mode when not using approach magnitude)
+                simple_mode = not cfg.use_approach_magnitude
+                prompt = build_batch_judge_prompt(question, answer, entries, simple=simple_mode)
                 messages = [{"role": "user", "content": prompt}]
 
                 try:
@@ -717,12 +719,12 @@ class Trainer:
                         temperature=0,
                     )
                     response_text = completion.choices[0].message.content
-                    results = parse_batch_judge_response(response_text)
+                    results = parse_batch_judge_response(response_text, simple=simple_mode)
                     return results
                 except Exception as e:
-                    # On error, return empty results for all in batch
+                    # On error, return wrong results for all in batch
                     self.logger.warning(f"[Step {q_idx}] Batch judge error: {e}")
-                    return [{"id": idx, "correct": False, "approach_score": 0} for idx in group_indices]
+                    return [{"id": idx, "correct": False, "approach_score": 0, "error": str(e)} for idx in group_indices]
 
             # Run batch judge calls in parallel (one per group)
             loop = asyncio.get_event_loop()
@@ -743,13 +745,18 @@ class Trainer:
                     correct = item["correct"]
                     approach_score = item["approach_score"]
 
-                    # Apply penalty for no answer
-                    if ep.final_answer is None:
-                        reward = -0.25 + (1 - cfg.correctness_weight) * (approach_score / 100.0)
-                        correct = False
+                    # Reward: sign from correctness, magnitude from approach
+                    if correct and ep.final_answer is not None:
+                        if cfg.use_approach_magnitude:
+                            reward = approach_score / 100.0  # +0.0 to +1.0
+                        else:
+                            reward = 1.0
                     else:
-                        reward = cfg.correctness_weight * (1.0 if correct else 0.0) + \
-                                 (1 - cfg.correctness_weight) * (approach_score / 100.0)
+                        if cfg.use_approach_magnitude:
+                            reward = -(1.0 - approach_score / 100.0)  # -1.0 to -0.0
+                        else:
+                            reward = -1.0
+                        correct = False
 
                     judge_results[idx] = JudgeResult(
                         reward=reward,
@@ -757,10 +764,10 @@ class Trainer:
                         approach_score=approach_score,
                     )
 
-            # Fill any missing results with defaults
+            # Fill any missing results with defaults (treat as wrong answer)
             for idx in range(len(episodes)):
                 if judge_results[idx] is None:
-                    judge_results[idx] = JudgeResult(reward=0.0, correct=False, approach_score=0, error="Missing from batch")
+                    judge_results[idx] = JudgeResult(reward=-1.0, correct=False, approach_score=0, error="Missing from batch")
 
         else:
             # === INDIVIDUAL JUDGING MODE ===
@@ -773,21 +780,29 @@ class Trainer:
                     self.judge_client_sync, cfg.judge_model,
                     question, answer, response,
                     trajectory=trajectory,
-                    correctness_weight=cfg.correctness_weight,
+                    use_approach_magnitude=cfg.use_approach_magnitude,
                     debug=cfg.debug_judge,
                     max_tokens=cfg.judge_max_tokens,
                 )
 
-                # Apply penalty for giving up
-                if ep.final_answer is None:
-                    penalty_reward = -0.25 + (1 - cfg.correctness_weight) * (result.approach_score / 100.0)
-                    return JudgeResult(
-                        reward=penalty_reward,
-                        correct=False,
-                        approach_score=result.approach_score,
-                        raw_response=result.raw_response,
-                    )
-                return result
+                # Reward: sign from correctness, magnitude from approach
+                if result.correct and ep.final_answer is not None:
+                    if cfg.use_approach_magnitude:
+                        reward = result.approach_score / 100.0  # +0.0 to +1.0
+                    else:
+                        reward = 1.0
+                else:
+                    if cfg.use_approach_magnitude:
+                        reward = -(1.0 - result.approach_score / 100.0)  # -1.0 to -0.0
+                    else:
+                        reward = -1.0
+
+                return JudgeResult(
+                    reward=reward,
+                    correct=result.correct if ep.final_answer is not None else False,
+                    approach_score=result.approach_score,
+                    raw_response=result.raw_response,
+                )
 
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor(max_workers=len(episodes)) as executor:
@@ -938,6 +953,7 @@ class Trainer:
                         debug=cfg.debug_loss and mb_idx == 0,  # Only debug first micro-batch
                         advantages=mb_advantages,
                         scale_by_total_steps=True,  # Don't scale inside, we'll scale after
+                        skip_not_found=cfg.skip_not_found_loss,
                     )
                     total_n_steps += n_steps
                     total_loss += loss.item() * n_steps
@@ -962,6 +978,7 @@ class Trainer:
                     max_context=cfg.max_context,
                     debug=cfg.debug_loss,
                     advantages=all_advantages,  # Still use pre-computed advantages for consistency
+                    skip_not_found=cfg.skip_not_found_loss,
                 )
                 loss_val = loss.item()
 
@@ -975,8 +992,6 @@ class Trainer:
             self.optimizer.step()
             _t_optim = _time.time()
 
-            if self.scheduler is not None:
-                self.scheduler.step()
             current_lr = self.optimizer.param_groups[0]['lr']
 
             # Timing breakdown
@@ -1050,27 +1065,10 @@ class Trainer:
         start_global_step = start_step  # Remember where we started this session
         training_start_time = time.time()
 
-        # Setup LR scheduler (now that we know total_steps)
-        # Note: LR scheduler always starts fresh (from initial LR), even when resuming
-        # This allows continued training with fresh LR decay while preserving step counter
-        if cfg.lr_scheduler == "linear" and not cfg.eval_only:
-            from torch.optim.lr_scheduler import LambdaLR
-            # Calculate remaining steps from current position
-            remaining_steps = total_steps - start_step
-            # Linear decay from lr to lr_end over remaining_steps
-            def lr_lambda(current_step):
-                if remaining_steps == 0:
-                    return 1.0
-                progress = min(current_step / remaining_steps, 1.0)  # Clamp to prevent negative LR
-                # Linear interpolation: lr * (1 - progress) + lr_end * progress
-                # Simplified: lr_lambda returns multiplier, so we compute the ratio
-                return (1 - progress) + (cfg.lr_end / cfg.lr) * progress
-            self.scheduler = LambdaLR(self.optimizer, lr_lambda, last_epoch=-1)  # Always start fresh
-            self.logger.info(f"  LR scheduler: linear decay {cfg.lr} -> {cfg.lr_end} over {remaining_steps} remaining steps")
-        else:
-            self.scheduler = None
-            if not cfg.eval_only:
-                self.logger.info(f"  LR scheduler: none (constant lr={cfg.lr})")
+        # Constant LR (no scheduler)
+        self.scheduler = None
+        if not cfg.eval_only:
+            self.logger.info(f"  Learning rate: {cfg.lr}")
 
         for epoch in range(start_epoch, cfg.num_epochs):
             self.logger.info(f"\n--- Epoch {epoch + 1}/{cfg.num_epochs} ---")

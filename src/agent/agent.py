@@ -235,7 +235,7 @@ class Agent:
 
         return response_text, latency_ms, tokens_generated
 
-    async def _step_local_batch(self, messages: list[dict], batch_size: int, temperature: float, top_p: float) -> list[tuple[str, float, int]]:
+    async def _step_local_batch(self, messages: list[dict], batch_size: int, temperature: float, top_p: float, prefill: str | None = None) -> list[tuple[str, float, int]]:
         """Generate multiple responses in one batched forward pass.
 
         Args:
@@ -243,6 +243,7 @@ class Agent:
             batch_size: Number of responses to generate
             temperature: Sampling temperature (same for all - diversity comes from sampling)
             top_p: Nucleus sampling threshold (same for all - diversity comes from sampling)
+            prefill: Optional text to prefill the response (e.g., "<python>" to force code)
 
         Returns:
             List of (response_text, latency_ms, tokens_generated) tuples
@@ -255,6 +256,10 @@ class Agent:
             add_generation_prompt=True,
             enable_thinking=self.config.enable_thinking,
         )
+
+        # Prefill: append to prompt so model continues from there
+        if prefill:
+            prompt = prompt + prefill
 
         # Check for truncation
         full_length = len(self.tokenizer.encode(prompt, add_special_tokens=False))
@@ -298,6 +303,9 @@ class Agent:
             generated_tokens = outputs[i][input_length:]
             response_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
             tokens_generated = len(generated_tokens)
+            # Prepend prefill to response (it was part of the prompt, not generated)
+            if prefill:
+                response_text = prefill + response_text
             # Split latency evenly across batch (approximate)
             results.append((response_text, latency_ms / batch_size, tokens_generated))
 
@@ -456,9 +464,9 @@ class Agent:
         base_conversation = self._create_conversation(question)
         messages = base_conversation.to_messages()
 
-        # Batch generate turn 1
+        # Batch generate turn 1 (prefill with <python> to force tool use)
         gen_start = time.perf_counter()
-        batch_results = await self._step_local_batch(messages, num_rollouts, temperature, p)
+        batch_results = await self._step_local_batch(messages, num_rollouts, temperature, p, prefill="<python>")
         gen_time = time.perf_counter() - gen_start
         logger.warning(f"Batch turn1 LLM generation: {gen_time:.2f}s for {num_rollouts} rollouts")
 
