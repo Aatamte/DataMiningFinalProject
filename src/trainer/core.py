@@ -100,6 +100,7 @@ class TrainerConfig:
     debug_loss: bool = True  # Log gradient accumulation diagnostics
     debug_judge: bool = False  # Log full judge prompts and responses
     use_8bit_adam: bool = False  # Use 8-bit Adam (halves optimizer memory, requires bitsandbytes)
+    train_on_correct_only: bool = False  # Only train on episodes with correct answers (reward >= 0.75)
 
     # LoRA settings
     use_lora: bool = True
@@ -111,6 +112,7 @@ class TrainerConfig:
 
     # Checkpoint settings
     save_every_n_steps: int = 0  # 0 = only final, N = every N steps (also saves "latest")
+    save_new_checkpoint_every: int = 0  # 0 = disabled, N = save checkpoint_{step} every N steps
     resume_from: str = ""  # Path to checkpoint to resume from (empty = start fresh)
 
     # Judge settings
@@ -171,6 +173,7 @@ class TrainerConfig:
             debug_loss=get("training", "debug_loss", cls.debug_loss),
             debug_judge=get("training", "debug_judge", cls.debug_judge),
             use_8bit_adam=get("training", "use_8bit_adam", cls.use_8bit_adam),
+            train_on_correct_only=get("training", "train_on_correct_only", cls.train_on_correct_only),
             # LoRA
             use_lora=get("lora", "enabled", cls.use_lora),
             lora_r=get("lora", "r", cls.lora_r),
@@ -180,6 +183,7 @@ class TrainerConfig:
             gradient_checkpointing=get("lora", "gradient_checkpointing", cls.gradient_checkpointing),
             # Checkpoint
             save_every_n_steps=get("checkpoint", "save_every_n_steps", cls.save_every_n_steps),
+            save_new_checkpoint_every=get("checkpoint", "save_new_checkpoint_every", cls.save_new_checkpoint_every),
             resume_from=get("checkpoint", "resume_from", cls.resume_from),
             # Judge
             judge_model=get("judge", "model", cls.judge_model),
@@ -550,6 +554,7 @@ class Trainer:
             self.logger.info("Loaded full model weights")
 
         self.logger.info(f"Resumed from step {self.training_state.step} (LR reset to {self.config.lr})")
+        self.training_state.step += 1  # Advance past last completed step
 
     async def _run_rollouts(
         self,
@@ -883,6 +888,18 @@ class Trainer:
             self.optimizer.zero_grad()
             _t_setup = _time.time()
 
+            # Filter to correct-only if enabled
+            if cfg.train_on_correct_only:
+                correct_threshold = 0.75  # Correct answers have reward >= 0.75
+                original_count = len(episodes)
+                filtered = [(ep, r) for ep, r in zip(episodes, rewards) if r >= correct_threshold]
+                if not filtered:
+                    self.logger.info(f"[Step {log_step}] No correct episodes (0/{original_count}), skipping update")
+                    return 0.0, None
+                episodes, rewards = zip(*filtered)
+                episodes, rewards = list(episodes), list(rewards)
+                self.logger.info(f"[Step {log_step}] Training on {len(episodes)}/{original_count} correct episodes")
+
             # Compute advantages once for ALL episodes (for consistent GRPO baseline)
             if cfg.rl_algo == "grpo":
                 all_advantages = compute_grpo_advantages(
@@ -1130,6 +1147,10 @@ class Trainer:
                 if cfg.save_every_n_steps > 0 and step % cfg.save_every_n_steps == 0 and not cfg.eval_only:
                     self.save_checkpoint("latest")
 
+                # Save numbered checkpoint (preserves history)
+                if cfg.save_new_checkpoint_every > 0 and step % cfg.save_new_checkpoint_every == 0 and not cfg.eval_only:
+                    self.save_checkpoint(f"checkpoint_{step}")
+
                 # Print progress with ETA
                 elapsed = time.time() - training_start_time
                 steps_done_this_session = step - start_global_step
@@ -1244,6 +1265,10 @@ class Trainer:
                         # Save checkpoint if configured
                         if cfg.save_every_n_steps > 0 and step % cfg.save_every_n_steps == 0 and not cfg.eval_only:
                             self.save_checkpoint("latest")
+
+                        # Save numbered checkpoint (preserves history)
+                        if cfg.save_new_checkpoint_every > 0 and step % cfg.save_new_checkpoint_every == 0 and not cfg.eval_only:
+                            self.save_checkpoint(f"checkpoint_{step}")
 
                         # Print progress with ETA
                         elapsed = time.time() - training_start_time

@@ -29,7 +29,7 @@ load_dotenv()
 # =============================================================================
 
 GPU_MEMORY_UTILIZATION = 0.3   # GPU memory % (~7.2 GB, leaves room for training)
-MAX_MODEL_LEN = 8192           # Context window (full context for long prompts)
+MAX_MODEL_LEN = 6500           # Context window (full context for long prompts)
 MAX_NUM_SEQS = 10              # Max concurrent sequences (handles parallel judge calls)
 CHUNKED_PREFILL = True         # Better for long prompts
 TENSOR_PARALLEL_SIZE = 1       # Multi-GPU support
