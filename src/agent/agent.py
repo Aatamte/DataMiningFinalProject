@@ -156,23 +156,66 @@ class Agent:
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
 
+        # Build request payload
+        payload = {
+            "model": self.config.api_model,
+            "messages": messages,
+        }
+
+        # OpenAI's newer models (gpt-5, o1, o3, etc.) have different API requirements
+        is_openai = "openai.com" in self.config.api_url
+        model_lower = self.config.api_model.lower()
+        is_new_openai_model = is_openai and any(
+            x in model_lower for x in ["gpt-5", "o1", "o3", "o4"]
+        )
+
+        if is_new_openai_model:
+            # New models: use max_completion_tokens, no temperature/top_p
+            payload["max_completion_tokens"] = self.config.max_new_tokens
+        else:
+            # Standard OpenAI-compatible API
+            payload["max_tokens"] = self.config.max_new_tokens
+            payload["temperature"] = temperature
+            payload["top_p"] = top_p
+
         response = await self._http_client.post(
             f"{self.config.api_url}/chat/completions",
             headers=headers,
-            json={
-                "model": self.config.api_model,
-                "messages": messages,
-                "max_tokens": self.config.max_new_tokens,
-                "temperature": temperature,
-                "top_p": top_p,
-            },
+            json=payload,
         )
+
+        # On 400 error, fetch available models and include in error message
+        if response.status_code == 400:
+            error_detail = response.text
+            try:
+                models_resp = await self._http_client.get(
+                    f"{self.config.api_url}/models",
+                    headers=headers,
+                )
+                if models_resp.status_code == 200:
+                    models_data = models_resp.json()
+                    model_ids = [m.get("id", "") for m in models_data.get("data", [])]
+                    raise RuntimeError(
+                        f"API returned 400 Bad Request. Model '{self.config.api_model}' may be invalid.\n"
+                        f"Error: {error_detail}\n"
+                        f"Available models: {model_ids}"
+                    )
+            except RuntimeError:
+                raise
+            except Exception:
+                pass  # Fall through to raise_for_status
+            response.raise_for_status()
+
         response.raise_for_status()
         data = response.json()
 
         latency_ms = (time.perf_counter() - start_time) * 1000
-        response_text = data["choices"][0]["message"]["content"]
+        response_text = data["choices"][0]["message"]["content"] or ""
         tokens_generated = data.get("usage", {}).get("completion_tokens", 0)
+
+        # Debug: log empty responses
+        if not response_text:
+            print(f"[DEBUG] Empty response from API. Raw response: {data}")
 
         return response_text, latency_ms, tokens_generated
 

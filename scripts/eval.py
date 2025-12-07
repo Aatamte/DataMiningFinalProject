@@ -11,6 +11,7 @@ Usage:
 
 import asyncio
 import json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -47,19 +48,21 @@ async def check_sandbox() -> tuple[bool, str]:
         return False, str(e)
 
 
-def check_api_model(base_url: str, model_name: str, label: str) -> tuple[bool, list[str]]:
+def check_api_model(base_url: str, model_name: str, label: str, api_key: str | None = None) -> tuple[bool, list[str]]:
     """Check if a model is available at an OpenAI-compatible API endpoint.
 
     Args:
         base_url: API base URL (e.g., "http://localhost:1234/v1")
         model_name: Expected model name/id
         label: Human-readable label for logging (e.g., "Eval model", "Judge")
+        api_key: Optional API key for authentication
 
     Returns:
         Tuple of (success, list of available model ids)
     """
     try:
-        resp = httpx.get(f"{base_url}/models", timeout=30.0)
+        headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+        resp = httpx.get(f"{base_url}/models", timeout=30.0, headers=headers)
         if resp.status_code == 200:
             models = resp.json()
             model_ids = [m.get("id", "") for m in models.get("data", [])]
@@ -88,6 +91,9 @@ async def validate_environment() -> bool:
     judge_url = judge_cfg["base_url"]
     judge_model = judge_cfg["model"]
 
+    # Get API key for OpenAI endpoints
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+
     print("=" * 60)
     print("VALIDATING ENVIRONMENT")
     print("=" * 60)
@@ -96,7 +102,8 @@ async def validate_environment() -> bool:
 
     # Check eval model API
     print(f"\n[1/3] Checking eval model API: {model_url}")
-    ok, model_ids = check_api_model(model_url, model_name, "Eval model")
+    model_api_key = openai_api_key if "openai.com" in model_url else None
+    ok, model_ids = check_api_model(model_url, model_name, "Eval model", api_key=model_api_key)
     if ok:
         print(f"  [OK] API reachable, available models: {model_ids}")
         # Check if eval model is available
@@ -121,7 +128,8 @@ async def validate_environment() -> bool:
             print(f"    Available: {model_ids}")
             all_ok = False
     else:
-        ok, judge_model_ids = check_api_model(judge_url, judge_model, "Judge")
+        judge_api_key = openai_api_key if "openai.com" in judge_url else None
+        ok, judge_model_ids = check_api_model(judge_url, judge_model, "Judge", api_key=judge_api_key)
         if ok:
             print(f"  [OK] API reachable, available models: {judge_model_ids}")
             if judge_model in judge_model_ids or any(judge_model in m for m in judge_model_ids):
@@ -221,9 +229,6 @@ async def eval_subset(
     total_turns = 0
 
     for i, q in enumerate(questions):
-        if i < start_from:
-            continue
-
         question = q["question"]
         expected = q["answer"]
 
@@ -391,9 +396,12 @@ async def main_async() -> None:
         print("=" * 60)
 
         questions = load_questions_for_eval(subset)
+        # Apply start_from first, then limit by n_questions
+        if start_from > 0:
+            questions = questions[start_from:]
         if n_questions > 0:
             questions = questions[:n_questions]
-        print(f"Questions: {len(questions)}")
+        print(f"Questions: {len(questions)} (starting from index {start_from})")
 
         subset_results = await eval_subset(
             subset=subset,

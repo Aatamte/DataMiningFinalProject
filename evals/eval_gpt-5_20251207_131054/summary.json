@@ -1,0 +1,28 @@
+{
+  "config": "configs/eval.yaml",
+  "model": "gpt-5",
+  "eval": {
+    "subset": "test",
+    "n_questions": 2,
+    "n_samples": 1,
+    "start_from_question": 3,
+    "max_turns": 2,
+    "max_new_tokens": 4096,
+    "temperature": 0.7
+  },
+  "judge": {
+    "base_url": "http://10.0.0.9:1234/v1",
+    "model": "qwen/qwen3-vl-8b"
+  },
+  "results": {
+    "test": {
+      "subset": "test",
+      "num_questions": 2,
+      "total_runs": 0,
+      "total_correct": 0,
+      "accuracy": 0,
+      "avg_turns": 0,
+      "results": []
+    }
+  }
+}

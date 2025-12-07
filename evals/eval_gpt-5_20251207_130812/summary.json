@@ -1,0 +1,113 @@
+{
+  "config": "configs/eval.yaml",
+  "model": "gpt-5",
+  "eval": {
+    "subset": "test",
+    "n_questions": 2,
+    "n_samples": 1,
+    "start_from_question": 0,
+    "max_turns": 2,
+    "max_new_tokens": 4096,
+    "temperature": 0.7
+  },
+  "judge": {
+    "base_url": "http://10.0.0.9:1234/v1",
+    "model": "qwen/qwen3-vl-8b"
+  },
+  "results": {
+    "test": {
+      "subset": "test",
+      "num_questions": 2,
+      "total_runs": 2,
+      "total_correct": 0,
+      "accuracy": 0.0,
+      "avg_turns": 2.0,
+      "results": [
+        {
+          "index": 0,
+          "question": "What was the estimated number of Assyrians killed during the Assyrian genocide in World War I?",
+          "expected": "275,000\u2013300,000",
+          "runs": [
+            {
+              "run": 1,
+              "answer": "Approximately 250,000\u2013300,000",
+              "correct": false,
+              "approach_score": 30,
+              "reward": -0.7,
+              "num_turns": 2,
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+                },
+                {
+                  "role": "user",
+                  "content": "Question: What was the estimated number of Assyrians killed during the Assyrian genocide in World War I?"
+                },
+                {
+                  "role": "assistant",
+                  "content": "<python>\nimport re\nfrom collections import defaultdict, Counter\n\ndef find_numbers(text):\n    # Find numbers and ranges like 250,000 or 250,000\u2013300,000 or 250000 to 300000\n    pattern = re.compile(r'(\\d{1,3}(?:,\\d{3})+|\\d{3,})(?:\\s*(?:\u2013|-|\u2014|to)\\s*(\\d{1,3}(?:,\\d{3})+|\\d{3,}))?')\n    return pattern.findall(text)\n\ndef normalize_num(s):\n    return int(s.replace(',', ''))\n\nqueries = [\n    \"Assyrian genocide\",\n    \"Sayfo\",\n    \"Seyfo Assyrian genocide\",\n    \"Assyrian genocide casualties\",\n    \"Assyrians World War I genocide\"\n]\n\nNUM_RESULTS = 5\ncontexts = []\ncandidates = []\n\nfor q in queries:\n    results = search_pages(q)\n    if not results:\n        continue\n    for r in results[:NUM_RESULTS]:\n        content = read_section(r['page_id'] + \":full\")\n        # Split into sentences crudely\n        sentences = re.split(r'(?<=[\\.\\?\\!])\\s+', content)\n        for s in sentences:\n            s_low = s.lower()\n            # Focus on sentences that discuss estimates and deaths/killed\n            if any(k in s_low for k in [\"assyria\", \"assyrian\"]) and any(k in s_low for k in [\"killed\", \"deaths\", \"massac\", \"exterminate\", \"genocide\"]) and any(k in s_low for k in [\"estimate\", \"estimated\", \"estimates\", \"ranges\", \"around\", \"approximately\", \"about\", \"between\"]):\n                nums = find_numbers(s)\n                if nums:\n                    contexts.append((r['title'], s.strip()))\n                    for a,b in nums:\n                        if b:\n                            candidates.append((r['title'], (normalize_num(a), normalize_num(b)), s.strip()))\n                        else:\n                            candidates.append((r['title'], (normalize_num(a),), s.strip()))\n\n# Heuristic: prioritize the Assyrian genocide/Sayfo pages and ranges that look like population loss\npriority_titles = [\"Assyrian genocide\", \"Sayfo\", \"Seyfo\"]\nscored = []\nfor title, nums, sent in candidates:\n    score = 0\n    if any(pt.lower() in title.lower() for pt in priority_titles):\n        score += 3\n    # prefer ranges that are within plausible scale (100k-600k)\n    if len(nums) == 2:\n        lo, hi = nums\n        if 100_000 <= lo <= 600_000 and 100_000 <= hi <= 800_000:\n            score += 3\n    else:\n        n = nums[0]\n        if 100_000 <= n <= 600_000:\n            score += 2\n    # mention of \"estimated\" adds weight\n    if \"estimat\" in sent.lower():\n        score += 2\n    # mention \"World War I\" adds weight\n    if \"world war i\" in sent.lower() or \"wwi\" in sent.lower() or \"first world war\" in sent.lower():\n        score += 1\n    scored.append((score, title, nums, sent))\n\nscored.sort(reverse=True)\n\nprint(\"=== Contexts suggesting casualty estimates ===\")\nfor score, title, nums, sent in scored[:10]:\n    if len(nums) == 2:\n        display_nums = f\"{nums[0]:,}\u2013{nums[1]:,}\"\n    else:\n        display_nums = f\"{nums[0]:,}\"\n    print(f\"[{score}] {title}: {display_nums}\")\n    print(\"  \", sent)\n    print()\n\n# Derive a consensus answer: prefer top-ranked range if available; otherwise single number\nanswer_text = None\nfor score, title, nums, sent in scored:\n    if len(nums) == 2:\n        answer_text = f\"{nums[0]:,}\u2013{nums[1]:,}\"\n        break\nif not answer_text and scored:\n    # fallback to single number\n    top = scored[0]\n    nums = top[2]\n    if len(nums) == 1:\n        answer_text = f\"about {nums[0]:,}\"\n\nprint(\"=== Summary ===\")\nprint(f\"Top inferred estimate: {answer_text if answer_text else 'Not found'}\")\n</python>"
+                },
+                {
+                  "role": "user",
+                  "content": "<python_output>\n=== Contexts suggesting casualty estimates ===\n[2] Assyrian people: 1,843\n   Scholars estimate that tens of thousands of Assyrians in the [Hakkari](Hakkari (historical region)) region were [in 1843](massacred)(Massacres of Badr Khan) when [Khan Beg](Bedr)(Bedr Khan Beg), the emir of [Bohtan](Bohtan), invaded their region.\n\n[2] Assyrian people: 1,843\n   Scholars estimate that tens of thousands of Assyrians in the [Hakkari](Hakkari (historical region)) region were [in 1843](massacred)(Massacres of Badr Khan) when [Khan Beg](Bedr)(Bedr Khan Beg), the emir of [Bohtan](Bohtan), invaded their region.\n\n[2] Assyrian people: 1,843\n   Scholars estimate that tens of thousands of Assyrians in the [Hakkari](Hakkari (historical region)) region were [in 1843](massacred)(Massacres of Badr Khan) when [Khan Beg](Bedr)(Bedr Khan Beg), the emir of [Bohtan](Bohtan), invaded their region.\n\n[2] Assyrian people: 1,843\n   Scholars estimate that tens of thousands of Assyrians in the [Hakkari](Hakkari (historical region)) region were [in 1843](massacred)(Massacres of Badr Khan) when [Khan Beg](Bedr)(Bedr Khan Beg), the emir of [Bohtan](Bohtan), invaded their region.\n\n[1] Assyrian people: 2,014\u20132,017\n   [Emigration](Emigration) was triggered by genocidal events such as the [in Hakkari](massacres)(1843 and 1846 massacres in Hakkari), the [of Diyarbek\u0131r](massacres)(Massacres of Diyarbekir (1895)), the [genocide](Assyrian)(Sayfo) (concurrent with the [Armenian](Armenian genocide) and [genocide](Greek)(Greek genocide)s) during [War I](World)(World War I) by the [Empire](Ottoman)(Ottoman Empire) and allied [tribes](Kurdish)(Kurdish tribes), the [massacre](Simele)(Simele massacre), the [Revolution](Iranian)(Iranian Revolution), Arab Nationalist [Ba'athist](Ba'athism) policies in Iraq (between the years 1968\u20132003) and in Syria the take over by [State](Islamic)(Islamic State) of many parts in Syria and Iraq, particularly the [Plains](Nineveh)(Nineveh Plains) between 2014\u20132017.\n\n[1] Assyrian people: 2,014\u20132,017\n   [Emigration](Emigration) was triggered by genocidal events such as the [in Hakkari](massacres)(1843 and 1846 massacres in Hakkari), the [of Diyarbek\u0131r](massacres)(Massacres of Diyarbekir (1895)), the [genocide](Assyrian)(Sayfo) (concurrent with the [Armenian](Armenian genocide) and [genocide](Greek)(Greek genocide)s) during [War I](World)(World War I) by the [Empire](Ottoman)(Ottoman \n\n... [1318 chars truncated] ...\n\ne [in Hakkari](massacres)(1843 and 1846 massacres in Hakkari), the [of Diyarbek\u0131r](massacres)(Massacres of Diyarbekir (1895)), the [genocide](Assyrian)(Sayfo) (concurrent with the [Armenian](Armenian genocide) and [genocide](Greek)(Greek genocide)s) during [War I](World)(World War I) by the [Empire](Ottoman)(Ottoman Empire) and allied [tribes](Kurdish)(Kurdish tribes), the [massacre](Simele)(Simele massacre), the [Revolution](Iranian)(Iranian Revolution), Arab Nationalist [Ba'athist](Ba'athism) policies in Iraq (between the years 1968\u20132003) and in Syria the take over by [State](Islamic)(Islamic State) of many parts in Syria and Iraq, particularly the [Plains](Nineveh)(Nineveh Plains) between 2014\u20132017.\n\n[1] Assyrian people: 1,968\u20132,003\n   [Emigration](Emigration) was triggered by genocidal events such as the [in Hakkari](massacres)(1843 and 1846 massacres in Hakkari), the [of Diyarbek\u0131r](massacres)(Massacres of Diyarbekir (1895)), the [genocide](Assyrian)(Sayfo) (concurrent with the [Armenian](Armenian genocide) and [genocide](Greek)(Greek genocide)s) during [War I](World)(World War I) by the [Empire](Ottoman)(Ottoman Empire) and allied [tribes](Kurdish)(Kurdish tribes), the [massacre](Simele)(Simele massacre), the [Revolution](Iranian)(Iranian Revolution), Arab Nationalist [Ba'athist](Ba'athism) policies in Iraq (between the years 1968\u20132003) and in Syria the take over by [State](Islamic)(Islamic State) of many parts in Syria and Iraq, particularly the [Plains](Nineveh)(Nineveh Plains) between 2014\u20132017.\n\n[1] Assyrian people: 1,968\u20132,003\n   [Emigration](Emigration) was triggered by genocidal events such as the [in Hakkari](massacres)(1843 and 1846 massacres in Hakkari), the [of Diyarbek\u0131r](massacres)(Massacres of Diyarbekir (1895)), the [genocide](Assyrian)(Sayfo) (concurrent with the [Armenian](Armenian genocide) and [genocide](Greek)(Greek genocide)s) during [War I](World)(World War I) by the [Empire](Ottoman)(Ottoman Empire) and allied [tribes](Kurdish)(Kurdish tribes), the [massacre](Simele)(Simele massacre), the [Revolution](Iranian)(Iranian Revolution), Arab Nationalist [Ba'athist](Ba'athism) policies in Iraq (between the years 1968\u20132003) and in Syria the take over by [State](Islamic)(Islamic State) of many parts in Syria and Iraq, particularly the [Plains](Nineveh)(Nineveh Plains) between 2014\u20132017.\n\n=== Summary ===\nTop inferred estimate: 2,014\u20132,017\n\n</python_output>"
+                },
+                {
+                  "role": "user",
+                  "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+                },
+                {
+                  "role": "assistant",
+                  "content": "<answer>Approximately 250,000\u2013300,000</answer>"
+                }
+              ]
+            }
+          ],
+          "accuracy": 0.0
+        },
+        {
+          "index": 1,
+          "question": "Which character did Jacob Tremblay voice in the 2021 Pixar film 'Luca'?",
+          "expected": "Luca",
+          "runs": [
+            {
+              "run": 1,
+              "answer": "Luca Paguro",
+              "correct": false,
+              "approach_score": 20,
+              "reward": -0.8,
+              "num_turns": 2,
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+                },
+                {
+                  "role": "user",
+                  "content": "Question: Which character did Jacob Tremblay voice in the 2021 Pixar film 'Luca'?"
+                },
+                {
+                  "role": "assistant",
+                  "content": "<python>\nimport re\nfrom collections import defaultdict\n\ndef find_jacob_character_in_text(text):\n    findings = []\n    # Search line by line for straightforward \"as\" / \"voices\" patterns\n    for line in text.splitlines():\n        if 'Jacob Tremblay' in line:\n            # Common cast listing patterns\n            patterns = [\n                r\"Jacob Tremblay[^.\\n]*?\\bas\\b\\s+([A-Z][A-Za-z0-9' \\-]+)\",\n                r\"Jacob Tremblay[^.\\n]*?\\bvoice(?:s|d)?\\b\\s+(?:of\\s+)?([A-Z][A-Za-z0-9' \\-]+)\",\n                r\"([A-Z][A-Za-z0-9' \\-]+)[^.\\n]*?\\bvoiced by Jacob Tremblay\\b\",\n            ]\n            for pat in patterns:\n                m = re.search(pat, line)\n                if m:\n                    char = m.group(1).strip()\n                    findings.append((char, line.strip()))\n    # Also try paragraph-level search if line-based misses\n    if not findings:\n        for m in re.finditer(r\"Jacob Tremblay[^.]*\\.\", text):\n            sent = m.group(0)\n            for pat in [\n                r\"Jacob Tremblay[^.]*?\\bas\\b\\s+([A-Z][A-Za-z0-9' \\-]+)\",\n                r\"Jacob Tremblay[^.]*?\\bvoice(?:s|d)?\\b\\s+(?:of\\s+)?([A-Z][A-Za-z0-9' \\-]+)\",\n                r\"([A-Z][A-Za-z0-9' \\-]+)[^.]*?\\bvoiced by Jacob Tremblay\\b\",\n            ]:\n                m2 = re.search(pat, sent)\n                if m2:\n                    findings.append((m2.group(1).strip(), sent.strip()))\n    return findings\n\ndef summarize_findings(title, findings, source):\n    # Deduplicate by character\n    chars = defaultdict(list)\n    for char, snippet in findings:\n        chars[char].append((title, source, snippet))\n    return chars\n\nall_chars = defaultdict(list)\n\n# 1) Search the film page\nqueries = [\n    \"Luca 2021 film Pixar\",\n    \"Luca (2021 film)\",\n    \"Luca Pixar cast\",\n    \"Jacob Tremblay Luca\",\n]\nchecked_pages = set()\n\nfor q in queries:\n    results = search_pages(q)\n    if not results:\n        continue\n    for r in results[:5]:\n        if r['page_id'] in checked_pages:\n            continue\n        checked_pages.add(r['page_id'])\n        title = r['title']\n        # Try to locate relevant sections first\n        sections = view_sections(r['page_id'])\n        cast_sections = [s for s in sections if re.search(r'\\bcast\\b', s['section_name'], re.I)]\n        found_in_sections = False\n        for s in cast_sections[:3]:\n            content = read_section(s['section_id'])\n            finds = find_jacob_character_in_text(content)\n            if finds:\n                chars = summarize_findings(title, finds, f\"section:{s['section_name']}\")\n                for k,v in chars.items():\n                    all_chars[k].extend(v)\n                found_in_sections = True\n        # If not found in cast sections, scan full page\n        if not found_in_sections:\n            full = read_section(r['page_id'] + \":full\")\n            finds = find_jacob_character_in_text(full)\n            if finds:\n                chars = summarize_findings(title, finds, \"full_page\")\n                for k,v in chars.items():\n                    all_chars[k].extend(v)\n\n# 2) If still ambiguous, check Jacob Tremblay page\nif not all_chars:\n    for r in search_pages(\"Jacob Tremblay\"):\n        full = read_section(r['page_id'] + \":full\")\n        # find sentence that mentions Luca\n        luca_snips = []\n        for m in re.finditer(r\"[^.]*Luca[^.]*\\.\", full):\n            luca_snips.append(m.group(0))\n        if luca_snips:\n            finds = find_jacob_character_in_text(\"\\n\".join(luca_snips))\n            if finds:\n                chars = summarize_findings(r['title'], finds, \"filmography_snips\")\n                for k,v in chars.items():\n                    all_chars[k].extend(v)\n\n# Print findings\nprint(\"=== Findings ===\")\nfor char, sources in all_chars.items():\n    print(f\"- Character: {char}\")\n    for (title, source, snippet) in sources[:3]:\n        print(f\"  Source: {title} [{source}]\")\n        print(f\"  Snippet: {snippet}\")\n    if len(sources) > 3:\n        print(f\"  (+{len(sources)-3} more refs)\")\n\n# Heuristic: choose the most commonly found character\nfinal_answer = None\nif all_chars:\n    # Count frequency\n    counts = sorted(((char, len(srcs)) for char, srcs in all_chars.items()), key=lambda x: (-x[1], x[0]))\n    final_answer = counts[0][0]\n\nprint(\"\\n=== Summary ===\")\nif final_answer:\n    print(f\"Answer: {final_answer}\")\nelse:\n    print(\"Answer not found via initial queries; likely 'Luca Paguro' based on external knowledge.\")\n\n</python>"
+                },
+                {
+                  "role": "user",
+                  "content": "<python_output>\n=== Findings ===\n\n=== Summary ===\nAnswer not found via initial queries; likely 'Luca Paguro' based on external knowledge.\n\n</python_output>"
+                },
+                {
+                  "role": "user",
+                  "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+                },
+                {
+                  "role": "assistant",
+                  "content": "<answer>Luca Paguro</answer>"
+                }
+              ]
+            }
+          ],
+          "accuracy": 0.0
+        }
+      ]
+    }
+  }
+}

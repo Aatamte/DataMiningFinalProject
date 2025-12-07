@@ -3,17 +3,17 @@
 model:
   # API endpoint for the model being evaluated
   base_url: "https://api.openai.com/v1"
-  name: "gpt-5-mini"    # Model name at the endpoint
+  name: "gpt-5"    # Model name at the endpoint
 
 eval:
-  subset: "test"  # "train", "test", or "all"
-  n_questions: 0  # Total questions to evaluate (0 = all)
+  subset: "train"  # "train", "test", or "all"
+  n_questions: 10  # Total questions to evaluate (0 = all)
   n_samples: 1  # Number of runs per question
-  start_from_question: 0  # Skip questions before this index (for resuming)
+  start_from_question: 250  # Skip questions before this index (for resuming)
 
   # Must match training config for fair comparison
   max_turns: 2  # Aligned with full.yaml training.max_turns
-  max_new_tokens: 512  # Aligned with full.yaml training.max_new_tokens
+  max_new_tokens: 4096  # Aligned with full.yaml training.max_new_tokens
   temperature: 0.7  # Single temperature for deterministic eval
 
 judge:
