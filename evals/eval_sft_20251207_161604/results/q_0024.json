@@ -1,0 +1,38 @@
+{
+  "index": 24,
+  "question": "What type of engine powers the Panther KF51?",
+  "expected": "MTU MB 873 Ka-501 V-12 diesel",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "V12 diesel engine",
+      "correct": false,
+      "approach_score": 55,
+      "reward": -0.44999999999999996,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: What type of engine powers the Panther KF51?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nimport re\nfrom typing import List, Dict\n\ndef find_engines_in_sections(page_id: str, sections: List[Dict]) -> List[str]:\n    \"\"\"Search engine types in the provided sections of a page.\"\"\"\n    engine_types = []\n    for section in sections:\n        content = read_section(f\"{page_id}:{section['section_id']}\")\n        engine_patterns = [\n            r\"engine.*?(\\w+(?:\\s+\\w+)*)\",  # Matches engine types with optional spaces\n            r\"engine.*?(\\w+(?:\\s+\\w+)*)\",  # Matches engine types with optional spaces\n            r\"engine.*?(\\w+(?:\\s+\\w+)*)\",  # Matches engine types with optional spaces\n            r\"engine.*?(\\w+(?:\\s+\\w+)*)\",  # Matches engine types with optional spaces\n        ]\n        for pattern in engine_patterns:\n            matches = re.findall(pattern, content, re.IGNORECASE)\n            engine_types.extend([m.strip() for m in matches if m.strip()])\n    return list(set(engine_types))\n\n# Search for pages related to the Panther KF51\nresults = search_pages(\"Panther KF51\")[:10]\npages = []\nfor r in results:\n    pages.append(r)\n\n# Check if there are relevant pages, and find engine details\nengine_details = []\nfor page in pages:\n    page_id = page[\"page_id\"]\n    try:\n        sections = view_sections(page_id)\n        engine_details.extend(find_engines_in_sections(page_id, sections))\n    except Exception as e:\n        print(f\"Error reading page {page_id}: {str(e)}\")\n\n# Filter and extract only relevant engine types (e.g. \"V12\", \"turbine\", etc.)\nrelevant_engines = [e for e in engine_details if e and e.lower() not in [\"engine\", \"engines\", \"engine type\", \"engine types\", \"engine system\", \"engine design\", \"engine power\", \"engine performance\", \"engine efficiency\", \"engine output\", \"engine cooling\", \"engine management\", \"engine control\", \"engine fuel\", \"engine lubrication\", \"engine maintenance\", \"engine repair\", \"engine diagnostics\", \"engine testing\", \"engine calibration\", \"engine tuning\", \"engine optimization\", \"engine configuration\", \"engine layout\", \"engine placement\", \"engine mounting\", \"engine bracket\", \"engine bracket\", \"engine bracket\", \"engine bracket\", \""
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>V12 diesel engine</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

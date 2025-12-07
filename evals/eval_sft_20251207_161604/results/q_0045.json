@@ -1,0 +1,42 @@
+{
+  "index": 45,
+  "question": "In the FAA classification, what is the passenger enplanement range for a medium hub airport?",
+  "expected": "3,500,000-18,500,000",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "10,000 to 25,000 passengers per year",
+      "correct": false,
+      "approach_score": 25,
+      "reward": -0.75,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: In the FAA classification, what is the passenger enplanement range for a medium hub airport?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\n# Search for FAA classification and medium hub airports\nresults = search_pages(\"FAA classification medium hub airport\")[:5]\nprint(\"Search results for 'FAA classification medium hub airport':\")\nfor r in results:\n    print(f\"  - {r['title']} (similarity: {r['similarity']:.2f})\")\n\n# Try searching for passenger enplanement ranges specifically\nenplanement_results = search_pages(\"FAA passenger enplanement range medium hub\")[:5]\nprint(\"\\nSearch results for 'FAA passenger enplanement range medium hub':\")\nfor r in enplanement_results:\n    print(f\"  - {r['title']} (similarity: {r['similarity']:.2f})\")\n\n# If we have a relevant page, read it\nif enplanement_results:\n    page_id = enplanement_results[0]['page_id']\n    content = read_section(page_id + \":full\")\n    print(f\"\\nContent from {page_id}:\")\n    print(content[:1000])  # Print first 1000 characters to see if the range is mentioned\nelse:\n    print(\"No relevant page found for passenger enplanement range of medium hub airports.\")\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\nSearch results for 'FAA classification medium hub airport':\n  - Toronto Pearson International Airport (similarity: 0.48)\n  - Heathrow Airport (similarity: 0.48)\n  - Hartsfield\u2013Jackson Atlanta International Airport (similarity: 0.47)\n  - List of airports in the United States (similarity: 0.46)\n  - Logan International Airport (similarity: 0.45)\n\nSearch results for 'FAA passenger enplanement range medium hub':\n  - Delta Air Lines fleet (similarity: 0.41)\n  - Southwest Airlines (similarity: 0.41)\n  - American Airlines Flight 11 (similarity: 0.41)\n  - Boeing 757 (similarity: 0.41)\n  - Heathrow Airport (similarity: 0.41)\n\nContent from delta_air_lines_fleet:\n# Delta Air Lines fleet\n\n*Revision ID: 1160330162 | Timestamp: 2023-06-15T20:13:12Z*\n\n---\n\n[[File:Delta Planes at MCI (49879371996) (cropped).jpg|thumb|upright=1.2|Delta Air Lines planes parked on a taxiway at [City International Airport](Kansas)(Kansas City International Airport). The planes were parked due to the sharp decrease in demand for air travel from the [pandemic in the United States](COVID-19)(COVID-19 pandemic in the United States).|alt=Many in-line airplanes with the Delta Air Lines logo on the tail, parked on the pavement behind a fence.]]\n\nThe **[Air Lines](Delta)(Delta Air Lines) fleet** consists of 943 aircraft, making it the [airline fleet](largest)(World's largest airlines By fleet size) in the world. Delta Air Lines operates a fleet manufactured by [Airbus](Airbus) and [Boeing](Boeing Commercial Airplanes), and is the largest operator of the [717](Boeing)(Boeing 717), [757](Boeing)(Boeing 757), and [767](Boeing)(Boeing 767), and has the largest [A220](Airbus)(Airbus\n\n</python_output>"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>10,000 to 25,000 passengers per year</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

@@ -1,0 +1,42 @@
+{
+  "index": 94,
+  "question": "Name one type of list related to media franchises that is mentioned alongside the highest-grossing media franchises list.",
+  "expected": "List of best-selling comic series",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "List of films based on Marvel Comics publications",
+      "correct": false,
+      "approach_score": 75,
+      "reward": -0.25,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: Name one type of list related to media franchises that is mentioned alongside the highest-grossing media franchises list."
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\n# Search for media franchises and related lists\nresults = search_pages(\"highest-grossing media franchises list\")[:5]\n\n# Extract titles and content to find related list types\nrelated_list_types = []\n\nfor r in results:\n    content = read_section(r['page_id'] + \":full\")\n    # Look for terms indicating list types such as \"list of\", \"types of\", \"genres of\", \"categories of\"\n    keywords = ['list of', 'types of', 'genres of', 'categories of', 'series of', 'franchises of']\n    for keyword in keywords:\n        if keyword in content.lower():\n            # Extract the actual list type mentioned\n            start_idx = content.lower().find(keyword)\n            end_idx = content.lower().find('list', start_idx + len(keyword))\n            if end_idx != -1:\n                list_type = content[start_idx:start_idx + 100].strip()\n                list_type = re.sub(r\"list of\", \"\", list_type)\n                list_type = re.sub(r\"types of\", \"\", list_type)\n                list_type = re.sub(r\"genres of\", \"\", list_type)\n                list_type = re.sub(r\"categories of\", \"\", list_type)\n                list_type = re.sub(r\"series of\", \"\", list_type)\n                list_type = re.sub(r\"franchises of\", \"\", list_type)\n                list_type = re.sub(r\"list\", \"\", list_type)\n                list_type = re.sub(r\"\\s+\", \" \", list_type).strip()\n                if list_type:\n                    related_list_types.append(list_type)\n            break\n\n# Print the first unique related list type\nunique_list_types = list(set(related_list_types))\nprint(f\"Related list types found: {unique_list_types[:1]}\")\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\nRelated list types found: ['List of films based on Marvel Comics publications *Revision ID: 1160156457 | Timestamp: 2023-06-14T']\n\n</python_output>"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>List of films based on Marvel Comics publications</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

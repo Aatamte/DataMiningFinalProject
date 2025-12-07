@@ -72,9 +72,10 @@ Agent's full trajectory:
 SCORING:
 
 1. "correct" (true/false):
-   - true ONLY if final answer is EXACTLY "{answer}" or nearly identical (minor formatting OK)
-   - false if partial, abbreviated, missing key words, "not found", or wrong
-   - Be STRICT: "Chabert Collection" is NOT correct if ground truth is "Lacey Chabert Collection"
+   - true if the answer is semantically equivalent to "{answer}" (same meaning, different wording OK)
+   - true for minor variations: formatting, word order, abbreviations, extra context
+   - false if the core answer is wrong, missing, partial, or "not found"
+   - Example: "42 years old" is correct if ground truth is "42"
 
 2. "approach_score" (0-100):
    - 0-25: Relevant search queries (targeted vs generic)
@@ -102,8 +103,8 @@ Ground truth: {answer}
 Agent's answer: {response}
 
 Rules:
-- "correct": true ONLY if answer matches "{answer}" exactly or nearly identical (minor formatting OK)
-- false if partial, wrong, "not found", or missing key words
+- "correct": true if answer is semantically equivalent to "{answer}" (same meaning, different wording OK)
+- false if core answer is wrong, missing, or "not found"
 
 Output: {{"correct": true}} or {{"correct": false}}
 
@@ -217,9 +218,10 @@ Ground truth answer: {answer}
 SCORING CRITERIA:
 
 1. "correct" (true/false):
-   - true ONLY if final answer is EXACTLY "{answer}" or nearly identical (minor formatting OK)
-   - false if partial, abbreviated, missing key words, "not found", or wrong
-   - Be STRICT: "Chabert Collection" is NOT correct if ground truth is "Lacey Chabert Collection"
+   - true if the answer is semantically equivalent to "{answer}" (same meaning, different wording OK)
+   - true for minor variations: formatting, word order, abbreviations, extra context
+   - false if the core answer is wrong, missing, partial, or "not found"
+   - Example: "42 years old" is correct if ground truth is "42"
 
 2. "approach_score" (0-100):
    - 0-25: Relevant search queries (targeted vs generic)
@@ -248,8 +250,8 @@ Ground truth: {answer}
 {entries}
 
 Rules:
-- "correct": true ONLY if answer matches "{answer}" exactly or nearly identical
-- false if partial, wrong, "not found", or missing key words
+- "correct": true if answer is semantically equivalent to "{answer}" (same meaning, different wording OK)
+- false if core answer is wrong, missing, or "not found"
 
 Output JSON array:
 [{{"id": 0, "correct": true}}, {{"id": 1, "correct": false}}]

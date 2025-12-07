@@ -2,23 +2,26 @@
 
 model:
   # API endpoint for the model being evaluated
-  base_url: "https://api.openai.com/v1"
-  name: "gpt-5"    # Model name at the endpoint
+  # base profile: port 1234, model name = "models/Qwen3-8B-AWQ"
+  # sft profile:  port 1235, model name = "sft" (LoRA adapter)
+  base_url: "http://10.0.0.213:1235/v1"
+  name: "sft"
 
 eval:
-  subset: "train"  # "train", "test", or "all"
-  n_questions: 20  # Total questions to evaluate (0 = all)
+  subset: "test"  # "train", "test", or "all"
+  n_questions: 0  # Total questions to evaluate (0 = all)
   n_samples: 1  # Number of runs per question
-  start_from_question: 220  # Skip questions before this index (for resuming)
+  start_from_question: 0  # Skip questions before this index (for resuming)
 
   # Must match training config for fair comparison
   max_turns: 2  # Aligned with full.yaml training.max_turns
-  max_new_tokens: 4096  # Aligned with full.yaml training.max_new_tokens
+  max_new_tokens: 512  # Aligned with full.yaml training.max_new_tokens
   temperature: 0.7  # Single temperature for deterministic eval
 
 judge:
-  base_url: "http://10.0.0.9:1234/v1"  # Judge model endpoint
-  model: "qwen/qwen3-vl-8b"
+  # base profile on port 1234 as judge
+  base_url: "http://10.0.0.213:1234/v1"
+  model: "models/Qwen3-8B-AWQ"
 
 environment:
   sandbox_host: "localhost"

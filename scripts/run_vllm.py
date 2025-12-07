@@ -1,13 +1,13 @@
-"""vLLM judge server management.
+"""vLLM server management.
 
 Commands:
-    uv run python scripts/run_vllm.py --list                          # List available models
-    uv run python scripts/run_vllm.py --download qwen3-8b-awq         # Download model
-    uv run python scripts/run_vllm.py --server                        # Start server
-    uv run python scripts/run_vllm.py --stop                          # Stop server
+    uv run python scripts/run_vllm.py --list                    # List all profiles
+    uv run python scripts/run_vllm.py --server                  # Start ALL profiles
+    uv run python scripts/run_vllm.py --server --profile sft    # Start one profile
+    uv run python scripts/run_vllm.py --stop                    # Stop ALL profiles
+    uv run python scripts/run_vllm.py --stop --profile sft      # Stop one profile
 
-Models are downloaded to models/ directory and loaded from there.
-Set JUDGE_MODEL in .env to configure which model to use.
+Configuration in configs/vllm.yaml
 """
 
 import argparse
@@ -20,53 +20,44 @@ from pathlib import Path
 from urllib.request import urlopen
 from urllib.error import URLError
 
+import yaml
 from dotenv import load_dotenv
 load_dotenv()
 
 
 # =============================================================================
-# Server Configuration - EDIT THESE
+# Load config from YAML
 # =============================================================================
 
-GPU_MEMORY_UTILIZATION = 0.3   # GPU memory % (~7.2 GB, leaves room for training)
-MAX_MODEL_LEN = 6500           # Context window (full context for long prompts)
-MAX_NUM_SEQS = 10              # Max concurrent sequences (handles parallel judge calls)
-CHUNKED_PREFILL = True         # Better for long prompts
-TENSOR_PARALLEL_SIZE = 1       # Multi-GPU support
-DTYPE = "auto"                 # float16/bfloat16/auto
-KV_CACHE_DTYPE = "auto"        # auto (FP8 not supported on RTX 3090 with FlashInfer)
-CPU_OFFLOAD_GB = 0             # No CPU offload
-DISABLE_LOG_REQUESTS = True    # Less overhead
+CONFIG_PATH = Path("configs/vllm.yaml")
 
-# LoRA settings
-MAX_LORA_RANK = 64             # Max LoRA rank supported (set to your highest rank)
-MAX_LORAS = 4                  # Max number of LoRA adapters
+def load_config() -> dict:
+    if CONFIG_PATH.exists():
+        with open(CONFIG_PATH) as f:
+            return yaml.safe_load(f)
+    return {}
+
+CONFIG = load_config()
 
 
-# =============================================================================
-# Supported Models - short name -> HuggingFace path
-# =============================================================================
+def get_profile(name: str = None) -> tuple[dict, str]:
+    """Get a profile from config."""
+    profiles = CONFIG.get("profiles", {})
+    if name is None:
+        # Return first profile as default
+        if profiles:
+            name = list(profiles.keys())[0]
+            return profiles[name], name
+        return {}, ""
+    return profiles.get(name, {}), name
 
-MODELS = {
-    # Qwen3 8B variants
-    "qwen3-8b":       "Qwen/Qwen3-8B",
-    "qwen3-8b-awq":   "Qwen/Qwen3-8B-AWQ",
-    "qwen3-8b-fp8":   "Qwen/Qwen3-8B-FP8",
+def get_server_config() -> dict:
+    """Get server settings from config."""
+    return CONFIG.get("server", {})
 
-    # Qwen3 4B variants
-    "qwen3-4b":       "Qwen/Qwen3-4B",
-    "qwen3-4b-awq":   "Qwen/Qwen3-4B-AWQ",
-    "qwen3-4b-instruct": "Qwen/Qwen3-4B-Instruct-2507",
-
-    # Qwen3 smaller
-    "qwen3-1.7b":     "Qwen/Qwen3-1.7B",
-    "qwen3-0.6b":     "Qwen/Qwen3-0.6B",
-}
-
-# LoRA models: name -> (base_model, lora_path)
-LORA_MODELS = {
-    "sft": ("Qwen/Qwen3-4B-Instruct-2507", "final_adapters/sft_adapter"),
-}
+def get_lora_config() -> dict:
+    """Get LoRA settings from config."""
+    return CONFIG.get("lora", {})
 
 
 # =============================================================================
@@ -74,70 +65,16 @@ LORA_MODELS = {
 # =============================================================================
 
 MODELS_DIR = Path("models")    # Local model storage directory
-PID_FILE = Path("tools/vllm/server.pid")
+PID_DIR = Path("tools/vllm")   # PID files directory
+
+def get_pid_file(profile_name: str) -> Path:
+    """Get PID file path for a profile."""
+    return PID_DIR / f"{profile_name}.pid"
 
 
 # =============================================================================
 # Helpers
 # =============================================================================
-
-def get_port_from_env() -> int:
-    """Extract port from JUDGE_BASE_URL in .env."""
-    base_url = os.environ.get("JUDGE_BASE_URL", "http://localhost:1234/v1")
-    try:
-        from urllib.parse import urlparse
-        return urlparse(base_url).port or 1234
-    except:
-        return 1234
-
-
-def get_judge_model() -> str:
-    """Get JUDGE_MODEL from .env."""
-    return os.environ.get("JUDGE_MODEL", "")
-
-
-def resolve_model(name: str, check_local: bool = True) -> tuple[str, bool, str | None]:
-    """Resolve model name to path.
-
-    Args:
-        name: Short name (qwen3-8b) or HF path (Qwen/Qwen3-8B)
-        check_local: Whether to check for local copy first
-
-    Returns:
-        (model_path, is_local, lora_path) - path to use, whether it's local, and optional LoRA path
-    """
-    # Check if it's a LoRA model first
-    key = name.lower()
-    if key in LORA_MODELS:
-        base_model, lora_path = LORA_MODELS[key]
-        return base_model, False, lora_path
-
-    # Determine HF model ID
-    if "/" in name:
-        hf_id = name
-    else:
-        if key not in MODELS:
-            print(f"ERROR: Unknown model '{name}'")
-            print(f"\nSupported short names:")
-            for short, full in MODELS.items():
-                print(f"  {short:15} -> {full}")
-            print(f"\nLoRA models:")
-            for short, (base, lora) in LORA_MODELS.items():
-                print(f"  {short:15} -> {base} + {lora}")
-            print(f"\nOr use full HuggingFace path (e.g., Qwen/Qwen3-8B-AWQ)")
-            return "", False, None
-        hf_id = MODELS[key]
-
-    # Check for local copy
-    if check_local:
-        # Local dir uses model name (e.g., models/Qwen3-8B-AWQ)
-        local_name = hf_id.split("/")[-1]
-        local_path = MODELS_DIR / local_name
-        if local_path.exists() and (local_path / "config.json").exists():
-            return str(local_path), True, None
-
-    return hf_id, False, None
-
 
 def check_server(port: int) -> bool:
     """Check if server is responding."""
@@ -152,103 +89,127 @@ def check_server(port: int) -> bool:
 # Commands
 # =============================================================================
 
-def cmd_download(model_name: str):
-    """Download a model to local models/ directory."""
-    hf_id, is_local, _ = resolve_model(model_name, check_local=False)
-    if not hf_id:
-        return False
-
-    # Destination directory
-    local_name = hf_id.split("/")[-1]
-    local_path = MODELS_DIR / local_name
-
-    if local_path.exists() and (local_path / "config.json").exists():
-        print(f"Model already exists: {local_path}")
-        return True
-
-    print(f"Downloading: {hf_id}")
-    print(f"Destination: {local_path}\n")
-
-    # Create models dir
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-
-    # Use huggingface-cli to download to local dir
-    result = subprocess.run([
-        "huggingface-cli", "download", hf_id,
-        "--local-dir", str(local_path),
-        "--local-dir-use-symlinks", "False",
-    ])
-
-    if result.returncode == 0:
-        print(f"\nModel downloaded to: {local_path}")
-        print(f"Set in .env: JUDGE_MODEL={model_name}")
-    else:
-        print(f"\nFailed to download. Install huggingface-cli:")
-        print("  pip install huggingface-hub")
-
-    return result.returncode == 0
-
-
 def cmd_list():
-    """List available models and their status."""
+    """List available profiles from config."""
+    profiles = CONFIG.get("profiles", {})
+    active = CONFIG.get("active", "")
+
     print("=" * 60)
-    print("AVAILABLE MODELS")
+    print("VLLM PROFILES (configs/vllm.yaml)")
     print("=" * 60)
-    print(f"{'Short Name':<15} {'HuggingFace ID':<25} {'Status':<10}")
+
+    for name, profile in profiles.items():
+        model = profile.get("model", "")
+        port = profile.get("port", 1234)
+        lora = profile.get("lora")
+
+        # Check if running
+        pid_file = get_pid_file(name)
+        running = pid_file.exists() and check_server(port)
+
+        marker = "*" if name == active else " "
+        status = "RUNNING" if running else ""
+
+        print(f"{marker} {name:<12} port:{port:<5} {status}")
+        print(f"    model: {model}")
+        if lora:
+            lora_exists = Path(lora).exists()
+            lora_status = "" if lora_exists else "(missing)"
+            print(f"    lora:  {lora} {lora_status}")
+        print()
+
     print("-" * 60)
-
-    for short, hf_id in MODELS.items():
-        local_name = hf_id.split("/")[-1]
-        local_path = MODELS_DIR / local_name
-        if local_path.exists() and (local_path / "config.json").exists():
-            status = "LOCAL"
-        else:
-            status = "remote"
-        print(f"{short:<15} {hf_id:<25} {status:<10}")
-
-    if LORA_MODELS:
-        print("-" * 60)
-        print("LORA MODELS")
-        print("-" * 60)
-        for short, (base, lora) in LORA_MODELS.items():
-            exists = Path(lora).exists()
-            status = "ready" if exists else "missing"
-            print(f"{short:<15} {base:<25} {status:<10}")
-            print(f"{'':15} LoRA: {lora}")
-
-    print("-" * 60)
-    print(f"Local models dir: {MODELS_DIR.absolute()}")
+    print(f"* = active profile")
+    print(f"Config: {CONFIG_PATH.absolute()}")
 
 
-def cmd_stop():
-    """Stop the running server."""
-    if not PID_FILE.exists():
-        print("No server PID file found.")
+def cmd_stop(profile_name: str = None):
+    """Stop a running server."""
+    if profile_name is None:
+        _, profile_name = get_profile()
+
+    pid_file = get_pid_file(profile_name)
+
+    if not pid_file.exists():
+        print(f"No PID file for profile '{profile_name}'")
         return False
 
     try:
-        pid = int(PID_FILE.read_text().strip())
-        print(f"Stopping server (PID: {pid})...")
-        os.kill(pid, signal.SIGTERM)
-        time.sleep(2)
+        pid = int(pid_file.read_text().strip())
+        print(f"Stopping {profile_name} (PGID: {pid})...")
+        # Kill entire process group (vLLM spawns child processes via Ray)
         try:
-            os.kill(pid, 0)
-            os.kill(pid, signal.SIGKILL)
+            os.killpg(pid, signal.SIGTERM)
+        except ProcessLookupError:
+            # Process group doesn't exist, try single process
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+        time.sleep(2)
+        # Force kill if still running
+        try:
+            os.killpg(pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
-        PID_FILE.unlink()
+        pid_file.unlink()
         print("Server stopped.")
         return True
     except Exception as e:
         print(f"Failed to stop: {e}")
-        PID_FILE.unlink(missing_ok=True)
+        pid_file.unlink(missing_ok=True)
         return False
 
 
-def cmd_server(model_name: str, port: int, foreground: bool):
-    """Start the vLLM server."""
-    model_path, is_local, lora_path = resolve_model(model_name)
+def cmd_server_all(foreground: bool = False):
+    """Start vLLM servers for ALL profiles."""
+    profiles = CONFIG.get("profiles", {})
+    if not profiles:
+        print("ERROR: No profiles defined in config")
+        return False
+
+    print("=" * 60)
+    print("STARTING ALL VLLM PROFILES")
+    print("=" * 60)
+
+    started = []
+    for name in profiles:
+        print(f"\nStarting profile: {name}")
+        if cmd_server_single(name, foreground=False):
+            started.append(name)
+        else:
+            print(f"  Failed to start {name}")
+
+    print("\n" + "=" * 60)
+    print(f"Started {len(started)}/{len(profiles)} profiles: {', '.join(started)}")
+    print("=" * 60)
+
+    if foreground and started:
+        print("\nPress Ctrl+C to stop all servers.\n")
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("\nStopping all servers...")
+            for name in started:
+                cmd_stop(name)
+
+    return len(started) > 0
+
+
+def cmd_server_single(profile_name: str, foreground: bool = False):
+    """Start the vLLM server for a single profile."""
+    profile, profile_name = get_profile(profile_name)
+    if not profile:
+        print(f"ERROR: Profile '{profile_name}' not found in config")
+        return False
+
+    model_path = profile.get("model", "")
+    port = profile.get("port", 1234)
+    lora_path = profile.get("lora")
+
     if not model_path:
+        print(f"ERROR: No model specified in profile '{profile_name}'")
         return False
 
     # Check vllm installed
@@ -256,75 +217,74 @@ def cmd_server(model_name: str, port: int, foreground: bool):
         import vllm
     except ImportError:
         print("ERROR: vllm not installed.")
-        print("Install it separately (to avoid dependency conflicts):")
         print("  pip install vllm")
         return False
 
     # Check if already running
     if check_server(port):
-        print(f"Server already running on port {port}")
-        print("Use --stop first")
+        print(f"Port {port} already in use")
+        print(f"Use: --stop --profile {profile_name}")
         return False
+
+    # Get server settings from config
+    server_cfg = get_server_config()
+    lora_cfg = get_lora_config()
 
     # Build command
     cmd = [
         sys.executable, "-m", "vllm.entrypoints.openai.api_server",
         "--model", model_path,
         "--port", str(port),
-        "--host", "0.0.0.0",
-        "--gpu-memory-utilization", str(GPU_MEMORY_UTILIZATION),
-        "--max-model-len", str(MAX_MODEL_LEN),
-        "--max-num-seqs", str(MAX_NUM_SEQS),
-        "--dtype", DTYPE,
-        "--kv-cache-dtype", KV_CACHE_DTYPE,
+        "--host", server_cfg.get("host", "0.0.0.0"),
+        "--gpu-memory-utilization", str(profile.get("gpu_memory", 0.5)),
+        "--max-model-len", str(profile.get("max_model_len", server_cfg.get("max_model_len", 6500))),
+        "--max-num-seqs", str(server_cfg.get("max_num_seqs", 10)),
+        "--dtype", server_cfg.get("dtype", "auto"),
+        "--kv-cache-dtype", server_cfg.get("kv_cache_dtype", "auto"),
         "--trust-remote-code",
     ]
 
-    if CPU_OFFLOAD_GB > 0:
-        cmd.extend(["--cpu-offload-gb", str(CPU_OFFLOAD_GB)])
-    if CHUNKED_PREFILL:
+    if server_cfg.get("enable_chunked_prefill", True):
         cmd.append("--enable-chunked-prefill")
-    if TENSOR_PARALLEL_SIZE > 1:
-        cmd.extend(["--tensor-parallel-size", str(TENSOR_PARALLEL_SIZE)])
-    if DISABLE_LOG_REQUESTS:
+    if server_cfg.get("disable_log_requests", True):
         cmd.append("--disable-log-requests")
 
     # Add LoRA if specified
     if lora_path:
         cmd.extend([
             "--enable-lora",
-            "--lora-modules", f"sft={lora_path}",
-            "--max-lora-rank", str(MAX_LORA_RANK),
-            "--max-loras", str(MAX_LORAS),
+            "--lora-modules", f"{profile_name}={lora_path}",
+            "--max-lora-rank", str(lora_cfg.get("max_rank", 64)),
+            "--max-loras", str(lora_cfg.get("max_loras", 4)),
         ])
 
     print("=" * 60)
-    print("VLLM SERVER")
+    print(f"VLLM SERVER: {profile_name}")
     print("=" * 60)
-    source = "LOCAL" if is_local else "HuggingFace"
-    print(f"Model: {model_path} ({source})")
+    print(f"Model: {model_path}")
     if lora_path:
         print(f"LoRA: {lora_path}")
     print(f"Port: {port}")
-    print(f"GPU Memory: {GPU_MEMORY_UTILIZATION * 100:.0f}%")
-    print(f"Max Context: {MAX_MODEL_LEN}")
-    print(f"Max Seqs: {MAX_NUM_SEQS}")
-    print(f"KV Cache: {KV_CACHE_DTYPE}")
+    print(f"GPU Memory: {profile.get('gpu_memory', 0.5) * 100:.0f}%")
+    print(f"Max Model Len: {profile.get('max_model_len', server_cfg.get('max_model_len', 6500))}")
     print("=" * 60)
     print()
 
-    # Start process
+    # Start process in new process group (so we can kill all child processes)
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
+        start_new_session=True,  # Creates new process group
     )
 
-    # Save PID
-    PID_FILE.parent.mkdir(parents=True, exist_ok=True)
-    PID_FILE.write_text(str(process.pid))
+    # Save PGID (process group ID) - same as PID for session leader
+    pgid = os.getpgid(process.pid)
+    pid_file = get_pid_file(profile_name)
+    pid_file.parent.mkdir(parents=True, exist_ok=True)
+    pid_file.write_text(str(pgid))
 
     print("Loading model...\n")
 
@@ -355,10 +315,10 @@ def cmd_server(model_name: str, port: int, foreground: bool):
                 except KeyboardInterrupt:
                     print("\nStopping...")
                     process.terminate()
-                    PID_FILE.unlink(missing_ok=True)
+                    pid_file.unlink(missing_ok=True)
             else:
-                print(f"PID: {process.pid}")
-                print(f"Stop: uv run python scripts/run_vllm.py --stop")
+                print(f"PGID: {pgid}")
+                print(f"Stop: uv run python scripts/run_vllm.py --stop --profile {profile_name}")
             return True
 
         if process.poll() is not None:
@@ -378,48 +338,44 @@ def cmd_server(model_name: str, port: int, foreground: bool):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="vLLM judge server management",
+        description="vLLM server management (config: configs/vllm.yaml)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Download a model first
-  %(prog)s --download Qwen/Qwen3-8B-AWQ
+  # List profiles
+  %(prog)s --list
 
-  # Start server (uses JUDGE_MODEL from .env)
+  # Start active profile (set in config)
   %(prog)s --server
 
-  # Start with specific model
-  %(prog)s --server --model Qwen/Qwen3-8B-AWQ
+  # Start specific profile
+  %(prog)s --server --profile sft
 
-  # Stop server
-  %(prog)s --stop
+  # Stop a profile
+  %(prog)s --stop --profile sft
 """,
     )
 
     # Commands
     parser.add_argument("--list", action="store_true",
-        help="List available models")
-    parser.add_argument("--download", metavar="MODEL",
-        help="Download model to local models/ directory")
+        help="List available profiles")
     parser.add_argument("--server", action="store_true",
-        help="Start the vLLM server")
+        help="Start server for a profile")
     parser.add_argument("--stop", action="store_true",
-        help="Stop the running server")
+        help="Stop a running server")
 
     # Options
-    parser.add_argument("--model", "-m",
-        help="Model ID (default: JUDGE_MODEL from .env)")
-    parser.add_argument("--port", "-p", type=int,
-        help="Port (default: from JUDGE_BASE_URL in .env)")
+    parser.add_argument("--profile", "-p",
+        help="Profile name (default: active profile in config)")
     parser.add_argument("--foreground", "-f", action="store_true",
         help="Run in foreground")
 
     args = parser.parse_args()
 
     # Must specify a command
-    if not (args.list or args.download or args.server or args.stop):
+    if not (args.list or args.server or args.stop):
         parser.print_help()
-        print("\nError: Specify --list, --download, --server, or --stop")
+        print("\nError: Specify --list, --server, or --stop")
         sys.exit(1)
 
     # Handle commands
@@ -428,22 +384,22 @@ Examples:
         return
 
     if args.stop:
-        cmd_stop()
-        return
-
-    if args.download:
-        cmd_download(args.download)
+        if args.profile:
+            cmd_stop(args.profile)
+        else:
+            # Stop ALL profiles
+            profiles = CONFIG.get("profiles", {})
+            for name in profiles:
+                cmd_stop(name)
         return
 
     if args.server:
-        model_id = args.model or get_judge_model()
-        if not model_id:
-            print("ERROR: No model specified.")
-            print("Use --model or set JUDGE_MODEL in .env")
-            sys.exit(1)
-
-        port = args.port or get_port_from_env()
-        success = cmd_server(model_id, port, args.foreground)
+        if args.profile:
+            # Start single profile
+            success = cmd_server_single(args.profile, args.foreground)
+        else:
+            # Start ALL profiles
+            success = cmd_server_all(args.foreground)
         if not success:
             sys.exit(1)
 

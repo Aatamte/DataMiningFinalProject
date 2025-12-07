@@ -1,0 +1,46 @@
+{
+  "index": 3,
+  "question": "What was the name of the failed Cuban army offensive against the Sierra Maestra mountains in 1958?",
+  "expected": "Operation Verano",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "(no answer)",
+      "correct": false,
+      "approach_score": 0,
+      "reward": 0.0,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: What was the name of the failed Cuban army offensive against the Sierra Maestra mountains in 1958?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nfrom collections import defaultdict\nimport re\n\ndef get_name(text):\n    # Use regex to extract names of offensives\n    # We're targeting something like \"Name of offensive\" or \"Operation Name\"\n    name_matches = re.findall(r\"(?:Operation\\s+|Offensive\\s+|Attack\\s+)([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\", text)\n    # Look for more specific matches that might contain the name\n    more_matches = re.findall(r\"(?:[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\\s+offensive\", text)\n    return name_matches + more_matches\n\ndef get_context(text):\n    # Extract the text before and after a potential offensive name\n    # We want to keep at least 200 characters before and after the name\n    # This will help us avoid missing the actual offensive name\n    context = text\n    # Extract the offensive name\n    offensive_names = get_name(context)\n    # Find the index of the offensive name in the text\n    offensive_contexts = []\n    for name in offensive_names:\n        # Find the index of the offensive name\n        idx = context.lower().find(name.lower())\n        # Extract the context\n        if idx != -1:\n            start = max(0, idx - 200)\n            end = min(len(context), idx + 200)\n            offensive_contexts.append(context[start:end])\n    return offensive_contexts\n\n# Search for pages about the Cuban army offensive in 1958\nresults = search_pages(\"Cuban army offensive 1958\")\noffensive_names = set()\n\nfor result in results:\n    # Read the full page\n    content = read_section(result['page_id'] + \":full\")\n    # Get the offensive context\n    offensive_contexts = get_context(content)\n    # Extract the offensive names\n    for context in offensive_contexts:\n        offensive_names.update(get_name(context))\n    # If we have found a name, print it\n    if offensive_names:\n        print(f\"=== {result['title']} ===\")\n        print(context)\n        break\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\n=== Cuban Revolution ===\nuring the ten days of action, resisting the aerial bombardment and the attack by the enemy artillery.\n\nGuisa, twelve kilometers from the military port of Bayamo, is now free Cuban territory.}}}}\n\n### Rebel offensive\n\n. p. 41.}}\n\n[[File:Sierra Maestra -mapa rev cubana-.png|thumb|upright=1.5|Map showing key locations in the [Maestra](Sierra)(Sierra Maestra) during the 1958 stage of the Cuban Revolut\n\n</python_output>"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nfrom collections import defaultdict\nimport re\n\ndef get_name(text):\n    # Use regex to extract names of offensives\n    # We're targeting something like \"Name of offensive\" or \"Operation Name\"\n    name_matches = re.findall(r\"(?:Operation\\s+|Offensive\\s+|Attack\\s+)([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\", text)\n    # Look for more specific matches that might contain the name\n    more_matches = re.findall(r\"(?:[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\\s+offensive\", text)\n    return name_matches + more_matches\n\ndef get_context(text):\n    # Extract the text before and after a potential offensive name\n    # We want to keep at least 200 characters before and after the name\n    # This will help us avoid missing the actual offensive name\n    context = text\n    # Extract the offensive name\n    offensive_names = get_name(context)\n    # Find the index of the offensive name in the text\n    offensive_contexts = []\n    for name in offensive_names:\n        # Find the index of the offensive name\n        idx = context.lower().find(name.lower())\n        # Extract the context\n        if idx != -1:\n            start = max(0, idx - 200)\n            end = min(len(context), idx + 200)\n            offensive_contexts.append(context[start:end])\n    return offensive_contexts\n\n# Search for pages about the Cuban army offensive in 1958\nresults = search_pages(\"Cuban army offensive 1958\")\noffensive_names = set()\n\nfor result in results:\n    # Read the full page\n    content = read_section(result['page_id'] + \":full\")\n    # Get the offensive context\n    offensive_contexts = get_context(content)\n    # Extract the offensive names\n    for context in offensive_contexts:\n        offensive_names.update(get_name(context))\n    # If we have found a name, print it\n    if offensive_names:\n        print(f\"=== {result['title']} ===\")\n        print(context)\n        break\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\n=== Cuban Revolution ===\nuring the ten days of action, resisting the aerial bombardment and the attack by the enemy artillery.\n\nGuisa, twelve kilometers from the military port of Bayamo, is now free Cuban territory.}}}}\n\n### Rebel offensive\n\n. p. 41.}}\n\n[[File:Sierra Maestra -mapa rev cubana-.png|thumb|upright=1.5|Map showing key locations in the [Maestra](Sierra)(Sierra Maestra) during the 1958 stage of the Cuban Revolut\n\n</python_output>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

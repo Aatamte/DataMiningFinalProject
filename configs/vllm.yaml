@@ -1,0 +1,36 @@
+# vLLM Server Configuration
+# Usage: uv run python scripts/run_vllm.py --list
+#        uv run python scripts/run_vllm.py --server --profile base
+#        uv run python scripts/run_vllm.py --server --profile sft
+
+# Shared server settings (can be overridden per profile)
+server:
+  host: "0.0.0.0"
+  max_model_len: 4096
+  max_num_seqs: 10
+  dtype: auto
+  kv_cache_dtype: auto
+  enable_chunked_prefill: true
+  disable_log_requests: true
+
+# LoRA settings (when using adapters)
+lora:
+  max_rank: 64
+  max_loras: 4
+
+# Model profiles
+# Default: --server starts ALL profiles
+# Specific: --server --profile NAME starts one
+profiles:
+  base:
+    model: "models/Qwen3-8B-AWQ"
+    port: 1234
+    gpu_memory: 0.35
+    max_model_len: 3000
+
+  sft:
+    model: "models/Qwen3-4B-Instruct-2507"
+    lora: "final_adapters/rl_adapter"
+    port: 1235
+    gpu_memory: 0.4
+    max_model_len: 4096

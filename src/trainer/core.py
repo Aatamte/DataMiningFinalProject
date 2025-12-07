@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 import random
+import shutil
 import tempfile
 import time
 from dataclasses import dataclass, asdict, field
@@ -111,6 +112,7 @@ class TrainerConfig:
     lora_dropout: float = 0.05
     lora_target_modules: list[str] = field(default_factory=lambda: ["q_proj", "v_proj", "k_proj", "o_proj"])
     gradient_checkpointing: bool = False  # Trade compute for memory (~40% less VRAM, ~20% slower)
+    from_adapter: str = ""  # Path to SFT adapter to start from (empty = train from scratch)
 
     # Checkpoint settings
     save_every_n_steps: int = 0  # 0 = only final, N = every N steps (also saves "latest")
@@ -184,6 +186,7 @@ class TrainerConfig:
             lora_dropout=get("lora", "dropout", cls.lora_dropout),
             lora_target_modules=get("lora", "target_modules", ["q_proj", "v_proj", "k_proj", "o_proj"]),
             gradient_checkpointing=get("lora", "gradient_checkpointing", cls.gradient_checkpointing),
+            from_adapter=get("lora", "from_adapter", cls.from_adapter),
             # Checkpoint
             save_every_n_steps=get("checkpoint", "save_every_n_steps", cls.save_every_n_steps),
             save_new_checkpoint_every=get("checkpoint", "save_new_checkpoint_every", cls.save_new_checkpoint_every),
@@ -261,6 +264,21 @@ class Trainer:
             self.run_dir = setup_run_dir(self.run_name, base_dir=cfg.output_dir)
             self.logger, log_file = setup_logging(self.run_dir)
 
+        # Copy source adapter to run directory if specified
+        self.base_adapter_path = None
+        if cfg.from_adapter:
+            source_adapter = Path(cfg.from_adapter)
+            if not source_adapter.exists():
+                raise ValueError(f"Source adapter not found: {source_adapter}")
+            self.base_adapter_path = self.run_dir / "checkpoints" / "base"
+            if not self.base_adapter_path.exists():
+                self.base_adapter_path.mkdir(parents=True)
+                # Copy all files from source adapter
+                for f in source_adapter.iterdir():
+                    if f.is_file():
+                        shutil.copy2(f, self.base_adapter_path / f.name)
+                # Log after logger is setup (moved below)
+
         self.metrics = MetricsTracker(self.run_dir)
 
         # Setup LLM call logging
@@ -306,16 +324,23 @@ class Trainer:
 
         # Apply LoRA if enabled
         if cfg.use_lora:
-            self.logger.info(f"\n[2.5/4] Applying LoRA (r={cfg.lora_r}, alpha={cfg.lora_alpha})...")
-            lora_config = LoraConfig(
-                task_type=TaskType.CAUSAL_LM,
-                r=cfg.lora_r,
-                lora_alpha=cfg.lora_alpha,
-                lora_dropout=cfg.lora_dropout,
-                bias="none",
-                target_modules=cfg.lora_target_modules,
-            )
-            self.model = get_peft_model(self.model, lora_config)
+            if self.base_adapter_path and self.base_adapter_path.exists():
+                # Load from copied SFT adapter
+                self.logger.info(f"\n[2.5/4] Loading LoRA adapter from: {self.base_adapter_path}")
+                self.model = PeftModel.from_pretrained(self.model, self.base_adapter_path, is_trainable=True)
+                self.logger.info(f"  Loaded adapter from SFT checkpoint")
+            else:
+                # Create fresh LoRA
+                self.logger.info(f"\n[2.5/4] Applying LoRA (r={cfg.lora_r}, alpha={cfg.lora_alpha})...")
+                lora_config = LoraConfig(
+                    task_type=TaskType.CAUSAL_LM,
+                    r=cfg.lora_r,
+                    lora_alpha=cfg.lora_alpha,
+                    lora_dropout=cfg.lora_dropout,
+                    bias="none",
+                    target_modules=cfg.lora_target_modules,
+                )
+                self.model = get_peft_model(self.model, lora_config)
             trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
             total_params = sum(p.numel() for p in self.model.parameters())
             self.logger.info(f"  Trainable params: {trainable_params:,} / {total_params:,} ({100 * trainable_params / total_params:.2f}%)")
@@ -677,24 +702,46 @@ class Trainer:
         # Initialize results array (indexed by episode)
         judge_results = [None] * len(episodes)
 
-        if cfg.n_batch_judge > 1:
-            # === BATCH JUDGING MODE ===
-            # Group similar answers and judge in batches
+        # Deterministic match shortcut - bypass judge for obvious matches
+        expected_clean = answer.strip().lower()
+        for idx, ep in enumerate(episodes):
+            if ep.final_answer is not None:
+                answer_clean = ep.final_answer.strip().lower()
+                if answer_clean == expected_clean or expected_clean in answer_clean:
+                    # Exact or contains match - skip judge, give full reward
+                    judge_results[idx] = JudgeResult(
+                        reward=1.0,
+                        correct=True,
+                        approach_score=100,
+                    )
 
-            # Extract answers for similarity grouping
+        # Get indices that still need judging
+        indices_to_judge = [i for i, r in enumerate(judge_results) if r is None]
+
+        if not indices_to_judge:
+            # All episodes matched deterministically - skip judge entirely
+            pass
+        elif cfg.n_batch_judge > 1:
+            # === BATCH JUDGING MODE ===
+            # Group similar answers and judge in batches (only for indices that need judging)
+
+            # Extract answers for similarity grouping (only indices that need judging)
             answers_list = [
-                ep.final_answer if ep.final_answer is not None else "(no answer)"
-                for ep in episodes
+                (idx, episodes[idx].final_answer if episodes[idx].final_answer is not None else "(no answer)")
+                for idx in indices_to_judge
             ]
 
             # Sort by similarity, then chunk into batches
             groups = group_answers_by_similarity(
-                answers_list,
+                [a[1] for a in answers_list],
                 batch_size=cfg.n_batch_judge,
             )
+            # Map group indices back to episode indices
+            groups = [[answers_list[i][0] for i in group] for group in groups]
 
             if cfg.debug_judge:
-                self.logger.info(f"[Step {q_idx}] Batch judge: {len(episodes)} episodes -> {len(groups)} groups")
+                matched = len(episodes) - len(indices_to_judge)
+                self.logger.info(f"[Step {q_idx}] Batch judge: {len(indices_to_judge)} to judge ({matched} matched), {len(groups)} groups")
 
             def judge_batch_sync(group_indices: list[int]) -> list[dict]:
                 """Judge a batch of episodes synchronously."""
@@ -799,20 +846,24 @@ class Trainer:
                     else:
                         reward = -1.0
 
-                return JudgeResult(
+                return (ep_idx, JudgeResult(
                     reward=reward,
                     correct=result.correct if ep.final_answer is not None else False,
                     approach_score=result.approach_score,
                     raw_response=result.raw_response,
-                )
+                ))
 
+            # Only judge episodes that need judging (not deterministically matched)
             loop = asyncio.get_event_loop()
-            with ThreadPoolExecutor(max_workers=len(episodes)) as executor:
+            with ThreadPoolExecutor(max_workers=len(indices_to_judge)) as executor:
                 futures = [
-                    loop.run_in_executor(executor, judge_episode_sync, ep, i)
-                    for i, ep in enumerate(episodes)
+                    loop.run_in_executor(executor, judge_episode_sync, episodes[idx], idx)
+                    for idx in indices_to_judge
                 ]
-                judge_results = await asyncio.gather(*futures)
+                results = await asyncio.gather(*futures)
+                # Update judge_results in place
+                for idx, result in results:
+                    judge_results[idx] = result
 
         judge_time = time.time() - judge_start
 
@@ -838,11 +889,18 @@ class Trainer:
                 self.logger.info(f"[Step {q_idx} R{r + 1}] Judge: NO ANSWER (penalty) | Approach: {judge_result.approach_score}/100 | Reward: {judge_result.reward:.2f}")
             elif judge_result.error:
                 self.logger.info(f"[Step {q_idx} R{r + 1}] Judge error: {judge_result.error}")
+            elif judge_result.correct and judge_result.approach_score == 100:
+                # Deterministic match (bypassed judge)
+                self.logger.info(f"[Step {q_idx} R{r + 1}] MATCH (deterministic) | Reward: {judge_result.reward:.2f}")
             else:
                 status = "CORRECT" if judge_result.correct else "INCORRECT"
                 self.logger.info(f"[Step {q_idx} R{r + 1}] Judge: {status} | Approach: {judge_result.approach_score}/100 | Reward: {judge_result.reward:.2f}")
 
-        self.logger.info(f"[Step {q_idx}] Judge complete: {judge_time:.1f}s")
+        matched_count = len(episodes) - len(indices_to_judge)
+        if matched_count > 0:
+            self.logger.info(f"[Step {q_idx}] Judge complete: {judge_time:.1f}s ({matched_count} deterministic matches)")
+        else:
+            self.logger.info(f"[Step {q_idx}] Judge complete: {judge_time:.1f}s")
 
         return judge_results, rewards, correct_count, approach_scores, answer_count, total_turns
 

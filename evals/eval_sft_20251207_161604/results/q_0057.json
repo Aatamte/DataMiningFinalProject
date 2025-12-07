@@ -1,0 +1,38 @@
+{
+  "index": 57,
+  "question": "What is the source material for the TV series Wolf Pack?",
+  "expected": "2004 book by Edo van Belkom",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "The source material for the TV series Wolf Pack is the 1998 novel \"The Wolf Pack\" by John Doe.",
+      "correct": false,
+      "approach_score": 30,
+      "reward": -0.7,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: What is the source material for the TV series Wolf Pack?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nimport re\n\n# Search for pages related to \"Wolf Pack (TV series)\"\nresults = search_pages(\"Wolf Pack (TV series)\")\n\n# If no direct results, search for pages related to the show or its creators\nif len(results) == 0:\n    results = search_pages(\"Wolf Pack TV series\")\n\n# Initialize found info\nfound_info = []\n\n# Loop through the top 3 results\nfor page in results[:3]:\n    page_id = page[\"page_id\"]\n    title = page[\"title\"]\n\n    # Check if the page has a section title that might contain the answer\n    try:\n        sections = view_sections(page_id)\n        for section in sections:\n            section_title = section[\"section_name\"]\n            section_id = section[\"section_id\"]\n\n            # Look for section titles containing \"source\", \"origin\", \"based on\", or \"adapted from\"\n            if any(kw in section_title.lower() for kw in [\"source\", \"origin\", \"based\", \"adapted\", \"originated\", \"inspired\", \"derived\"]):\n                content = read_section(f\"{page_id}:{section_id}\")\n                # Look for the actual source material within the section\n                matches = re.findall(r\"based on\\s*[\\w\\s\\-\\(\\)]*[\\w\\-\\(\\)]*\", content.lower())\n                if matches:\n                    # Extract the actual source material from the matches\n                    for match in matches:\n                        if \"book\" in match or \"novel\" in match or \"script\" in match or \"story\" in match:\n                            found_info.append({\n                                \"page\": title,\n                                \"section\": section_title,\n                                \"source\": match.strip()\n                            })\n                            break\n                else:\n                    # Check for \"based on\" or \"adapted from\" in the text\n                    if \"based on\" in content.lower() or \"adapted from\" in content.lower():\n                        source_match = re.search(r\"(?<=based on\\s|adapted from\\s)([^.!?]+)\", content)\n                        if source_match:\n                            found_info.append({\n                                \"page\": title,\n                                \"section\": section_title,\n                                \"source\": source_match.group(1).strip()\n                            })\n    except:\n        pass\n\n# Check if we found anything\nif len(found_info) == 0:\n    # Try searching for pages related to the creators of the show\n    results = search_pages(\"Wolf Pack TV series creators\")\n    if len(results) == 0:\n"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>The source material for the TV series Wolf Pack is the 1998 novel \"The Wolf Pack\" by John Doe.</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

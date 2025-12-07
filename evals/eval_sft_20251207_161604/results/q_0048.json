@@ -1,0 +1,38 @@
+{
+  "index": 48,
+  "question": "In which U.S. state was Insidious: The Red Door primarily filmed?",
+  "expected": "New Jersey",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "California",
+      "correct": false,
+      "approach_score": 50,
+      "reward": -0.5,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: In which U.S. state was Insidious: The Red Door primarily filmed?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nfrom collections import defaultdict\nimport re\n\ndef find_state_in_text(text: str) -> str:\n    # Use regex to find state names in the text\n    state_pattern = r'\\b(?:\\w+)?(?:\\s+)?(Alaska|Alabama|Arkansas|American Samoa|Arizona|California|Colorado|Connecticut|Delaware|District of Columbia|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming|Puerto Rico|Guam|U.S. Virgin Islands|Virgin Islands|U.S. territories|U.S. possessions|United States|United States of America)\\b'\n    matches = re.findall(state_pattern, text)\n    # Return the first state found, or an empty string if none found\n    if matches:\n        return matches[0]\n    else:\n        return \"\"\n\n# Search for the film page\nfilm_results = search_pages(\"Insidious: The Red Door film\")\nif not film_results:\n    # Try a different query\n    film_results = search_pages(\"Insidious Red Door film\")\n\n# Initialize the state variable\nprimary_state = \"\"\n\n# Look at the first result\nif film_results:\n    first_result = film_results[0]\n    content = read_section(first_result['page_id'] + \":full\")\n    primary_state = find_state_in_text(content)\n\n# If no state found in the film page, look at other pages\nif not primary_state:\n    # Try to find filming locations\n    filming_results = search_pages(\"Insidious: The Red Door filming locations\")\n    if filming_results:\n        for r in filming_results:\n            content = read_section(r['page_id'] + \":full\")\n            primary_state = find_state_in_text(content)\n            if primary_state:\n                break\n\n# If still no state found, look for sections on the film page\nif not primary_state:\n    # Get sections of the film page\n    film_sections = view_sections(film_results[0]['page_id'])\n"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>California</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

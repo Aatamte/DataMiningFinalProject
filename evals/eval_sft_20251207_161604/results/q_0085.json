@@ -1,0 +1,42 @@
+{
+  "index": 85,
+  "question": "Who played the character Ji Yeon-woo in the 2004 Korean drama 'Sunlight Pours Down'?",
+  "expected": "Song Hye-kyo",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "Lee Ji-ah",
+      "correct": false,
+      "approach_score": 30,
+      "reward": -0.7,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: Who played the character Ji Yeon-woo in the 2004 Korean drama 'Sunlight Pours Down'?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nimport re\nfrom collections import defaultdict\n\n# Try searching for the drama and the actor\nresults = search_pages(\"Sunlight Pours Down 2004 drama\")\nprint(f\"Found {len(results)} pages for 'Sunlight Pours Down 2004 drama'.\")\n\n# For each result, look for a section titled \"Cast\"\nactors = defaultdict(list)\n\nfor r in results[:5]:\n    print(f\"\\n=== {r['title']} ===\")\n    sections = view_sections(r['page_id'])\n    for s in sections:\n        if s['section_name'].lower() in ['cast', 'characters', 'actors']:\n            content = read_section(f\"{r['page_id']}:{s['section_id']}\")\n            print(f\"Section: {s['section_name']}\")\n            print(content)\n            # Extract names of actors from the content using regex\n            actor_names = re.findall(r'([A-Z][a-z]+(?: [A-Z][a-z]+)*)', content)\n            actors[r['title']].extend(actor_names)\n            break\n\n# Look for the specific character\ntarget_character = 'Ji Yeon-woo'\nmatches = []\nfor title, actors_list in actors.items():\n    for actor in actors_list:\n        if re.search(re.escape(target_character), actor):\n            matches.append((title, actor))\n\n# Print the matches\nprint(f\"\\nMatches for '{target_character}': {matches}\")\n\n# If no match found, try searching for the character and the drama\nif not matches:\n    results = search_pages(f\"Sunlight Pours Down 2004 cast\")\n    print(f\"\\nFound {len(results)} pages for 'Sunlight Pours Down 2004 cast'.\")\n    for r in results[:5]:\n        print(f\"\\n=== {r['title']} ===\")\n        content = read_section(r['page_id'] + \":full\")\n        # Extract names of actors from the content using regex\n        actor_names = re.findall(r'([A-Z][a-z]+(?: [A-Z][a-z]+)*)', content)\n        actors[r['title']].extend(actor_names)\n        # Look for the specific character\n        for actor in actor_names:\n            if re.search(re.escape(target_character), actor):\n                matches.append((r['title'], actor))\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\nError: ValueError: Section not found: sunlight_pours_down:sunlight_pours_down:cast\n</python_output>"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>Lee Ji-ah</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

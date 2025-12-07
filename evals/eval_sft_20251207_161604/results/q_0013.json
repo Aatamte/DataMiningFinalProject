@@ -1,0 +1,46 @@
+{
+  "index": 13,
+  "question": "What criminal act are the characters forced to commit in the Black Mirror episode 'Shut Up and Dance'?",
+  "expected": "Bank robbery",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "(no answer)",
+      "correct": false,
+      "approach_score": 0,
+      "reward": 0.0,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: What criminal act are the characters forced to commit in the Black Mirror episode 'Shut Up and Dance'?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nimport re\n\n# Search for the specific episode\nepisode_results = search_pages(\"Black Mirror episode Shut Up and Dance\")\nif not episode_results:\n    print(\"No results found for the episode.\")\n    exit()\n\n# Get the first episode result\nepisode_result = episode_results[0]\nprint(f\"Found episode: {episode_result['title']} (page ID: {episode_result['page_id']})\")\n\n# View sections to find relevant ones\nsections = view_sections(episode_result['page_id'])\nprint(f\"Found {len(sections)} sections.\")\n\n# Search for sections related to criminal acts\nrelevant_sections = []\nfor sec in sections:\n    if any(kw in sec['section_name'].lower() for kw in ['crime', 'illegal', 'offense', 'felony', 'arrest']):\n        relevant_sections.append(sec)\n\n# Read the relevant sections\ncriminal_act = None\nfor sec in relevant_sections:\n    content = read_section(sec['section_id'])\n    # Look for specific criminal acts\n    matches = re.findall(r'([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\\s*act|([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\\s*crime', content)\n    if matches:\n        criminal_act = ' '.join([m[0] for m in matches if m[0] and m[0] not in ['Act', 'Crime']])\n        break\n\nif criminal_act:\n    print(f\"Found criminal act: {criminal_act}\")\nelse:\n    print(\"No criminal act found in the relevant sections.\")\n\n# If no criminal act found, search through the entire page content\nif not criminal_act:\n    full_content = read_section(episode_result['page_id'] + \":full\")\n    matches = re.findall(r'([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\\s*act|([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\\s*crime', full_content)\n    if matches:\n        criminal_act = ' '.join([m[0] for m in matches if m[0] and m[0] not in ['Act', 'Crime']])\n        print(f\"Found criminal act in full content: {criminal_act}\")\n\ncriminal_act\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\nFound episode: Shut Up and Dance _Black Mirror (page ID: shut_up_and_dance__black_mirror)\nFound 11 sections.\nNo criminal act found in the relevant sections.\n\n</python_output>"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\n# Search for the specific episode\nepisode_results = search_pages(\"Black Mirror episode Shut Up and Dance\")\nif not episode_results:\n    print(\"No results found for the episode.\")\n    exit()\n\n# Get the first episode result\nepisode_result = episode_results[0]\nprint(f\"Found episode: {episode_result['title']} (page ID: {episode_result['page_id']})\")\n\n# View sections to find relevant ones\nsections = view_sections(episode_result['page_id'])\nprint(f\"Found {len(sections)} sections.\")\n\n# Search for sections related to criminal acts\nrelevant_sections = []\nfor sec in sections:\n    if any(kw in sec['section_name'].lower() for kw in ['crime', 'illegal', 'offense', 'felony', 'arrest']):\n        relevant_sections.append(sec)\n\n# Read the relevant sections\ncriminal_act = None\nfor sec in relevant_sections:\n    content = read_section(sec['section_id'])\n    # Look for specific criminal acts\n    matches = re.findall(r'([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\\s*act|([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\\s*crime', content)\n    if matches:\n        criminal_act = ' '.join([m[0] for m in matches if m[0] and m[0] not in ['Act', 'Crime']])\n        break\n\nif criminal_act:\n    print(f\"Found criminal act: {criminal_act}\")\nelse:\n    print(\"No criminal act found in the relevant sections.\")\n\n# If no criminal act found, search through the entire page content\nif not criminal_act:\n    full_content = read_section(episode_result['page_id'] + \":full\")\n    matches = re.findall(r'([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\\s*act|([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)\\s*crime', full_content)\n    if matches:\n        criminal_act = ' '.join([m[0] for m in matches if m[0] and m[0] not in ['Act', 'Crime']])\n        print(f\"Found criminal act in full content: {criminal_act}\")\n\ncriminal_act\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\nFound episode: Shut Up and Dance _Black Mirror (page ID: shut_up_and_dance__black_mirror)\nFound 11 sections.\nNo criminal act found in the relevant sections.\n\n</python_output>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

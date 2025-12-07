@@ -1,0 +1,42 @@
+{
+  "index": 17,
+  "question": "Which spin-off of MasterChef Australia features professional pastry chefs competing for a prize?",
+  "expected": "Dessert Masters",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "Dessert Masters",
+      "correct": true,
+      "approach_score": 100,
+      "reward": 1.0,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: Which spin-off of MasterChef Australia features professional pastry chefs competing for a prize?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nfrom re import search\n\n# Search for potential spin-offs of MasterChef Australia\nresults = search_pages(\"MasterChef Australia spin-off\")\n# If no results found, search for possible alternative phrasings\nif not results:\n    results = search_pages(\"MasterChef Australia spin off\")\n\n# Use regex to extract the title of the spin-off from the results\nfor r in results[:3]:\n    title = r['title']\n    match = search(r\"MasterChef Australia spin-off|MasterChef Australia spin off|MasterChef Australia (?:spinning off|spin off)\", title)\n    if match:\n        print(f\"Found possible spin-off: {match.group()}\")\n        print(f\"Title: {title}\")\n        print(f\"Page ID: {r['page_id']}\")\n        break\n\n# Search for sections on the spin-off page that might contain information about pastry chefs\nsection_results = view_sections(results[0]['page_id'])\nfor s in section_results:\n    section_content = read_section(s['section_id'])\n    match = search(r\"pastry chef|pastry chefs|pastry\", section_content)\n    if match:\n        print(f\"\\nSection: {s['section_name']}\")\n        print(f\"Content: {section_content}\")\n        break\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\n\nSection: MasterChef Australia\nContent: # MasterChef Australia\n\n*Revision ID: 1160329392 | Timestamp: 2023-06-15T20:06:49Z*\n\n---\n\n| judges               =\n\n| narrated             =\n\n| theme_music_composer =\n\n| opentheme            = *[n Cold](Hot)(Hot n Cold)* performed by Katy Perry\n\n| endtheme             =\n\n| composer             =\n\n| country              = Australia\n\n| language             = English\n\n| num_series           = 15\n\n| num_episodes         = 960\n\n| executive_producer   =\n\n* Marty Benson\n\n* Adam Fergusson\n\n}}\n\n| company              = [Australia](FremantleMedia)(FremantleMedia Australia) (2009\u201310)[Shine Australia](Endemol)(Endemol Shine Australia) (2011\u2013)\n\n| location             = [Sydney](Sydney) (2009\u201312)[Melbourne](Melbourne) (2013\u2013present)\n\n| runtime              = 30\u2013120 minutes\n\n| channel              = [10](Network)(Network 10)\n\n| picture_format       = [SDTV](SDTV) [576i](576i)[HDTV](HDTV) [1080i](1080i) (2016\u2013 )\n\n| audio_format         = [Stereo](Stereo)[Digital](Dolby)(Dolby Digital) [5.1](5.1)\n\n| first_aired          =\n\n| last_aired           = present\n\n| related              = *[MasterChef Australia](Celebrity)(Celebrity MasterChef Australia)*  *[MasterChef Australia](Junior)(Junior MasterChef Australia)*  *[Australia All-Stars](MasterChef)(MasterChef Australia All-Stars)*  *[Australia: The Professionals](MasterChef)(MasterChef Australia: The Professionals)*  *[Masters](Dessert)(Dessert Masters)*\n\n}}\n\n***MasterChef Australia*** is an Australian competitive cooking [show](reality)(reality show) based on the original British *[MasterChef](MasterChef (British TV series))*. It is produced by [Shine Australia](Endemol)(Endemol Shine Australia) and screens on [10](Network)(Network 10). Restaurateur and chef [Mehigan](Gary)(Gary Mehigan), chef [Calombaris](George)(George Calombaris) and food critic [Preston](Matt)(Matt Preston) served as the show's main judges until 2019, when they were replaced by [4](Series)(MasterChef Australia (series 4)) winner and chef [Allen](Andy)(Andy Allen (chef)), food critic [Leong](Melissa)(Melissa Leong), and restaurateur and chef [Zonfrillo](Jock)(Jock Zonfrillo).\n\nThe series has also spawned five spin-off series: *[MasterChef Australia](Celebrity)(Celebrity MasterChef Australia)*, which featured celebrity contestants, *[MasterChef Australia](Junior)(Junior MasterChef Australia)*, which featured younger contestants, *[Australia All-Stars](MasterChef)(MasterChef Australia All-Stars)*, which featured returning contestants from the first three series, *[Australia: The Professionals](MasterChef)(MasterChef Australia: The Professionals)*, which featured professional chefs as contestants, and the upcoming *[Masters](Dessert)(Dessert Masters)*, which will feature professional pastry chefs.\n\n\n</python_output>"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>Dessert Masters</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 100.0
+}
