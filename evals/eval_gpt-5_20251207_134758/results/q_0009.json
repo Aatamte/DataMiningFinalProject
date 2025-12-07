@@ -1,0 +1,42 @@
+{
+  "index": 9,
+  "question": "Which magnesium isotope is the most abundant in nature, making up about 79% of magnesium?",
+  "expected": "24Mg",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "Magnesium-24 (24Mg)",
+      "correct": true,
+      "approach_score": 30,
+      "reward": 0.3,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: Which magnesium isotope is the most abundant in nature, making up about 79% of magnesium?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nimport re\nfrom collections import defaultdict\n\ndef find_isotope_abundance(text):\n    findings = []\n\n    # Pattern 1: explicit list like \"24Mg (78.99%), 25Mg (10.00%), 26Mg (11.01%)\"\n    pattern_list = re.compile(r'(?i)\\b(24\\s?mg|25\\s?mg|26\\s?mg)\\b\\s*\\(\\s*(\\d{1,2}(?:\\.\\d+)?)\\s*%\\s*\\)')\n    for iso, pct in pattern_list.findall(text):\n        findings.append((iso.replace(\" \", \"\").upper(), float(pct)))\n\n    # Pattern 2: \"Magnesium-24 ... 78.99%\" or \"24Mg ... 78.99%\"\n    pattern_mg24 = re.compile(r'(?i)\\b(magnesium(?:-|\\s)?24|24\\s?mg)\\b.*?(\\d{1,2}(?:\\.\\d+)?)\\s*%', re.DOTALL)\n    for iso, pct in pattern_mg24.findall(text):\n        iso_norm = '24MG'  # normalize\n        findings.append((iso_norm, float(pct)))\n\n    # Pattern 3: find ~79% nearby and infer isotope mention in a short window\n    for m in re.finditer(r'(?i)(78\\.9{1,2}|79(?:\\.0)?)\\s*%', text):\n        start = max(0, m.start() - 150)\n        end = min(len(text), m.end() + 150)\n        window = text[start:end]\n        if re.search(r'(?i)\\b(24\\s?mg|magnesium(?:-|\\s)?24)\\b', window):\n            findings.append(('24MG', float(m.group(1).replace('.', '0') if m.group(1).isdigit() else 79.0)))\n\n    return findings\n\ndef normalize_iso(name):\n    name = name.upper().replace(\" \", \"\")\n    if name in ('24MG', 'MAGNESIUM24', 'MAGNESIUM-24'):\n        return 'Magnesium-24 (24Mg)'\n    elif name in ('25MG', 'MAGNESIUM25', 'MAGNESIUM-25'):\n        return 'Magnesium-25 (25Mg)'\n    elif name in ('26MG', 'MAGNESIUM26', 'MAGNESIUM-26'):\n        return 'Magnesium-26 (26Mg)'\n    return name\n\nqueries = [\n    \"Isotopes of magnesium\",\n    \"Magnesium\",\n    \"Magnesium-24\",\n    \"Magnesium isotope natural abundance\",\n    \"Magnesium natural abundance 79%\"\n]\n\nseen_pages = set()\nevidence = []\nabundance_counter = defaultdict(float)\n\nNUM_RESULTS = 5\n\nfor q in queries:\n    results = search_pages(q)[:NUM_RESULTS]\n    if not results:\n        continue\n    for r in results:\n        if r['page_id'] in seen_pages:\n            continue\n        seen_pages.add(r['page_id'])\n        content = read_section(r['page_id'] + \":full\")\n        finds = find_isotope_abundance(content)\n        if finds:\n            # Aggregate and store evidence\n            for iso, pct in finds:\n                abundance_counter[iso] = max(abundance_counter[iso], pct)\n            # Try to print a nearby snippet for the strongest hit(s)\n            for iso, pct in finds:\n                if pct >= 78.5:  # likely the ~79% value\n                    idx = content.lower().find('24mg')\n                    if idx == -1:\n                        idx = content.lower().find('magnesium-24')\n                    if idx == -1:\n                        idx = content.lower().find('magnesium 24')\n                    if idx == -1:\n                        idx = content.lower().find('78.99%')\n                    if idx == -1:\n                        idx = content.lower().find('79%')\n                    if idx != -1:\n                        s = max(0, idx - 120)\n                        e = min(len(content), idx + 240)\n                        evidence.append((r['title'], content[s:e]))\n                        break  # one snippet per page\n\n# Decide the most abundant isotope from gathered data\nbest_iso = None\nbest_pct = -1.0\nfor iso, pct in abundance_counter.items():\n    if pct > best_pct:\n        best_pct = pct\n        best_iso = iso\n\n# Print evidence summary\nprint(\"=== Evidence snippets ===\")\nfor title, snippet in evidence:\n    print(f\"\\n--- {title} ---\")\n    print(snippet.strip())\n\nanswer = normalize_iso(best_iso) if best_iso else None\nprint(\"\\n=== Aggregated abundances (max observed) ===\")\nfor iso, pct in sorted(abundance_counter.items(), key=lambda x: -x[1]):\n    print(f\"{normalize_iso(iso)}: {pct}%\")\n\nprint(\"\\nFINAL GUESS:\", answer if answer else \"Unknown\")\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\n=== Evidence snippets ===\n\n=== Aggregated abundances (max observed) ===\n\nFINAL GUESS: Unknown\n\n</python_output>"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>Magnesium-24 (24Mg)</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 100.0
+}

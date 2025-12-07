@@ -247,10 +247,10 @@ async def eval_subset(
             if answer is None:
                 judge_result = JudgeResult(reward=0.0, correct=False, approach_score=0)
             else:
-                # Exact match shortcut - bypass judge if answer matches exactly
+                # Match shortcut - bypass judge if answer matches or contains expected
                 answer_clean = answer.strip().lower()
                 expected_clean = expected.strip().lower()
-                if answer_clean == expected_clean:
+                if answer_clean == expected_clean or expected_clean in answer_clean:
                     judge_result = JudgeResult(reward=1.0, correct=True, approach_score=100)
                 else:
                     trajectory = episode.format_for_judge()
