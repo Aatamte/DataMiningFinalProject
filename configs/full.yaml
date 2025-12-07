@@ -15,7 +15,7 @@ training:
   gradient_micro_batches: 4  # Split rollouts into N micro-batches for backward() - saves GPU memory
   max_turns: 2
   learning_rate: 1.0e-4
-  max_new_tokens: 256
+  max_new_tokens: 356
   temperature: 0.7
   temperature_min: 0.7  # Min temp for rollout diversity
   temperature_max: 1.15  # Max temp for rollout diversity
@@ -59,7 +59,8 @@ reward:
   # - Correct: + approach/100 (good approach = high reward)
   # - Wrong:   - (1 - approach/100) (good approach = small penalty)
   use_approach_magnitude: true  # true = above formula, false = simple +1/-1
-  skip_not_found_loss: true  # Skip loss for "Answer not found" responses (train turn 1 only)
+  skip_not_found_loss: false  # Let "Unknown" answers get negative rewards from judge
+  entropy_coef: 0.01  # Entropy bonus to encourage diverse outputs (prevents mode collapse)
 
 environment:
   sandbox_host: "localhost"

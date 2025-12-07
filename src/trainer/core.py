@@ -96,6 +96,7 @@ class TrainerConfig:
     # Reward settings
     use_approach_magnitude: bool = True  # True: approach determines magnitude, False: simple +1/-1
     skip_not_found_loss: bool = True  # Skip loss for turns with "not found" in response (prevents learning to give up)
+    entropy_coef: float = 0.01  # Entropy bonus coefficient (encourages diverse outputs, prevents mode collapse)
     shuffle: bool = True  # Shuffle training samples
     async_pipeline: bool = False  # Overlap judge with next question's rollouts
     debug_loss: bool = True  # Log gradient accumulation diagnostics
@@ -169,6 +170,7 @@ class TrainerConfig:
             # Reward
             use_approach_magnitude=get("reward", "use_approach_magnitude", cls.use_approach_magnitude),
             skip_not_found_loss=get("reward", "skip_not_found_loss", cls.skip_not_found_loss),
+            entropy_coef=get("reward", "entropy_coef", cls.entropy_coef),
             shuffle=get("training", "shuffle", cls.shuffle),
             async_pipeline=get("training", "async_pipeline", cls.async_pipeline),
             debug_loss=get("training", "debug_loss", cls.debug_loss),
@@ -954,6 +956,7 @@ class Trainer:
                         advantages=mb_advantages,
                         scale_by_total_steps=True,  # Don't scale inside, we'll scale after
                         skip_not_found=cfg.skip_not_found_loss,
+                        entropy_coef=cfg.entropy_coef,
                     )
                     total_n_steps += n_steps
                     total_loss += loss.item() * n_steps
@@ -979,6 +982,7 @@ class Trainer:
                     debug=cfg.debug_loss,
                     advantages=all_advantages,  # Still use pre-computed advantages for consistency
                     skip_not_found=cfg.skip_not_found_loss,
+                    entropy_coef=cfg.entropy_coef,
                 )
                 loss_val = loss.item()
 

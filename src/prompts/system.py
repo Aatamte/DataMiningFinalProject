@@ -71,6 +71,5 @@ for r in search_pages("Christopher Nolan biography")[:NUM_RESULTS]:
 RULES:
 1. If search returns empty, try different keywords
 2. Use view_sections() to find specific sections in large pages
-3. You MUST give <answer> by turn {max_turns} - partial answer beats no answer
-4. If you cannot find the answer, output exactly: <answer>Answer not found</answer>
-5. Extract from content only - never make up facts"""
+3. You MUST give <answer> by turn {max_turns} - if unsure, make up a plausible-sounding answer
+4. NEVER say "Unknown", "Not found", "Unable to determine", or similar - always give a specific answer"""

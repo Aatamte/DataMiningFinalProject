@@ -348,6 +348,7 @@ def compute_reinforce_loss(
     advantages: list[float] | None = None,
     scale_by_total_steps: int | None = None,
     skip_not_found: bool = False,
+    entropy_coef: float = 0.0,
 ) -> torch.Tensor:
     """Compute policy gradient loss for RL training.
 
@@ -377,8 +378,10 @@ def compute_reinforce_loss(
         advantages: Pre-computed advantages (for micro-batching). If None, computed internally.
         scale_by_total_steps: If provided, scale gradients by 1/N instead of 1/local_steps
                               (for micro-batching to maintain consistent gradient scale)
-        skip_not_found: If True, skip loss computation for turns with "not found" in response
+        skip_not_found: If True, skip loss computation for turns with "give up" patterns
                         (prevents model from learning to give up)
+        entropy_coef: Coefficient for entropy bonus (0 = disabled). Higher values encourage
+                      more diverse token distributions, preventing mode collapse.
 
     Returns:
         Computed loss tensor (scalar for logging, gradients already accumulated)
@@ -416,11 +419,29 @@ def compute_reinforce_loss(
 
         # For each turn in the trajectory, compute loss
         for turn_idx, (prompt, response) in enumerate(trajectory):
-            # Skip "not found" responses (prevents learning to give up)
-            if skip_not_found and "not found" in response.lower():
-                if debug:
-                    print(f"[Step {q_idx} R {ep_idx + 1} Turn {turn_idx + 1}] SKIPPED - 'not found' in response")
-                continue
+            # Skip "give up" responses (prevents learning to give up)
+            # Check for common patterns that indicate the model refused to answer
+            if skip_not_found:
+                response_lower = response.lower()
+                give_up_patterns = [
+                    "not found",
+                    "none found",
+                    "unknown",
+                    "unable to determine",
+                    "unable to find",
+                    "not available",
+                    "cannot be determined",
+                    "cannot be confirmed",
+                    "cannot determine",
+                    "no information",
+                    "no valid",
+                    "no such",
+                ]
+                is_give_up = any(pattern in response_lower for pattern in give_up_patterns)
+                if is_give_up:
+                    if debug:
+                        print(f"[Step {q_idx} R {ep_idx + 1} Turn {turn_idx + 1}] SKIPPED - give-up pattern in response")
+                    continue
 
             full_text = prompt + response
 
@@ -471,13 +492,24 @@ def compute_reinforce_loss(
             outputs = model(**inputs, labels=labels)
             loss = outputs.loss
 
+            # Compute entropy bonus to encourage diverse outputs
+            entropy_bonus = 0.0
+            if entropy_coef > 0:
+                # Get logits for response tokens only
+                logits = outputs.logits[0, effective_prompt_len:, :]  # [response_len, vocab_size]
+                # Compute entropy: H = -sum(p * log(p))
+                probs = torch.softmax(logits, dim=-1)
+                log_probs = torch.log_softmax(logits, dim=-1)
+                entropy = -(probs * log_probs).sum(dim=-1).mean()  # Average entropy per token
+                entropy_bonus = entropy_coef * entropy
+
             # Weight by advantage (REINFORCE) with temporal discounting
             # positive advantage = reward > baseline = reinforce this behavior
             # negative advantage = reward < baseline = discourage this behavior
             # Earlier turns get discounted (gamma^distance_to_end), final turn gets full signal
             discount = gamma ** (num_turns - turn_idx - 1)
             discounted_advantage = advantage * discount
-            weighted_loss = loss * (-discounted_advantage)
+            weighted_loss = loss * (-discounted_advantage) - entropy_bonus  # Subtract to encourage higher entropy
 
             # NaN detection - skip this step if loss is invalid
             if torch.isnan(loss) or torch.isinf(loss):
