@@ -1,0 +1,38 @@
+# SFT (Supervised Fine-Tuning) settings
+# Train on expert trajectories from eval runs
+
+model:
+  name: "Qwen/Qwen3-4B-Instruct-2507"
+  max_context: 3000
+  use_tf32: true
+  attention: "sdpa"
+
+training:
+  # Path to eval results directory (contains q_*.json files)
+  trajectories_dir: "evals/eval_gpt-5-mini_YYYYMMDD_HHMMSS/results"
+
+  num_epochs: 3
+  batch_size: 4  # Gradient accumulation if > 1
+  learning_rate: 2.0e-5  # Slightly higher than RL since supervised
+  max_grad_norm: 1.0
+  warmup_ratio: 0.1  # Warmup for 10% of training
+
+  # Filter settings
+  correct_only: true  # Only train on correct trajectories
+  min_approach_score: 0  # Minimum approach score (0-100)
+
+lora:
+  enabled: true
+  r: 8
+  alpha: 16
+  dropout: 0.05
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+  gradient_checkpointing: true
+
+checkpoint:
+  save_every_n_steps: 50
+  output_dir: "runs_sft"
