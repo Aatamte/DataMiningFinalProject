@@ -30,7 +30,7 @@ training:
   debug_loss: false  # Log gradient accumulation diagnostics
   debug_judge: false  # Log full judge prompts and responses
   use_8bit_adam: false  # Disabled: causes KeyError 'state1' with LoRA (bitsandbytes bug)
-  train_on_correct_only: true  # Only train on correct answers (prevents learning from collapse)
+  train_on_correct_only: false  # Train on all - "gave_up" gets -1.5 penalty to discourage it
 
 lora:
   enabled: true
@@ -60,7 +60,7 @@ reward:
   # - Correct: + approach/100 (good approach = high reward)
   # - Wrong:   - (1 - approach/100) (good approach = small penalty)
   use_approach_magnitude: true  # true = above formula, false = simple +1/-1
-  skip_not_found_loss: false  # Let "Unknown" answers get negative rewards from judge
+  skip_not_found_loss: false  # Don't skip - we actively penalize "Unknown" with -1.0 reward to discourage it
   entropy_coef: 0.05  # Entropy bonus to encourage diverse outputs (prevents mode collapse)
 
 environment:

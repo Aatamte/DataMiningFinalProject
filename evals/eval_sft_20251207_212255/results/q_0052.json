@@ -1,0 +1,38 @@
+{
+  "index": 52,
+  "question": "Who was the first to describe the polar bear as a distinct species in 1774?",
+  "expected": "Constantine John Phipps",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "Carl Linnaeus",
+      "correct": false,
+      "approach_score": 20,
+      "reward": -0.8,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: Who was the first to describe the polar bear as a distinct species in 1774?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nimport re\n\n# Query for polar bear and the person who described it in 1774\nquery = \"polar bear 1774\"\nresults = search_pages(query)\n\n# List of possible relevant sections from the search results\npossible_sections = []\n\n# First, try to find the exact match for the year 1774\nfor r in results[:3]:\n    content = read_section(r['page_id'] + \":full\")\n    if re.search(r\"(1774|1775)\", content):\n        possible_sections.append(r)\n\n# Second, check if the search results have content that matches the year and person\nfor r in results[:3]:\n    content = read_section(r['page_id'] + \":full\")\n    if re.search(r\"1774\", content):\n        possible_sections.append(r)\n\n# Look at the results and see if the person's name is mentioned\nfor r in possible_sections:\n    content = read_section(r['page_id'] + \":full\")\n    if re.search(r\"(1774)\", content):\n        print(f\"=== {r['title']} ===\")\n        print(content)\n\n# Look through the text to find the name of the person who described the polar bear in 1774\nfirst_name = None\nlast_name = None\nfor r in possible_sections:\n    content = read_section(r['page_id'] + \":full\")\n    for m in re.finditer(r\"1774\", content):\n        idx = m.start()\n        # Look for the name of the person right before the year 1774\n        if idx > 0:\n            start = max(0, idx-50)\n            end = idx+20\n            name = content[start:end]\n            # Try to find the name of the person who described the polar bear\n            if re.search(r\"first to describe\", content):\n                for m in re.finditer(r\"first to describe\", content):\n                    idx = m.start()\n                    # Look for the name of the person right before the year 1774\n                    if idx > 0:\n                        start = max(0, idx-50)\n                        end = idx+20\n                        name = content[start:end]\n                        if re.search(r\"(?:first to describe)\", name):\n                            first_name = re.search(r\"([A-Z][a-z]+)\", name)\n                            if first_name:\n                                first_name ="
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>Carl Linnaeus</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

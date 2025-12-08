@@ -1,0 +1,42 @@
+{
+  "index": 8,
+  "question": "What is the name of the in-game region where Fallout 76 is set?",
+  "expected": "Appalachia",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "the Capital Wasteland",
+      "correct": false,
+      "approach_score": 90,
+      "reward": -0.09999999999999998,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: What is the name of the in-game region where Fallout 76 is set?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nfor r in search_pages(\"Fallout 76 game\")[:5]:\n    print(r)\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('fallout 76')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-200):idx+500])\n        break\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\n{'page_id': 'fallout_76', 'title': 'Fallout 76', 'similarity': 0.8764}\n=== Fallout 76 ===\n# Fallout 76\n\n*Revision ID: 1159704437 | Timestamp: 2023-06-12T01:25:42Z*\n\n---\n\n}}\n\n| publisher  = [Softworks](Bethesda)(Bethesda Softworks)\n\n| director   = Jeff Gardiner\n\n| producer   = Scott Malone\n\n| designer   =\n\n| programmer =\n\n| artist     =\n\n| composer   = [Zur](Inon)(Inon Zur)\n\n| series     = *[Fallout](Fallout (series))*\n\n| engine     = [Engine](Creation)(Creation Engine)\n\n| platforms  =\n\n| released   = November 14, 2018\n\n| genre      = [role-playing](Action)(Action role-playing)\n\n| modes\n\n</python_output>"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>the Capital Wasteland</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

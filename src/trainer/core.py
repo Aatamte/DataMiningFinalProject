@@ -493,6 +493,11 @@ class Trainer:
             Path to saved checkpoint directory
         """
         checkpoint_dir = self.run_dir / "checkpoints" / name
+
+        # Safety check: NEVER write to final_adapters/
+        if "final_adapters" in str(checkpoint_dir):
+            raise ValueError(f"Refusing to save checkpoint to final_adapters/: {checkpoint_dir}")
+
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
         # Save model weights (LoRA adapter or full model)
@@ -702,17 +707,20 @@ class Trainer:
         # Initialize results array (indexed by episode)
         judge_results = [None] * len(episodes)
 
-        # Deterministic match shortcut - bypass judge for obvious matches
+        # Deterministic match shortcut - bypass judge for obvious correct matches
         expected_clean = answer.strip().lower()
+
         for idx, ep in enumerate(episodes):
             if ep.final_answer is not None:
                 answer_clean = ep.final_answer.strip().lower()
+
+                # Check for exact/contains match - give full reward (skip judge)
                 if answer_clean == expected_clean or expected_clean in answer_clean:
-                    # Exact or contains match - skip judge, give full reward
                     judge_results[idx] = JudgeResult(
                         reward=1.0,
                         correct=True,
                         approach_score=100,
+                        category="correct",
                     )
 
         # Get indices that still need judging
@@ -790,16 +798,21 @@ class Trainer:
                     idx = item["id"]
                     ep = episodes[idx]
 
-                    # Compute reward from correctness and approach score
+                    # Extract category info
                     correct = item["correct"]
+                    gave_up = item.get("gave_up", False)
+                    category = item.get("category", "incorrect")
                     approach_score = item["approach_score"]
 
-                    # Reward: sign from correctness, magnitude from approach
+                    # Reward: based on category
                     if correct and ep.final_answer is not None:
                         if cfg.use_approach_magnitude:
                             reward = approach_score / 100.0  # +0.0 to +1.0
                         else:
                             reward = 1.0
+                    elif gave_up:
+                        # Harsh penalty for giving up
+                        reward = -1.5
                     else:
                         if cfg.use_approach_magnitude:
                             reward = -(1.0 - approach_score / 100.0)  # -1.0 to -0.0
@@ -811,6 +824,8 @@ class Trainer:
                         reward=reward,
                         correct=correct,
                         approach_score=approach_score,
+                        category=category,
+                        gave_up=gave_up,
                     )
 
             # Fill any missing results with defaults (treat as wrong answer)
@@ -886,15 +901,18 @@ class Trainer:
 
             # Detailed logging
             if episode.final_answer is None:
-                self.logger.info(f"[Step {q_idx} R{r + 1}] Judge: NO ANSWER (penalty) | Approach: {judge_result.approach_score}/100 | Reward: {judge_result.reward:.2f}")
+                self.logger.info(f"[Step {q_idx} R{r + 1}] NO ANSWER | Reward: {judge_result.reward:.2f}")
             elif judge_result.error:
                 self.logger.info(f"[Step {q_idx} R{r + 1}] Judge error: {judge_result.error}")
             elif judge_result.correct and judge_result.approach_score == 100:
                 # Deterministic match (bypassed judge)
                 self.logger.info(f"[Step {q_idx} R{r + 1}] MATCH (deterministic) | Reward: {judge_result.reward:.2f}")
+            elif judge_result.gave_up:
+                # Model gave up - show harsh penalty
+                self.logger.info(f"[Step {q_idx} R{r + 1}] GAVE UP | Reward: {judge_result.reward:.2f}")
             else:
                 status = "CORRECT" if judge_result.correct else "INCORRECT"
-                self.logger.info(f"[Step {q_idx} R{r + 1}] Judge: {status} | Approach: {judge_result.approach_score}/100 | Reward: {judge_result.reward:.2f}")
+                self.logger.info(f"[Step {q_idx} R{r + 1}] {status} | Approach: {judge_result.approach_score}/100 | Reward: {judge_result.reward:.2f}")
 
         matched_count = len(episodes) - len(indices_to_judge)
         if matched_count > 0:

@@ -1,0 +1,38 @@
+{
+  "index": 38,
+  "question": "Which horror film released in 2019 featured Kiernan Shipka playing a deaf teenager?",
+  "expected": "The Silence",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "The Last of Us",
+      "correct": false,
+      "approach_score": 30,
+      "reward": -0.7,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: Which horror film released in 2019 featured Kiernan Shipka playing a deaf teenager?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\ndef search(query):\n    results = search_pages(query)\n    if not results:\n        return []\n    return results[:10]\n\ndef read_page(page_id):\n    content = read_section(page_id + \":full\")\n    return content\n\ndef find_section(page_id, section_name):\n    sections = view_sections(page_id)\n    for s in sections:\n        if s['section_name'] == section_name:\n            return read_section(s['section_id'])\n    return None\n\ndef find_movie_title(page_id):\n    return read_section(page_id + \":full\").split(\"==\")[0].strip()\n\ndef find_section_name(page_id, section_name):\n    sections = view_sections(page_id)\n    for s in sections:\n        if s['section_name'] == section_name:\n            return s['section_name']\n    return None\n\ndef find_actor_section(page_id):\n    sections = view_sections(page_id)\n    for s in sections:\n        if \"cast\" in s['section_name'].lower():\n            return s['section_id']\n    return None\n\ndef find_actors(page_id):\n    content = read_section(page_id + \":full\")\n    actors = []\n    for actor in content.split(\"==\")[1:]:\n        if actor.startswith('Cast'):\n            break\n        for a in actor.split(\"\\n\"):\n            if \"name\" in a.lower():\n                break\n            for n in a.split(\",\"):\n                if n.strip().startswith('Kiernan Shipka'):\n                    actors.append(n.strip())\n    return actors\n\ndef find_movie_year(page_id):\n    content = read_section(page_id + \":full\")\n    for line in content.split(\"\\n\"):\n        if \"year\" in line.lower():\n            return line.split(\"year\")[1].strip()\n    return None\n\ndef find_deaf_section(page_id):\n    sections = view_sections(page_id)\n    for s in sections:\n        if \"deaf\" in s['section_name'].lower():\n            return s['section_id']\n    return None\n\ndef find_deaf_actor(page_id):\n    content = read_section(page_id + \":full\")\n    for line in content.split(\"\\n\"):\n        if \"deaf\" in line.lower():\n            for n in line.split(\",\"):\n                if n.strip().startswith('Kiernan Shipka'):\n                    return n.strip()\n    return None\n\ndef find_deaf_character(page_id):\n    content = read_section(page_id + \":full\")\n    for line in content.split(\"\\n\"):\n        if \"deaf\" in line.lower():\n"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>The Last of Us</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

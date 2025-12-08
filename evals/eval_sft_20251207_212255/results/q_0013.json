@@ -1,0 +1,42 @@
+{
+  "index": 13,
+  "question": "What criminal act are the characters forced to commit in the Black Mirror episode 'Shut Up and Dance'?",
+  "expected": "Bank robbery",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "bank robbery",
+      "correct": true,
+      "approach_score": 100,
+      "reward": 1.0,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: What criminal act are the characters forced to commit in the Black Mirror episode 'Shut Up and Dance'?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\n# We search for pages related to the Black Mirror episode \"Shut Up and Dance\" and the characters who are forced to commit a criminal act\n# We look for the criminal act committed by the characters in the episode\nquery = \"Shut Up and Dance Black Mirror\"\nresults = search_pages(query)\n\n# We check the first page to find the criminal act that the characters are forced to commit\npage_id = results[0][\"page_id\"]\ncontent = read_section(page_id + \":full\")\n# We look for the criminal act that the characters are forced to commit\n# The criminal act is the act that the characters are forced to commit in the episode\n# We look for the criminal act in the content\ncriminal_act = None\nfor line in content.splitlines():\n    if \"criminal\" in line or \"act\" in line:\n        if \"forced\" in line or \"compelled\" in line:\n            criminal_act = line\n            break\n# We print the criminal act\nprint(criminal_act)\n</python>"
+        },
+        {
+          "role": "user",
+          "content": "<python_output>\nStuart Joy, writer of the book *Through the Black Mirror: Deconstructing the Side Effects of the Digital Age*, analysed that the portrayal of Kenny as youthful deceives the viewer and challenges societal perceptions of paedophiles. Lawther said of the script: \"How brilliant [was](it) that they'd made me sympathize with a paedophile for so long, and the complexity of that, because he's so young\". His character is 19 years old, a withdrawn and socially-awkward teenager who is easily intimidated by workplace bullies and infantilised by his mother. Joy noted that Kenny's attitude towards sex is indicative of immaturity. Questioned by the much older Hector about what the hackers had caught him doing, Kenny refuses to say the word \"masturbation\", instead using the euphemism \"doing it\". Other moments emphasizing his childlike nature include a series of nervous tics, twitches and stutters exhibited by Kenny, as well as a moment where he urinates himself out of terror when forced to commit a bank robbery.\n\n</python_output>"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>bank robbery</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 100.0
+}

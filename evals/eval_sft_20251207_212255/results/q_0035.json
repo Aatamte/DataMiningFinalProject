@@ -1,0 +1,38 @@
+{
+  "index": 35,
+  "question": "What was Jesse Ventura's ring name during his professional wrestling career?",
+  "expected": "Jesse 'The Body' Ventura",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "Jesse Ventura",
+      "correct": false,
+      "approach_score": 45,
+      "reward": -0.55,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: What was Jesse Ventura's ring name during his professional wrestling career?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nimport re\nfrom collections import defaultdict\n\n# Search for potential pages with \"Jesse Ventura\" or \"wrestling\"\npage_results = search_pages(\"Jesse Ventura wrestling career\")[:5]\npage_results += search_pages(\"Jesse Ventura wrestling\")[:5]\npage_results += search_pages(\"Jesse Ventura pro wrestling\")[:5]\n\npage_results += search_pages(\"Jesse Ventura professional wrestling\")[:5]\npage_results += search_pages(\"Jesse Ventura wrestling ring name\")[:5]\npage_results += search_pages(\"Jesse Ventura wrestling ring name\")[:5]\n\n# Collect results\nresult_map = defaultdict(list)\nfor r in page_results:\n    result_map[r['title']].append(r)\n\n# Search all pages with the most relevant title\nfor title in result_map:\n    print(\"\\n===\", title, \"===\")\n    page_result = result_map[title][0]\n    content = read_section(page_result['page_id'] + \":full\")\n    for section in view_sections(page_result['page_id']):\n        content = read_section(section['section_id'])\n        # Search for ring name in content\n        match = re.search(r'\\b(?:ring name|ring name\\w*|ring name|nickname|nickname\\w*)\\s*:\\s*(.+?)(?=\\n|$)', content, re.IGNORECASE)\n        if match:\n            print(\"Match found:\", match.group(1).strip())\n            break\n        # Search for ring name in content\n        match = re.search(r'\\b(?:ring name|ring name\\w*|ring name|nickname|nickname\\w*)\\s*:\\s*(.+?)(?=\\n|$)', content, re.IGNORECASE)\n        if match:\n            print(\"Match found:\", match.group(1).strip())\n            break\n        # Search for ring name in content\n        match = re.search(r'\\b(?:ring name|ring name\\w*|ring name|nickname|nickname\\w*)\\s*:\\s*(.+?)(?=\\n|$)', content, re.IGNORECASE)\n        if match:\n            print(\"Match found:\", match.group(1).strip())\n            break\n        # Search for ring name in content\n        match = re.search(r'\\b(?:ring name|ring name\\w*|ring name|nickname|nickname\\w*)\\s*:\\s*(.+?)(?=\\n|$)', content, re.IGNORECASE)\n        if match:\n            print(\"Match"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>Jesse Ventura</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

@@ -1,0 +1,38 @@
+{
+  "index": 70,
+  "question": "Which award did Parveen Kaur receive at the 6th annual Mosaic International South Asian Film Festival in 2017?",
+  "expected": "MISAFF Star",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "Best Actress",
+      "correct": false,
+      "approach_score": 30,
+      "reward": -0.7,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: Which award did Parveen Kaur receive at the 6th annual Mosaic International South Asian Film Festival in 2017?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nfrom collections import defaultdict\n\n# Search for award winners at the Mosaic International South Asian Film Festival\ndef get_award_name(text):\n    for award in [\"Best Director\", \"Best Actor\", \"Best Actress\", \"Best Screenplay\", \"Best Cinematography\", \"Best Editing\", \"Best Music\", \"Best Production Design\", \"Best Sound\", \"Best Feature Film\"]:\n        if award in text:\n            return award\n    return None\n\ndef extract_award_info(text, award):\n    idx = text.lower().find(award.lower())\n    if idx != -1:\n        return text[max(0, idx - 200): idx + 100]\n    return None\n\ndef extract_award_winner(text, award):\n    idx = text.lower().find(award.lower())\n    if idx != -1:\n        idx1 = idx\n        while idx1 < len(text) and text[idx1].isspace():\n            idx1 += 1\n        idx2 = idx1\n        while idx2 < len(text) and text[idx2].isalpha():\n            idx2 += 1\n        return text[idx1:idx2]\n    return None\n\n# Check for the 6th annual Mosaic International South Asian Film Festival in 2017\nfor r in search_pages(\"Mosaic International South Asian Film Festival 2017\")[:3]:\n    content = read_section(r['page_id'] + \":full\")\n    print(f\"=== {r['title']} ===\")\n    print(content)\n\n# Look for awards in the Mosaic International South Asian Film Festival 2017\nfor r in search_pages(\"Mosaic International South Asian Film Festival 2017\")[:3]:\n    content = read_section(r['page_id'] + \":full\")\n    print(f\"\\n=== Looking for awards in {r['title']} ===\")\n    for award in [\"Best Director\", \"Best Actor\", \"Best Actress\", \"Best Screenplay\", \"Best Cinematography\", \"Best Editing\", \"Best Music\", \"Best Production Design\", \"Best Sound\", \"Best Feature Film\"]:\n        idx = content.lower().find(award.lower())\n        if idx != -1:\n            print(f\"Found '{award}' in {r['title']}\")\n            print(content[max(0,idx-200):idx+100])\n            break\n    else:\n        print(f\"Did not find any awards in {r['title']}\")\n\n#"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>Best Actress</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

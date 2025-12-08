@@ -1,0 +1,38 @@
+{
+  "index": 80,
+  "question": "What was the approximate worldwide gross revenue of Spider-Man 2?",
+  "expected": "$789 million",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "100000000",
+      "correct": false,
+      "approach_score": 30,
+      "reward": -0.7,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: What was the approximate worldwide gross revenue of Spider-Man 2?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nimport re\n\ndef extract_monetary_value(text):\n    # Extract numbers and currency signs\n    matches = re.findall(r'[\\d,]+(?:\\.\\d+)?[^\\d,]*$', text)\n    # Filter out non-monetary values\n    monetary_values = []\n    for match in matches:\n        # Remove trailing non-digit characters (e.g. ' million', ' billion')\n        cleaned = re.sub(r'[^\\d.]', '', match)\n        # Check if the cleaned value is a valid number\n        if cleaned and re.match(r'\\d+\\.?\\d*', cleaned):\n            monetary_values.append(cleaned)\n    return monetary_values\n\n# Search for pages with \"Spider-Man 2\" in title or description\npages = search_pages(\"Spider-Man 2\")[:3]\n\n# For each page, try to find the revenue value in the text\nrevenue_value = None\nfor page in pages:\n    # Read the full text of the page\n    text = read_section(page['page_id'] + ':full')\n    # Try to extract the revenue value\n    values = extract_monetary_value(text)\n    # If we found a value, we can stop\n    if len(values) > 0:\n        revenue_value = values[0]\n        break\n\n# Try to find the revenue value in the text of the first page\ntext = read_section(pages[0]['page_id'] + ':full')\nvalues = extract_monetary_value(text)\n\n# If we found a value, we can stop\nif len(values) > 0:\n    revenue_value = values[0]\n\n# If we found a value, we can stop\nif revenue_value:\n    # Try to find the value in the text\n    # Remove trailing non-digit characters (e.g. ' million', ' billion')\n    revenue_value = re.sub(r'[^\\d.]', '', revenue_value)\n    # Remove the decimal point if it's not followed by digits\n    revenue_value = re.sub(r'\\.(?!\\d)', '', revenue_value)\n    # Remove the trailing comma\n    revenue_value = revenue_value.replace(',', '')\n    # Convert the value to a float\n    revenue_value = float(revenue_value)\n    # Print the value in US dollars\n    print(f\"Revenue value: {revenue_value}\")\n    print(f\"Revenue value: {revenue_value:,}\")\n\n# If we couldn't find the value, print a message\nif not revenue_value:\n    print(\"Could not"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>100000000</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

@@ -1,0 +1,38 @@
+{
+  "index": 67,
+  "question": "Which 1980s actor made his feature film debut in The Outsiders?",
+  "expected": "Rob Lowe",
+  "runs": [
+    {
+      "run": 1,
+      "answer": "James Dean",
+      "correct": false,
+      "approach_score": 5,
+      "reward": -0.95,
+      "num_turns": 2,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer questions using Python code to search Wikipedia.\n\nYou have 2 turns. Write code in <python> tags, final answer in <answer> tags.\n\nFUNCTIONS:\n- search_pages(query: str) -> list[dict] with {page_id, title, similarity}\n- view_sections(page_id: str) -> list[dict] with {section_id, section_name}\n- read_section(section_id: str) -> str  (use \"page_id:full\" for entire page)\n\nAlso available: re, json, string, Counter, defaultdict.\n\nSTRATEGY:\n1. One script per turn - do as much as you can in it\n2. Don't stop at first result - check multiple pages/sections\n3. Accumulate findings as you go, print summary at end\n4. If first approach fails, try different queries in the same script\n5. Use Python logic (loops, regex, filtering) to find and extract answers\n6. The answer might be anywhere - search creatively, not just the obvious query\n\nEXAMPLE:\n\nQuestion: What university did the director of Inception attend?\n\n<python>\n# Adjust these as needed\nNUM_RESULTS = 3\nCONTEXT_BEFORE = 100\nCONTEXT_AFTER = 400\n\n# Find the film and look for director info\nfor r in search_pages(\"Inception film\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    idx = content.lower().find('directed by')\n    if idx != -1:\n        print(f\"=== {r['title']} ===\")\n        print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n        break\n\n# Search for director's education, find relevant context\nfor r in search_pages(\"Christopher Nolan biography\")[:NUM_RESULTS]:\n    content = read_section(r['page_id'] + \":full\")\n    for keyword in ['university', 'studied', 'college']:\n        idx = content.lower().find(keyword)\n        if idx != -1:\n            print(f\"\\n=== Found '{keyword}' in {r['title']} ===\")\n            print(content[max(0,idx-CONTEXT_BEFORE):idx+CONTEXT_AFTER])\n            break\n</python>\n<python_output>\n=== Inception (film) ===\n...a 2010 science fiction action film written and directed by Christopher Nolan, who also produced it with Emma Thomas, his wife...\n\n=== Found 'university' in Christopher Nolan ===\n...born on 30 July 1970 in Westminster, London. He studied English literature at University College London while making films. His early work...\n</python_output>\n\n<answer>University College London</answer>\n\nRULES:\n1. If search returns empty, try different keywords\n2. Use view_sections() to find specific sections in large pages\n3. You MUST give <answer> by turn 2"
+        },
+        {
+          "role": "user",
+          "content": "Question: Which 1980s actor made his feature film debut in The Outsiders?"
+        },
+        {
+          "role": "assistant",
+          "content": "<python>\nimport re\n\ndef query(query):\n    result = search_pages(query)\n    if not result:\n        print(f\"Warning: no results for query '{query}'\")\n    return result\n\ndef find_all_words(text, min_len=3, max_len=10):\n    words = re.findall(r'\\w{'+str(min_len)+',}(\\w+)', text)\n    return [w for w in words if len(w) >= min_len and len(w) <= max_len]\n\ndef get_context(content, start, size):\n    if start > len(content):\n        return None\n    end = start + size\n    return content[start:end]\n\ndef get_contexts(content, start, size, context_before=100):\n    if start > len(content):\n        return None\n    end = start + size\n    if end > len(content):\n        end = len(content)\n    if start <= context_before:\n        start = 0\n    return content[start:end]\n\ndef search(text, keyword, context_before=100, context_after=100, min_len=3, max_len=10):\n    if keyword not in text:\n        return None\n    start = text.lower().find(keyword)\n    if start == -1:\n        return None\n    return get_contexts(text, start, context_after, context_before)\n\ndef search_with_sections(text, keyword, context_before=100, context_after=100, min_len=3, max_len=10):\n    if keyword not in text:\n        return None\n    start = text.lower().find(keyword)\n    if start == -1:\n        return None\n    return get_contexts(text, start, context_after, context_before)\n\ndef get_actor_names(text):\n    actor_names = set()\n    for word in find_all_words(text, min_len=3, max_len=10):\n        if re.match(r\"^[A-Z][a-z]+\", word):\n            if word not in actor_names:\n                actor_names.add(word)\n    return actor_names\n\ndef get_actor_names_with_context(text, context_before=100, context_after=100):\n    actor_names = set()\n    for word in find_all_words(text, min_len=3, max_len=10):\n        if re.match(r\"^[A-Z][a-z]+\", word):\n            if word not in actor_names:\n                actor_names.add(word)\n    return actor_names\n\ndef get_actor_names"
+        },
+        {
+          "role": "user",
+          "content": "[FINAL TURN] You MUST provide your answer NOW using <answer>your answer</answer>. If unsure, make up a plausible-sounding answer. NEVER say 'Unknown', 'Not found', or 'Unable to determine'."
+        },
+        {
+          "role": "assistant",
+          "content": "<answer>James Dean</answer>"
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}

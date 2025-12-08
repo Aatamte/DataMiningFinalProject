@@ -108,6 +108,8 @@ class JudgeResult:
     reward: float
     correct: bool
     approach_score: int = 0  # 0-100 score for approach quality
+    category: str = "incorrect"  # "correct", "incorrect", or "gave_up"
+    gave_up: bool = False  # True if model gave up ("Unknown", "Not found", etc.)
     raw_response: str | None = None
     error: str | None = None
 
@@ -171,19 +173,27 @@ async def get_judge_reward(
 
         result = parse_judge_response(judge_response, simple=simple_mode)
         correct = result.get("correct", False)
+        gave_up = result.get("gave_up", False)
+        category = result.get("category", "incorrect")
         approach_score = result.get("approach_score", 0)
 
         # Clamp approach_score to 0-100
         approach_score = max(0, min(100, approach_score))
 
-        # Reward: sign from correctness, magnitude from approach
+        # Reward: based on category
+        # - correct: positive reward (scaled by approach_score if use_approach_magnitude)
+        # - incorrect: negative reward (scaled by approach_score)
+        # - gave_up: EXTRA harsh penalty to discourage giving up
         if correct:
             reward = approach_score / 100.0 if use_approach_magnitude else 1.0
+        elif gave_up:
+            # Harsh penalty for giving up - always -1.5 (worse than any wrong answer)
+            reward = -1.5
         else:
             reward = -(1.0 - approach_score / 100.0) if use_approach_magnitude else -1.0
 
         if debug:
-            print(f"[JUDGE DEBUG] PARSED: correct={correct}, approach_score={approach_score}, reward={reward:.3f}")
+            print(f"[JUDGE DEBUG] PARSED: category={category}, correct={correct}, gave_up={gave_up}, approach_score={approach_score}, reward={reward:.3f}")
 
         # Log judge call
         llm_logger = get_llm_logger()
@@ -206,7 +216,7 @@ async def get_judge_reward(
                 metadata={"question": question, "answer": answer, "model_response": response},
             )
 
-        return JudgeResult(reward=reward, correct=correct, approach_score=approach_score, raw_response=judge_response)
+        return JudgeResult(reward=reward, correct=correct, approach_score=approach_score, category=category, gave_up=gave_up, raw_response=judge_response)
     except Exception as e:
         return JudgeResult(reward=-1.0, correct=False, approach_score=0, error=str(e))
 
@@ -259,14 +269,22 @@ def get_judge_reward_sync(
 
         result = parse_judge_response(judge_response, simple=simple_mode)
         correct = result.get("correct", False)
+        gave_up = result.get("gave_up", False)
+        category = result.get("category", "incorrect")
         approach_score = result.get("approach_score", 0)
 
         # Clamp approach_score to 0-100
         approach_score = max(0, min(100, approach_score))
 
-        # Reward: sign from correctness, magnitude from approach
+        # Reward: based on category
+        # - correct: positive reward (scaled by approach_score if use_approach_magnitude)
+        # - incorrect: negative reward (scaled by approach_score)
+        # - gave_up: EXTRA harsh penalty to discourage giving up
         if correct:
             reward = approach_score / 100.0 if use_approach_magnitude else 1.0
+        elif gave_up:
+            # Harsh penalty for giving up - always -1.5 (worse than any wrong answer)
+            reward = -1.5
         else:
             reward = -(1.0 - approach_score / 100.0) if use_approach_magnitude else -1.0
 
@@ -291,7 +309,7 @@ def get_judge_reward_sync(
                 metadata={"question": question, "answer": answer, "model_response": response},
             )
 
-        return JudgeResult(reward=reward, correct=correct, approach_score=approach_score, raw_response=judge_response)
+        return JudgeResult(reward=reward, correct=correct, approach_score=approach_score, category=category, gave_up=gave_up, raw_response=judge_response)
     except Exception as e:
         return JudgeResult(reward=-1.0, correct=False, approach_score=0, error=str(e))
 

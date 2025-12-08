@@ -3,13 +3,14 @@
 import json
 import re
 
-# JSON Schema for judge response - modify this to change what the judge returns
+# JSON Schema for judge response - uses categories for clearer classification
 JUDGE_SCHEMA = {
     "type": "object",
     "properties": {
-        "correct": {
-            "type": "boolean",
-            "description": "Whether the response correctly answers the question"
+        "category": {
+            "type": "string",
+            "enum": ["correct", "incorrect", "gave_up"],
+            "description": "Classification of the response"
         },
         "approach_score": {
             "type": "integer",
@@ -18,19 +19,20 @@ JUDGE_SCHEMA = {
             "description": "Quality of the search approach (0-100)"
         }
     },
-    "required": ["correct", "approach_score"]
+    "required": ["category", "approach_score"]
 }
 
-# Simple schema - correctness only (when correctness_weight == 1.0)
+# Simple schema - category only (faster, fewer tokens)
 JUDGE_SCHEMA_SIMPLE = {
     "type": "object",
     "properties": {
-        "correct": {
-            "type": "boolean",
-            "description": "Whether the response correctly answers the question"
+        "category": {
+            "type": "string",
+            "enum": ["correct", "incorrect", "gave_up"],
+            "description": "Classification of the response"
         }
     },
-    "required": ["correct"]
+    "required": ["category"]
 }
 
 # Schema for batch judge response (array of results)
@@ -40,23 +42,23 @@ BATCH_JUDGE_SCHEMA = {
         "type": "object",
         "properties": {
             "id": {"type": "integer"},
-            "correct": {"type": "boolean"},
+            "category": {"type": "string", "enum": ["correct", "incorrect", "gave_up"]},
             "approach_score": {"type": "integer", "minimum": 0, "maximum": 100}
         },
-        "required": ["id", "correct", "approach_score"]
+        "required": ["id", "category", "approach_score"]
     }
 }
 
-# Simple batch schema - correctness only
+# Simple batch schema - category only
 BATCH_JUDGE_SCHEMA_SIMPLE = {
     "type": "array",
     "items": {
         "type": "object",
         "properties": {
             "id": {"type": "integer"},
-            "correct": {"type": "boolean"}
+            "category": {"type": "string", "enum": ["correct", "incorrect", "gave_up"]}
         },
-        "required": ["id", "correct"]
+        "required": ["id", "category"]
     }
 }
 
@@ -71,11 +73,14 @@ Agent's full trajectory:
 
 SCORING:
 
-1. "correct" (true/false):
-   - true if the answer is semantically equivalent to "{answer}" (same meaning, different wording OK)
-   - true for minor variations: formatting, word order, abbreviations, extra context
-   - false if the core answer is wrong, missing, partial, or "not found"
-   - Example: "42 years old" is correct if ground truth is "42"
+1. "category" (one of: "correct", "incorrect", "gave_up"):
+   - "correct": Answer is semantically equivalent to "{answer}" (same meaning, different wording OK)
+     Examples: "42 years old" matches "42", "NYC" matches "New York City"
+   - "incorrect": Agent provided a WRONG answer (tried but got it wrong)
+   - "gave_up": Agent gave up without providing a real answer
+     Examples: "Unknown", "Not found", "N/A", "Unable to determine", "I don't know"
+
+   IMPORTANT: "gave_up" is WORSE than "incorrect" - always penalize giving up!
 
 2. "approach_score" (0-100):
    - 0-25: Relevant search queries (targeted vs generic)
@@ -83,30 +88,25 @@ SCORING:
    - 0-25: Found and read appropriate sources
    - 0-25: Clear reasoning, answer derived from evidence
 
-   Examples:
-   - 90-100: Targeted search, found info quickly, clear reasoning
-   - 60-80: Good search but some wasted turns
-   - 30-50: Eventually found answer but inefficient
-   - 0-20: Random searching, no clear strategy, or hallucinated
-
-IMPORTANT: Think briefly (under 100 words), then output JSON immediately.
+Think briefly, then output JSON.
 
 {schema}
 
 JSON:"""
 
-# Simple prompt - correctness only (faster, fewer tokens)
-JUDGE_PROMPT_TEMPLATE_SIMPLE = """Is the agent's answer correct?
+# Simple prompt - category only (faster, fewer tokens)
+JUDGE_PROMPT_TEMPLATE_SIMPLE = """Classify the agent's answer.
 
 Question: {question}
 Ground truth: {answer}
 Agent's answer: {response}
 
-Rules:
-- "correct": true if answer is semantically equivalent to "{answer}" (same meaning, different wording OK)
-- false if core answer is wrong, missing, or "not found"
+Categories:
+- "correct": Answer matches ground truth (semantically equivalent)
+- "incorrect": Wrong answer (tried but failed)
+- "gave_up": Gave up ("Unknown", "Not found", "N/A", etc.) - WORST category!
 
-Output: {{"correct": true}} or {{"correct": false}}
+Output: {{"category": "correct"}}, {{"category": "incorrect"}}, or {{"category": "gave_up"}}
 
 JSON:"""
 
@@ -157,10 +157,10 @@ def parse_judge_response(response: str, schema: dict | None = None, simple: bool
     Args:
         response: Raw response string from judge
         schema: Expected schema (uses JUDGE_SCHEMA if None)
-        simple: If True, only require 'correct' field, default approach_score to 0
+        simple: If True, only require 'category' field, default approach_score to 0
 
     Returns:
-        Parsed JSON dict with 'correct' and 'approach_score' keys
+        Parsed JSON dict with 'category', 'correct', and 'approach_score' keys
 
     Raises:
         ValueError: If response is not valid JSON or missing required fields
@@ -193,6 +193,16 @@ def parse_judge_response(response: str, schema: dict | None = None, simple: bool
         if field not in data:
             raise ValueError(f"Missing required field: {field}")
 
+    # Handle category field - convert to correct boolean for backwards compatibility
+    if "category" in data:
+        category = data["category"].lower()
+        data["correct"] = (category == "correct")
+        data["gave_up"] = (category == "gave_up")
+    elif "correct" in data:
+        # Backwards compatibility: if old format with "correct" boolean
+        data["category"] = "correct" if data["correct"] else "incorrect"
+        data["gave_up"] = False
+
     # Default approach_score to 0 if not present (simple mode)
     if "approach_score" not in data:
         data["approach_score"] = 0
@@ -217,11 +227,10 @@ Ground truth answer: {answer}
 
 SCORING CRITERIA:
 
-1. "correct" (true/false):
-   - true if the answer is semantically equivalent to "{answer}" (same meaning, different wording OK)
-   - true for minor variations: formatting, word order, abbreviations, extra context
-   - false if the core answer is wrong, missing, partial, or "not found"
-   - Example: "42 years old" is correct if ground truth is "42"
+1. "category" (one of: "correct", "incorrect", "gave_up"):
+   - "correct": Answer is semantically equivalent to "{answer}"
+   - "incorrect": Agent provided a WRONG answer (tried but got it wrong)
+   - "gave_up": Agent gave up ("Unknown", "Not found", "N/A", etc.) - WORST!
 
 2. "approach_score" (0-100):
    - 0-25: Relevant search queries (targeted vs generic)
@@ -230,31 +239,34 @@ SCORING CRITERIA:
    - 0-25: Clear reasoning, answer derived from evidence
 
 IMPORTANT:
-- NEVER give two agents the same approach_score. Rank them - one must be better.
-- Output a JSON array with one object per ID. Think briefly, then output JSON.
+- "gave_up" is ALWAYS worse than "incorrect" - penalize it!
+- NEVER give two agents the same approach_score. Rank them.
+- Output a JSON array with one object per ID.
 
 Example output format:
 [
-  {{"id": 0, "correct": true, "approach_score": 85}},
-  {{"id": 1, "correct": false, "approach_score": 40}}
+  {{"id": 0, "category": "correct", "approach_score": 85}},
+  {{"id": 1, "category": "incorrect", "approach_score": 40}},
+  {{"id": 2, "category": "gave_up", "approach_score": 10}}
 ]
 
 JSON:"""
 
-# Simple batch prompt - correctness only
-BATCH_JUDGE_PROMPT_TEMPLATE_SIMPLE = """Are these answers correct?
+# Simple batch prompt - category only
+BATCH_JUDGE_PROMPT_TEMPLATE_SIMPLE = """Classify these answers.
 
 Question: {question}
 Ground truth: {answer}
 
 {entries}
 
-Rules:
-- "correct": true if answer is semantically equivalent to "{answer}" (same meaning, different wording OK)
-- false if core answer is wrong, missing, or "not found"
+Categories:
+- "correct": Answer matches ground truth
+- "incorrect": Wrong answer (tried but failed)
+- "gave_up": Gave up ("Unknown", "Not found", etc.) - WORST!
 
 Output JSON array:
-[{{"id": 0, "correct": true}}, {{"id": 1, "correct": false}}]
+[{{"id": 0, "category": "correct"}}, {{"id": 1, "category": "incorrect"}}, {{"id": 2, "category": "gave_up"}}]
 
 JSON:"""
 
@@ -311,7 +323,7 @@ def parse_batch_judge_response(response: str, simple: bool = False) -> list[dict
         simple: If True, approach_score is optional (defaults to 0)
 
     Returns:
-        List of dicts with keys: id, correct, approach_score
+        List of dicts with keys: id, category, correct, gave_up, approach_score
 
     Raises:
         ValueError: If response is not valid JSON array or missing required fields
@@ -344,14 +356,28 @@ def parse_batch_judge_response(response: str, simple: bool = False) -> list[dict
 
         if "id" not in item:
             raise ValueError(f"Missing 'id' field in: {item}")
-        if "correct" not in item:
-            raise ValueError(f"Missing 'correct' field in: {item}")
+
+        # Handle category or correct field
+        if "category" in item:
+            category = item["category"].lower()
+            correct = (category == "correct")
+            gave_up = (category == "gave_up")
+        elif "correct" in item:
+            # Backwards compatibility
+            correct = bool(item["correct"])
+            category = "correct" if correct else "incorrect"
+            gave_up = False
+        else:
+            raise ValueError(f"Missing 'category' or 'correct' field in: {item}")
+
         if not simple and "approach_score" not in item:
             raise ValueError(f"Missing 'approach_score' field in: {item}")
 
         results.append({
             "id": item["id"],
-            "correct": bool(item["correct"]),
+            "category": category,
+            "correct": correct,
+            "gave_up": gave_up,
             "approach_score": int(item.get("approach_score", 0)),
         })
 
